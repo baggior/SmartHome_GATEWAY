@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "*.ino": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "*.tcc": "cpp",
+        "typeinfo": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp",
+        "istream": "cpp",
+        "utility": "cpp"
+    }
+}

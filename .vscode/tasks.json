@@ -1,0 +1,26 @@
+{
+    "tasks": [
+        {
+            "type": "PlatformIO",
+            "args": [
+                "run"
+            ],
+            "problemMatcher": [
+                "$platformio"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "PlatformIO",
+            "args": [
+                "upgrade"
+            ],
+            "problemMatcher": [
+                "$platformio"
+            ]
+        }
+    ]
+}
