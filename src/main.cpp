@@ -68,6 +68,11 @@ void loop() {
     String CMD_response = rs485.process(CMD_received);
     DPRINTLN("..processed rs485 sent [" + CMD_received +"] received [" + CMD_response +"]");
 
+    if(CMD_response.length()>0)
+    {
+        wifiTelnetServer.process(CMD_response);
+    }
+
     DPRINTLN("main loop done");
 
     delay(100);

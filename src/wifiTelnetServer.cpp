@@ -112,7 +112,7 @@ bool WifiTelnetServer::process(const String& s_msg)
         //SEND
         if(s_msg.length()>0)
         {
-            telnetClient.flush();  //??
+            //telnetClient.flush();  //??
             telnetClient.println(s_msg);
 
             // echo to debugstream            

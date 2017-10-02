@@ -21,7 +21,7 @@ Rs485::Rs485()
   this->dbgstream=&Serial;
 }
 
-void Rs485::setup(Stream& dbgstream)
+void Rs485::setup(Stream& dbgstream, String prefix, bool appendLRC)
 {
     swSer.begin(UART_BAUD, UART_STOP_BITS, UART_PARITY, UART_DATA_BITS);
     swSer.enableRx(true);
@@ -31,6 +31,8 @@ void Rs485::setup(Stream& dbgstream)
     // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
 
     this->dbgstream=&dbgstream;
+    this->prefix=prefix;
+    this->appendLRC = appendLRC;
 }
 
 
@@ -82,7 +84,9 @@ String Rs485::process(String& CMD)
     
     dbgstream->println("cmd= "+CMD+", LRC="+LRC);
       
-    String packet = String(":") + CMD + LRC;
+    String packet = String(prefix);
+    packet += CMD;
+    if(appendLRC) packet += LRC;
     
     // digitalWrite(RS485_REDE_CONTROL, RS485_Tx);
     // delay(10);
@@ -93,7 +97,7 @@ String Rs485::process(String& CMD)
     // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
   
     dbgstream->print("RS485 SENT: [");dbgstream->print(packet);dbgstream->println("]");
-    delay(200);
+    delay(10);
   }
   
 
@@ -101,10 +105,10 @@ String Rs485::process(String& CMD)
   
   while (swSer.available() > 0) {
     RESPONSE += swSer.readString();    
+    delay(1);
   } 
   RESPONSE.trim();
   dbgstream->println("RS485 READ: ["+RESPONSE+"]");    
-
 
   return RESPONSE;
   //valore atteso :020302000CED

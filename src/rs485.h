@@ -9,12 +9,13 @@ class Rs485
 
     Stream * dbgstream;
     ConfigurableSoftwareSerial swSer;
-   
+    bool appendLRC=false;
+    String prefix="";
 
 public:
     Rs485();
 
-    void setup(Stream &serial);
+    void setup(Stream &dbgstream, String prefix="", bool appendLRC=false);
     String process(String& CMD);    
 
     static String calculateLRC(String CMD);
