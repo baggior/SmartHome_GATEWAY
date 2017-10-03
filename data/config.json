@@ -25,6 +25,13 @@
         "inactivetime": 300
     },
     "websocket": {
-        "enable":true        
+        "enable" : true,
+        "home_server_host" :  "echo.websocket.org",
+        "home_server_port" :  "80",
+        "home_server_url"  :  null,
+        "home_server_auth" : {
+            "username": null,
+            "password": null
+        }        
     }
 }

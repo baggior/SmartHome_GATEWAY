@@ -6,6 +6,7 @@
 #include "wifiRestServer.h"
 #include "wifiTelnetServer.h"
 #include "rs485.h"
+#include "WebSocket.h"
 
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
@@ -21,6 +22,7 @@ WifiRestServer restServer;
 WifiTelnetServer wifiTelnetServer;
 CliCommands clicommands;
 Rs485 rs485;
+WebSocket webSocket;
 
 
 void setup() {
@@ -42,6 +44,7 @@ void setup() {
     restServer.setup(Serial);
     wifiTelnetServer.setup(Serial);    
     rs485.setup(Serial);
+    webSocket.setup(Serial);
     
     DPRINTLN("main seup done");
 }
@@ -74,13 +77,16 @@ void loop() {
     if(CMD_response.length()>0)
     {
         wifiTelnetServer.process(CMD_response);
+        DPRINTLN("..processed Telnet response [" + CMD_response + "]");
     }
 
+    webSocket.process();
+    DPRINTLN("..processed webSocket");
+
+
     DPRINTLN("main loop done");
-
-    delay(100);
+    
     digitalWrite(BUILTIN_LED, HIGH);    // turn the LED off 
-
 
     delay(5000);
 }
