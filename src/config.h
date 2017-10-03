@@ -11,7 +11,7 @@
 class Config
 {
     DynamicJsonBuffer jsonBuffer;
-    String configJsonString;
+    JsonVariant jsonObject;
 
 public:
     
@@ -19,8 +19,8 @@ public:
     ~Config() ;
     void load();
     void persist();
-    inline String& getJsonString() {return configJsonString;}
-    JsonObject& getJsonRoot() ;
+    
+    inline JsonObject& getJsonRoot() {return jsonObject;} 
     void print(Stream& stream) ;
 };
 

@@ -21,18 +21,34 @@ Rs485::Rs485()
   this->dbgstream=&Serial;
 }
 
-void Rs485::setup(Stream& dbgstream, String prefix, bool appendLRC)
+void Rs485::setup(Stream& dbgstream)
 {
-    swSer.begin(UART_BAUD, UART_STOP_BITS, UART_PARITY, UART_DATA_BITS);
+    JsonObject & root = config.getJsonRoot();   
+
+    this->appendLRC =  root["rs485"]["appendLRC"];
+    const char* _prefix = root["rs485"]["prefix"];
+    int _baud = root["rs485"]["baud"];
+    int _databits = root["rs485"]["databits"];    
+    int _stopbits = root["rs485"]["stopbits"];    
+    char _parity = root["rs485"]["parity"];    
+
+    DPRINTF("prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s,  \n", 
+      _prefix, this->appendLRC, _baud, _databits, _stopbits, _parity);
+
+    this->dbgstream=&dbgstream;
+    if(_prefix) this->prefix=prefix;    
+  
+    if(!_baud) _baud=UART_BAUD;
+    if(!_databits) _databits=UART_DATA_BITS;
+    if(!_stopbits) _stopbits=UART_STOP_BITS;
+    if(!_parity) _parity= UART_PARITY;
+
+    swSer.begin(_baud, _stopbits, _parity, _databits);
     swSer.enableRx(true);
     swSer.setTransmitEnablePin(RS485_REDE_CONTROL);
     
     // pinMode(RS485_REDE_CONTROL, OUTPUT);
     // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
-
-    this->dbgstream=&dbgstream;
-    this->prefix=prefix;
-    this->appendLRC = appendLRC;
 }
 
 
@@ -80,13 +96,15 @@ String Rs485::process(String& CMD)
   if(CMD.length()>0)
   {
     //String cmd="020300CA0001";   //":020300CA000130"
-    String LRC = calculateLRC( CMD );
-    
-    dbgstream->println("cmd= "+CMD+", LRC="+LRC);
       
     String packet = String(prefix);
     packet += CMD;
-    if(appendLRC) packet += LRC;
+
+    if(appendLRC) 
+    {
+      String LRC = calculateLRC( CMD );
+      packet += LRC;
+    }
     
     // digitalWrite(RS485_REDE_CONTROL, RS485_Tx);
     // delay(10);

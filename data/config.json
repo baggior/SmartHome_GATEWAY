@@ -12,6 +12,10 @@
         "outputPower": 20.5 //max: +20.5dBm  min: 0dBm
 	},
 	"rs485": {
+        "baud": 19200,
+        "databits": 7,
+        "stopbits": 2,
+        "parity": "N",
 		"prefix": ":",
 		"appendLRC": false
     },

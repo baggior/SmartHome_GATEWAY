@@ -15,7 +15,7 @@ class Rs485
 public:
     Rs485();
 
-    void setup(Stream &dbgstream, String prefix="", bool appendLRC=false);
+    void setup(Stream &dbgstream);
     String process(String& CMD);    
 
     static String calculateLRC(String CMD);
