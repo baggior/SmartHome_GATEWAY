@@ -2,7 +2,14 @@
 	"wifi": {
 		"SSID": null,
 		"password": null,
-		"hostName": "sh_rs485_gtw"
+        "hostname": "SHGw",
+        "static_ip": null,
+        "static_gw": null,
+        "static_sn": null,
+        "connectionTimeout": 15,
+        "captivePortalTimeout": 300,
+        "minimumSignalQuality": null,
+        "outputPower": 20.5 //max: +20.5dBm  min: 0dBm
 	},
 	"rs485": {
 		"prefix": ":",

@@ -25,17 +25,16 @@ Rs485 rs485;
 
 void setup() {
     // put your setup code here, to run once:    
+    Serial.flush();
+    Serial.begin(9600);
+    Serial.println();
+    DPRINTLN("main setup start");
 
     pinMode(BUILTIN_LED, OUTPUT);     
     digitalWrite(BUILTIN_LED, LOW); //LED ON
 
-    config.load();
-
-    Serial.begin(9600);
-    DPRINTLN("main setup start");
-    
-    config.print(Serial);
-    
+    config.load();   
+   
     wifiManagerOpenConnection(Serial);
 
     digitalWrite(BUILTIN_LED, HIGH); //LED OFF           

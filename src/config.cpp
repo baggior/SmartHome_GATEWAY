@@ -18,7 +18,10 @@ void Config::load()
 {
     ArduinoUtil au;    
     configJsonString = au.readTextFile(CONFIG_FILE_PATH);  
-    DPRINTF("config file: %s",configJsonString.c_str());    
+    DPRINTF("config file: %s \n",CONFIG_FILE_PATH);   
+    #ifdef DEBUG_OUTPUT
+    print(DEBUG_OUTPUT);
+    #endif
 }
 
 
@@ -34,7 +37,7 @@ void Config::persist()
 
 void Config::print(Stream& stream) 
 {
-    stream.println("Config:");
+    stream.println("Configuration: ");
     getJsonRoot().prettyPrintTo(stream);
     stream.println();
 }

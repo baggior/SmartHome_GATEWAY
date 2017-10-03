@@ -12,7 +12,7 @@ class WifiTelnetServer
        
     String lastCommandReceived;
 
-    int MAX_TIME_INACTIVE;
+    int MAX_TIME_INACTIVE; //in millis
     int port;
     bool enable;
 

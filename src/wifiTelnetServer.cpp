@@ -3,21 +3,26 @@
 #include <ESP8266WiFi.h>
 #include "wifiTelnetServer.h"
 
-#define MAX_TIME_INACTIVE_DEFAULT 60000 //1 minuto
+#define MAX_TIME_INACTIVE_DEFAULT 10*60*1000 //10 minuti (in millis)
 #define TELNET_LISTEN_PORT_DEFAULT 23
 
 WifiTelnetServer::WifiTelnetServer()
-    : server(TELNET_LISTEN_PORT_DEFAULT), dbgstream(NULL)
+    : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),
+    server(port), dbgstream(NULL)
 {
 }
 
 void WifiTelnetServer::setup(Stream &serial)
 {
-    JsonObject & root =config.getJsonRoot();
-    
+    JsonObject & root = config.getJsonRoot();    
     enable = root["telnet"]["enable"];
-    port = root["telnet"]["port"];
-    MAX_TIME_INACTIVE = root["telnet"]["inactivetime"];
+    int _port = root["telnet"]["port"];
+    int _MAX_TIME_INACTIVE = root["telnet"]["inactivetime"];    
+    DPRINTF("enable: %d, port: %d, MAX_TIME_INACTIVE: %d \n", 
+        enable, _port, _MAX_TIME_INACTIVE);
+    
+    if(_port) port=_port;
+    if(_MAX_TIME_INACTIVE) MAX_TIME_INACTIVE=_MAX_TIME_INACTIVE;
 
     dbgstream = &serial;
 
