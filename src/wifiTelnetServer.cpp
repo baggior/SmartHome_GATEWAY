@@ -3,25 +3,37 @@
 #include <ESP8266WiFi.h>
 #include "wifiTelnetServer.h"
 
-#define MAX_TIME_INACTIVE 60000 //1 minuto
-#define TELNET_LISTEN_PORT 23
+#define MAX_TIME_INACTIVE_DEFAULT 60000 //1 minuto
+#define TELNET_LISTEN_PORT_DEFAULT 23
 
 WifiTelnetServer::WifiTelnetServer()
-    : server(TELNET_LISTEN_PORT), dbgstream(NULL)
+    : server(TELNET_LISTEN_PORT_DEFAULT), dbgstream(NULL)
 {
 }
 
 void WifiTelnetServer::setup(Stream &serial)
 {
-    dbgstream = &serial;
-    server.begin();
-    server.setNoDelay(true);
+    JsonObject & root =config.getJsonRoot();
+    
+    enable = root["telnet"]["enable"];
+    port = root["telnet"]["port"];
+    MAX_TIME_INACTIVE = root["telnet"]["inactivetime"];
 
-    // Print the IP address
-    serial.print("Server telnet started on IP:");
-    serial.print(WiFi.localIP());
-    serial.print(" port: ");
-    serial.println(TELNET_LISTEN_PORT);
+    dbgstream = &serial;
+
+    server.stop();
+    if(enable)
+    {
+        server = WiFiServer(port);
+        server.begin();
+        server.setNoDelay(true);
+    
+        // Print the IP address
+        serial.print("Server telnet started on IP:");
+        serial.print(WiFi.localIP());
+        serial.print(" port: ");
+        serial.println(port);
+    }
 }
 
 WiFiClient WifiTelnetServer::getClient()
@@ -90,48 +102,49 @@ bool WifiTelnetServer::process(const String& s_msg)
 {
     bool ret=false;
 
-    manageNewConnections();
-    if(telnetClient && telnetClient.connected())
-    {        
-        //RECEIVE
-        while (telnetClient.available())
-        {
-            _lastTimeCommand = millis();
-            
-            String r_cmd = telnetClient.readString();
-            if(r_cmd.length()>0)
+    if(enable)
+    {
+        manageNewConnections();
+        if(telnetClient && telnetClient.connected())
+        {        
+            //RECEIVE
+            while (telnetClient.available())
             {
-                lastCommandReceived = r_cmd;
-                ret = true;
+                _lastTimeCommand = millis();
+                
+                String r_cmd = telnetClient.readString();
+                if(r_cmd.length()>0)
+                {
+                    lastCommandReceived = r_cmd;
+                    ret = true;
+                }
+                
+                // echo to debugstream            
+                dbgstream->println("Telnet IN <- " + r_cmd);
             }
+    
+            //SEND
+            if(s_msg.length()>0)
+            {
+                //telnetClient.flush();  //??
+                telnetClient.println(s_msg);
+    
+                // echo to debugstream            
+                dbgstream->println("Telnet OUT -> " + s_msg);
+            }
+    
             
-            // echo to debugstream            
-            dbgstream->println("Telnet IN <- " + r_cmd);
-        }
-
-        //SEND
-        if(s_msg.length()>0)
-        {
-            //telnetClient.flush();  //??
-            telnetClient.println(s_msg);
-
-            // echo to debugstream            
-            dbgstream->println("Telnet OUT -> " + s_msg);
-        }
-
-        
-        // Inactivit - close connection if not received commands from user in telnet
-        // For reduce overheads
-        if ((millis() - _lastTimeCommand) > MAX_TIME_INACTIVE) {
-            String ip = telnetClient.remoteIP().toString();
-            dbgstream->println("Telnet Client Stop by inactivity ip: "+ ip);
-            telnetClient.println("* Closing session by inactivity");
-            telnetClient.stop();          
-            
+            // Inactivit - close connection if not received commands from user in telnet
+            // For reduce overheads
+            if ((millis() - _lastTimeCommand) > MAX_TIME_INACTIVE) {
+                String ip = telnetClient.remoteIP().toString();
+                dbgstream->println("Telnet Client Stop by inactivity ip: "+ ip);
+                telnetClient.println("* Closing session by inactivity");
+                telnetClient.stop();          
+                
+            }
         }
     }
-
-    delay(10);
 
     return ret;
 }

@@ -1,0 +1,19 @@
+{
+	"wifi": {
+		"SSID": null,
+		"password": null,
+		"hostName": "sh_rs485_gtw"
+	},
+	"rs485": {
+		"prefix": ":",
+		"appendLRC": false
+    },
+    "telnet": {
+        "enable" : false,
+        "port": 23,
+        "inactivetime": 300
+    },
+    "websocket": {
+        "enable":true        
+    }
+}

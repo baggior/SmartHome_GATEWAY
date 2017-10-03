@@ -9,9 +9,12 @@ class WifiTelnetServer
     WiFiServer server;
     Stream * dbgstream;
     WiFiClient telnetClient;
-
-    
+       
     String lastCommandReceived;
+
+    int MAX_TIME_INACTIVE;
+    int port;
+    bool enable;
 
 public:
     WifiTelnetServer();

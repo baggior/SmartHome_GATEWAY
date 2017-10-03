@@ -16,7 +16,7 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_OUTPUT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_PORT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
 
-
+Config config;
 WifiRestServer restServer;
 WifiTelnetServer wifiTelnetServer;
 CliCommands clicommands;
@@ -26,12 +26,16 @@ Rs485 rs485;
 void setup() {
     // put your setup code here, to run once:    
 
-    Serial.begin(9600);
-    DPRINTLN("main setup start");
-    
     pinMode(BUILTIN_LED, OUTPUT);     
     digitalWrite(BUILTIN_LED, LOW); //LED ON
 
+    config.load();
+
+    Serial.begin(9600);
+    DPRINTLN("main setup start");
+    
+    config.print(Serial);
+    
     wifiManagerOpenConnection(Serial);
 
     digitalWrite(BUILTIN_LED, HIGH); //LED OFF           
