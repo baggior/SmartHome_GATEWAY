@@ -18,7 +18,7 @@ void WifiTelnetServer::setup(Stream &serial)
     enable = root["telnet"]["enable"];
     int _port = root["telnet"]["port"];
     int _MAX_TIME_INACTIVE = root["telnet"]["inactivetime"];    
-    DPRINTF("enable: %d, port: %d, MAX_TIME_INACTIVE: %d \n", 
+    DPRINTF(">Telnet Server SETUP: enable: %d, port: %d, MAX_TIME_INACTIVE: %d \n", 
         enable, _port, _MAX_TIME_INACTIVE);
     
     if(_port) port=_port;
@@ -102,10 +102,25 @@ void WifiTelnetServer::manageNewConnections()
     }
 }
 
+void WifiTelnetServer::send(const String& s_msg)
+{    
+    //SEND
+    if(enable && s_msg.length()>0)
+    {
+        if(telnetClient && telnetClient.connected())
+        {                    
+            //telnetClient.flush();  //??
+            telnetClient.println(s_msg);
 
-bool WifiTelnetServer::process(const String& s_msg)
-{
-    bool ret=false;
+            // echo to debugstream            
+            dbgstream->println("Telnet OUT -> " + s_msg);
+        }
+    }
+}
+
+String WifiTelnetServer::process()
+{   
+    String ret;
 
     if(enable)
     {
@@ -120,25 +135,14 @@ bool WifiTelnetServer::process(const String& s_msg)
                 String r_cmd = telnetClient.readString();
                 if(r_cmd.length()>0)
                 {
-                    lastCommandReceived = r_cmd;
-                    ret = true;
+                    
+                    ret = lastCommandReceived = r_cmd;
                 }
                 
                 // echo to debugstream            
                 dbgstream->println("Telnet IN <- " + r_cmd);
             }
-    
-            //SEND
-            if(s_msg.length()>0)
-            {
-                //telnetClient.flush();  //??
-                telnetClient.println(s_msg);
-    
-                // echo to debugstream            
-                dbgstream->println("Telnet OUT -> " + s_msg);
-            }
-    
-            
+                
             // Inactivit - close connection if not received commands from user in telnet
             // For reduce overheads
             if ((millis() - _lastTimeCommand) > MAX_TIME_INACTIVE) {
@@ -159,20 +163,9 @@ void WifiTelnetServer::showHelp()
 {
     String help ="";
     help.concat("******************************************************\r\n");  
-    help.concat("**ESP8266 GATEWAY Telnet Server "); 
-    #ifdef SW_VERSION
-        help.concat("- version: "); help.concat(SW_VERSION); 
-    #endif
-    #ifdef MY_DEBUG
-        help.concat(" DEBUG ON "); 
-        #ifdef DEBUG_OUTPUT
-            help.concat(" Port: "+ String(VALUE_TO_STRING(DEBUG_OUTPUT))); 
-        #endif
-    #endif
-    help.concat("\r\n");
-    help.concat("ESP8266 Chip ID: " + String(ESP.getChipId()) +"\r\n");
-    help.concat("* IP:");  help.concat(WiFi.localIP().toString());  help.concat(" Mac address:"); help.concat(WiFi.macAddress()); help.concat("\r\n");
-    help.concat("* Free Heap RAM: "); help.concat(ESP.getFreeHeap()); help.concat("\r\n");
+    help.concat("* ESP8266 GATEWAY Telnet Server ");     
+    String info = Config::getDeviceInfoString("\r\n");
+    help.concat(info);
     help.concat("******************************************************\r\n");  
     telnetClient.println(help);
 

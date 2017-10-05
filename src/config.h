@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+// #include <EspSaveCrash.h>
+
 #include <ArduinoJson.h>
 
 #include <pragmautils.h>
@@ -21,7 +23,10 @@ public:
     void persist();
     
     inline JsonObject& getJsonRoot() {return jsonObject;} 
-    void print(Stream& stream) ;
+    void printConfigFileTo(Stream& stream) ;
+    
+    static inline String getSoftwareVersion() { return SW_VERSION; }
+    static String getDeviceInfoString(const char* crlf="\n");
 };
 
 

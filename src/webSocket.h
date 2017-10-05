@@ -2,21 +2,21 @@
 #ifndef websocket_h
 #define websocket_h
 
-#include <WebSocketsClient.h>
+#include <WebSocketsServer.h>
 
 
 class WebSocket
 {
 
     Stream * dbgstream;
-    WebSocketsClient webSocketsClient;
+    WebSocketsServer webSocketsServer;
     
     bool enable;
-
-    void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) ;
+    
+    void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) ;
 
 public:
-    WebSocket() {}
+    WebSocket();
 
     void setup(Stream &dbgstream);
     void process();

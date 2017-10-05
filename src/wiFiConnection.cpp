@@ -13,15 +13,15 @@ void wifiManagerOpenConnection(Stream& serial)
     const char* static_ip = root["wifi"]["static_ip"];
     const char* static_gw = root["wifi"]["static_gw"];
     const char* static_sn = root["wifi"]["static_sn"];
-    DPRINTF("hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s \n", 
-        hostname, static_ip, static_gw,static_sn);
-
+    
     int connectionTimeout = root["wifi"]["connectionTimeout"];
     int captivePortalTimeout = root["wifi"]["captivePortalTimeout"];
     int minimumSignalQuality = root["wifi"]["minimumSignalQuality"];
     float outputPower = root["wifi"]["outputPower"];
     char buff[20];
-    DPRINTF("connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
+
+    DPRINTF(">WiFI Manager SETUP: hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
+        hostname, static_ip, static_gw,static_sn,
         connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
        
     // Connect to WiFi
@@ -51,6 +51,7 @@ void wifiManagerOpenConnection(Stream& serial)
                 IPAddress ip1,ip2,ip3;                 
                 if(ip1.fromString(static_ip))
                 {
+                    ip2.fromString(static_gw); ip3.fromString(static_sn);
                     wifiManager.setSTAStaticIPConfig(ip1, ip2, ip3);
                 }
             }
@@ -64,8 +65,9 @@ void wifiManagerOpenConnection(Stream& serial)
             if(!connected)
             {
                 // Reset
-                delay(3000);        
-                ESP.reset();        
+                delay(3000);    
+                serial.flush();    
+                ESP.restart();        
                 delay(5000);
             }
             
@@ -76,6 +78,7 @@ void wifiManagerOpenConnection(Stream& serial)
     String connectedSSID = WiFi.SSID();
     IPAddress connectedIPAddress = WiFi.localIP();  
     serial.print("WiFi connected to SSID: ");    serial.print(connectedSSID);
+    serial.print(" HOSTNAME: ");    serial.println(WiFi.hostname());
     serial.print(" IP: ");    serial.println(connectedIPAddress.toString());
 
     #ifdef MY_DEBUG

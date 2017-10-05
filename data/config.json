@@ -3,13 +3,13 @@
 		"SSID": null,
 		"password": null,
         "hostname": "SHGw",
-        "static_ip": null,
-        "static_gw": null,
-        "static_sn": null,
-        "connectionTimeout": 15,
-        "captivePortalTimeout": 300,
-        "minimumSignalQuality": null,
-        "outputPower": 20.5 //max: +20.5dBm  min: 0dBm
+        "static_ip": "192.168.1.12",
+        "static_gw": "192.168.1.1",
+        "static_sn": "255.255.255.0",
+        "connectionTimeout": 20//,
+//        "captivePortalTimeout": 300,
+//        "minimumSignalQuality": null,
+//        "outputPower": 20.5 //max: +20.5dBm  min: 0dBm
 	},
 	"rs485": {
         "baud": 19200,
@@ -26,6 +26,7 @@
     },
     "websocket": {
         "enable" : true,
+        "server_port" : 81,
         "home_server_host" :  "echo.websocket.org",
         "home_server_port" :  "80",
         "home_server_url"  :  null,

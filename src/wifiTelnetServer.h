@@ -20,9 +20,10 @@ public:
     WifiTelnetServer();
 
     void setup(Stream &serial);
-    bool process(const String& msg="");
+    String process();
     WiFiClient getClient();
     inline String& getLastCommandReceived() {return lastCommandReceived;}
+    void send(const String& msg);
 
 private:    
     unsigned long _lastTimeCommand;

@@ -32,7 +32,7 @@ void Rs485::setup(Stream& dbgstream)
     int _stopbits = root["rs485"]["stopbits"];    
     char _parity = root["rs485"]["parity"];    
 
-    DPRINTF("prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s,  \n", 
+    DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s,  \n", 
       _prefix, this->appendLRC, _baud, _databits, _stopbits, _parity);
 
     this->dbgstream=&dbgstream;

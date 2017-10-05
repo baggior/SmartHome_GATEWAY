@@ -41,7 +41,7 @@ void WifiRestServer::setup(Stream &serial)
   
   // Start the server
   server.begin();  
-  serial.print("Server REST started on port:"); serial.println(listenport);
+  serial.print(">RESTServer SETUP: started on port:"); serial.println(listenport);
 }
 
 void WifiRestServer::process() 
