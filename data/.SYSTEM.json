@@ -1,0 +1,17 @@
+{
+    "BOOTRUNLEVEL": "FACTORYRESET", // FACTORYRESET -> CONFIG <-> NORMAL -> FACTORYRESET
+    
+    "EXCEPTIONS": [
+        {   
+            "time" : "datetime",
+            "code" : "code",
+            "stacktrace" : "stacktrace"
+        },
+        {   
+            "time" : "datetime",
+            "code" : "code",
+            "stacktrace" : "stacktrace"
+        }
+    ]
+    
+}

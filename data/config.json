@@ -20,7 +20,7 @@
 		"appendLRC": false
     },
     "telnet": {
-        "enable" : false,
+        "enable" : true,
         "port": 23,
         "inactivetime": 300
     },
@@ -34,5 +34,8 @@
             "username": null,
             "password": null
         }        
+    },
+    "rest" : {
+        "enable" : true
     }
 }

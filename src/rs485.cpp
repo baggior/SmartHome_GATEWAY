@@ -11,7 +11,7 @@
 
 #define UART_BAUD               19200
 #define UART_STOP_BITS          2
-#define UART_PARITY             'N'
+#define UART_PARITY             "N"
 #define UART_DATA_BITS          7
 
 
@@ -30,9 +30,9 @@ void Rs485::setup(Stream& dbgstream)
     int _baud = root["rs485"]["baud"];
     int _databits = root["rs485"]["databits"];    
     int _stopbits = root["rs485"]["stopbits"];    
-    char _parity = root["rs485"]["parity"];    
+    const char* _parity = root["rs485"]["parity"];    
 
-    DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s,  \n", 
+    DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n", 
       _prefix, this->appendLRC, _baud, _databits, _stopbits, _parity);
 
     this->dbgstream=&dbgstream;
@@ -43,7 +43,7 @@ void Rs485::setup(Stream& dbgstream)
     if(!_stopbits) _stopbits=UART_STOP_BITS;
     if(!_parity) _parity= UART_PARITY;
 
-    swSer.begin(_baud, _stopbits, _parity, _databits);
+    swSer.begin(_baud, _stopbits, String(_parity).charAt(0), _databits);
     swSer.enableRx(true);
     swSer.setTransmitEnablePin(RS485_REDE_CONTROL);
     

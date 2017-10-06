@@ -44,19 +44,28 @@ void WifiRestServer::setup(Stream &serial)
   serial.print(">RESTServer SETUP: started on port:"); serial.println(listenport);
 }
 
-void WifiRestServer::process() 
+bool WifiRestServer::process() 
 {
-  if (!server.hasClient()) return;
+  if (!server.hasClient()) 
+    return false;
 
   // Handle REST calls
   WiFiClient client = server.available();
   if (!client) {
-    return;
+    return false;
   }
   if(client.available())
   {
     rest.handle(client);  
+    return true;
   } 
+
+  return false; //TODO
 
 }
 
+
+void WifiRestServer::send(const String& s_msg)
+{
+  //TODO
+}

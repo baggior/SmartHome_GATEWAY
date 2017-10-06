@@ -36,8 +36,9 @@ public:
 
   void setup(Stream &serial);
   
-  void process() ;
+  bool process() ;
 
+  void send(const String& s_msg);
 
 };
 

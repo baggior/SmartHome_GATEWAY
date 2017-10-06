@@ -23,17 +23,20 @@ void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, si
             DEBUG_OUTPUT.printf("[%u] get Text: %s\n", num, payload);
 
             // send message to client
-            // webSocket.sendTXT(num, "message here");
+            this->webSocketsServer.sendTXT(num, String("ECHO: [") + ((const char *)payload) + "]");
 
             // send data to all connected clients
             // webSocket.broadcastTXT("message here");
+            
+            this->lastCommandReceived = (const char *)payload;
+
             break;
         case WStype_BIN:
             DEBUG_OUTPUT.printf("[%u] get binary length: %u\n", num, length);
             hexdump(payload, length);
 
             // send message to client
-            // webSocket.sendBIN(num, payload, length);
+            this->webSocketsServer.sendBIN(num, payload, length);
             break;
     }
 
@@ -90,10 +93,22 @@ void WebSocket::setup(Stream &dbgstream)
 
 }
 
-void WebSocket::process()
+bool WebSocket::process()
 {
     if(enable)
     {
+        lastCommandReceived="";
         webSocketsServer.loop();
+        if (lastCommandReceived.length()>0)
+        {
+            return true;
+        }
     }
+    return false;
+}
+
+//broadcast
+void WebSocket::send(const String& s_msg)
+{
+    this->webSocketsServer.broadcastTXT((String&)s_msg);
 }

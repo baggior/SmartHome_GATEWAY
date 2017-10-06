@@ -1,7 +1,8 @@
 #include "config.h"
 
 #include <ESP8266WiFi.h>
-#include <ArduinoUtil.h>
+#include <BaseUtils.h>
+
 
 #define CONFIG_FILE_PATH "/config.json"
 
@@ -23,8 +24,8 @@ void Config::load()
     }
     
     DPRINTF("Using config file: %s \n",CONFIG_FILE_PATH);   
-    ArduinoUtil au;    
-    String configJsonString = au.readTextFile(CONFIG_FILE_PATH); 
+    
+    String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
     this->jsonObject = jsonBuffer.parseObject(configJsonString);
 
     #ifdef DEBUG_OUTPUT

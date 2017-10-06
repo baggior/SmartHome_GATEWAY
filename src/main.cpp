@@ -6,6 +6,8 @@
 #include "wifiTelnetServer.h"
 #include "rs485.h"
 #include "webSocket.h"
+#include <Blinker.h>
+#include <TaskScheduler.h>
 
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
@@ -24,6 +26,14 @@ WebSocket webSocket;
 
 Rs485 rs485;
 
+Blinker b;    
+
+
+void leOsTask1()
+{
+    DPRINTF("Task1 millis: %u", millis());
+    yield();
+}
 
 
 void setup() {
@@ -48,12 +58,17 @@ void setup() {
     }
 #endif */
 
+pinMode(BUILTIN_LED, OUTPUT);     
+
+b.start(0.5);//500 msec.
+
+
     config.load();   
 
-    pinMode(BUILTIN_LED, OUTPUT);     
-    digitalWrite(BUILTIN_LED, LOW); //LED ON
+    //digitalWrite(BUILTIN_LED, LOW); //LED ON
     wifiManagerOpenConnection(Serial);
-    digitalWrite(BUILTIN_LED, HIGH); //LED OFF           
+    //digitalWrite(BUILTIN_LED, HIGH); //LED OFF           
+
 
     wifiTelnetServer.setup(Serial);    
     restServer.setup(Serial);
@@ -61,24 +76,40 @@ void setup() {
     rs485.setup(Serial);
     
     DPRINTLN("main seup done");
+
+    
+
+b.start(5);//5sec.
 }
 
-void loop() {  
 
-    digitalWrite(BUILTIN_LED, LOW);   // turn the LED on
+void loop() 
+{  
+    
 
     // put your main code here, to run repeatedly:
-    DPRINTLN("main loop start..");
+    //DPRINTLN("main loop start..");
+
+    uint8_t response_to=0;
 
     String CMD_received = wifiTelnetServer.process();
-    DPRINTLN("..processed Telnet: received [" + CMD_received +"]");       
-
-    
-    restServer.process();
-    DPRINTLN("..processed REST");    
-    
-    webSocket.process();
-    DPRINTLN("..processed webSocket");
+    if(CMD_received.length()>0)
+    {
+        DPRINTLN("..processed Telnet: received [" + CMD_received +"]");       
+        response_to=1;
+    }
+    else if (webSocket.process())
+    {
+        CMD_received = webSocket.getLastCommandReceived();
+        DPRINTLN("..processed webSocket: received [" + CMD_received +"]");  
+        response_to=2;
+    }
+    else if(restServer.process())
+    {
+        ;
+        DPRINTLN("..processed REST..TODO");    
+        response_to=3;
+    }    
     
     //String CMD="020300CA0001";  //:020300CA000130
     if(CMD_received.length()>0)
@@ -86,17 +117,40 @@ void loop() {
         String CMD_response = rs485.process(CMD_received);
         DPRINTLN("..processed rs485 sent [" + CMD_received +"] received [" + CMD_response +"]");
         
+        //response
         if(CMD_response.length()>0)
         {
-            wifiTelnetServer.send(CMD_response);
-            DPRINTLN("..processed Telnet response [" + CMD_response + "]");
-        }        
+            switch (response_to)
+            {
+                case 1:
+                {
+                    wifiTelnetServer.send(CMD_response);
+                    DPRINTLN("..sent Telnet response [" + CMD_response + "]");
+                    break;
+                }    
+                case 2:
+                {
+                    webSocket.send(CMD_response);
+                    DPRINTLN("..sent webSocket response [" + CMD_response + "]");
+                    break;
+                }
+                case 3:    
+                {
+                    restServer.send(CMD_response);
+                    DPRINTLN("..sent restServer response [" + CMD_response + "]");
+                    break;
+                }
+                default:
+                {
+                    DPRINTLN("..ERROR: can't sent response [" + CMD_response + "] WHERE??");
+                }
+            }
+        }
+
     }    
 
-    DPRINTLN("main loop done");
-    
-    digitalWrite(BUILTIN_LED, HIGH);    // turn the LED off 
-
-    delay(500);
+    //DPRINTLN("main loop done");    
+   
+    yield();
 }
 

@@ -2,6 +2,7 @@
 #ifndef websocket_h
 #define websocket_h
 
+#include <Hash.h>
 #include <WebSocketsServer.h>
 
 
@@ -10,6 +11,7 @@ class WebSocket
 
     Stream * dbgstream;
     WebSocketsServer webSocketsServer;
+    String lastCommandReceived;
     
     bool enable;
     
@@ -19,7 +21,10 @@ public:
     WebSocket();
 
     void setup(Stream &dbgstream);
-    void process();
+    bool process();
+
+    inline String& getLastCommandReceived() {return lastCommandReceived;}
+    void send(const String& s_msg);
 };
 
 #endif
