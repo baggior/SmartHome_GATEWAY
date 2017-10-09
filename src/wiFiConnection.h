@@ -6,4 +6,6 @@
 //Wifi connection STA
 void wifiManagerOpenConnection(Stream& serial);
 
+void DEBUG_printDiagWiFI(Stream& serial);
+
 #endif

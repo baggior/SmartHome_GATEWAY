@@ -21,6 +21,7 @@
         "exception": "cpp",
         "iosfwd": "cpp",
         "new": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "limits": "cpp"
     }
 }

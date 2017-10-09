@@ -3,6 +3,31 @@
 #include <WifiManager.h>
 
 
+WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
+{
+    WiFiPhyMode ret=WIFI_PHY_MODE_11N;
+    if(_phy_mode_param)
+    {
+        String phy_mode = _phy_mode_param;
+        if(phy_mode.length()>0)
+        {
+            if(phy_mode.equals("B"))
+            {
+                return WiFiPhyMode::WIFI_PHY_MODE_11B;
+            }
+            else if(phy_mode.equals("G"))
+            {
+                return WiFiPhyMode::WIFI_PHY_MODE_11G;
+            }
+            else if(phy_mode.equals("N"))
+            {
+                return WiFiPhyMode::WIFI_PHY_MODE_11N;
+            }
+        }
+    }
+    return ret;
+}
+
 void wifiManagerOpenConnection(Stream& serial)
 {
     JsonObject & root = config.getJsonRoot();    
@@ -13,6 +38,8 @@ void wifiManagerOpenConnection(Stream& serial)
     const char* static_ip = root["wifi"]["static_ip"];
     const char* static_gw = root["wifi"]["static_gw"];
     const char* static_sn = root["wifi"]["static_sn"];
+
+    const char* _phy_mode = root["wifi"]["phy_mode"];
     
     int connectionTimeout = root["wifi"]["connectionTimeout"];
     int captivePortalTimeout = root["wifi"]["captivePortalTimeout"];
@@ -20,8 +47,10 @@ void wifiManagerOpenConnection(Stream& serial)
     float outputPower = root["wifi"]["outputPower"];
     char buff[20];
 
-    DPRINTF(">WiFI Manager SETUP: hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
+    DPRINTF(">WiFI Manager SETUP: hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, "
+        "phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
         hostname, static_ip, static_gw,static_sn,
+        _phy_mode,
         connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
        
     // Connect to WiFi
@@ -29,16 +58,12 @@ void wifiManagerOpenConnection(Stream& serial)
     if(status!= WL_CONNECTED)
     {        
 
-        #ifdef MY_DEBUG
-        serial.println("WiFI printDiag:");
-        WiFi.printDiag(DEBUG_OUTPUT);
-        #endif
-        
+       // DEBUG_printDiagWiFI(serial);        
         //WiFi.mode(WIFI_STA);       
         {           
             serial.println("WiFiManager connection.. ");
             
-            WiFiManager wifiManager;        
+            WiFiManager wifiManager;                  
             
             #ifdef MY_DEBUG
             wifiManager.setDebugOutput(true);
@@ -57,6 +82,7 @@ void wifiManagerOpenConnection(Stream& serial)
             }
             if(hostname) WiFi.hostname(hostname);
             if(outputPower) WiFi.setOutputPower(outputPower);    //max: +20.5dBm  min: 0dBm
+            if(_phy_mode) WiFi.setPhyMode(parsePhyModeParamString(_phy_mode));
             
             WiFi.setAutoConnect(true);
             WiFi.setAutoReconnect(true);
@@ -81,10 +107,15 @@ void wifiManagerOpenConnection(Stream& serial)
     serial.print(" HOSTNAME: ");    serial.println(WiFi.hostname());
     serial.print(" IP: ");    serial.println(connectedIPAddress.toString());
 
+    DEBUG_printDiagWiFI(serial);
+
+}
+
+
+void DEBUG_printDiagWiFI(Stream& serial)
+{
     #ifdef MY_DEBUG
     serial.println("WiFI printDiag:");
     WiFi.printDiag(DEBUG_OUTPUT);
     #endif
-
 }
-

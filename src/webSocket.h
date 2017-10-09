@@ -11,7 +11,7 @@ class WebSocket
 
     Stream * dbgstream;
     WebSocketsServer webSocketsServer;
-    String lastCommandReceived;
+    CommandObject lastCommandReceived;
     
     bool enable;
     
@@ -23,8 +23,15 @@ public:
     void setup(Stream &dbgstream);
     bool process();
 
-    inline String& getLastCommandReceived() {return lastCommandReceived;}
-    void send(const String& s_msg);
+    inline String& getLastCommandReceived() {return lastCommandReceived.inputCommand;}
+    void sendResponse(String response, uint8_t clientNum=-1); // <0 ==> broadcast
+
+private:
+
+    void handleInputCommand(CommandObject& command);
+    void showHello(uint8_t clientNum);
+
+    Task taskReceiveCmd;
 };
 
 #endif

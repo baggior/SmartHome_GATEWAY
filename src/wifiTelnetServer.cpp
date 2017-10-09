@@ -1,15 +1,23 @@
 #include "config.h"
 
 #include <ESP8266WiFi.h>
+
 #include "wifiTelnetServer.h"
+#include "rs485.h"
 
 #define MAX_TIME_INACTIVE_DEFAULT 10*60*1000 //10 minuti (in millis)
 #define TELNET_LISTEN_PORT_DEFAULT 23
+#define TELNET_LISTEN_TASK_INTERVAL_DEFAULT 100 //ms
+
+
+extern Scheduler runner;
+extern Rs485 rs485;
 
 WifiTelnetServer::WifiTelnetServer()
     : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),
     server(port), dbgstream(NULL)
 {
+    
 }
 
 void WifiTelnetServer::setup(Stream &serial)
@@ -18,11 +26,14 @@ void WifiTelnetServer::setup(Stream &serial)
     enable = root["telnet"]["enable"];
     int _port = root["telnet"]["port"];
     int _MAX_TIME_INACTIVE = root["telnet"]["inactivetime"];    
-    DPRINTF(">Telnet Server SETUP: enable: %d, port: %d, MAX_TIME_INACTIVE: %d \n", 
-        enable, _port, _MAX_TIME_INACTIVE);
+    int task_listen_interval = root["telnet"]["task_listen_interval"];
+    
+    DPRINTF(">Telnet Server SETUP: enable: %d, port: %d, MAX_TIME_INACTIVE: %d, task_listen_interval: %d \n", 
+        enable, _port, _MAX_TIME_INACTIVE, task_listen_interval);
     
     if(_port) port=_port;
-    if(_MAX_TIME_INACTIVE) MAX_TIME_INACTIVE=_MAX_TIME_INACTIVE;
+    if(_MAX_TIME_INACTIVE) MAX_TIME_INACTIVE=_MAX_TIME_INACTIVE * 1000;
+    if(!task_listen_interval) task_listen_interval=TELNET_LISTEN_TASK_INTERVAL_DEFAULT;
 
     dbgstream = &serial;
 
@@ -39,6 +50,14 @@ void WifiTelnetServer::setup(Stream &serial)
         serial.print(" port: ");
         serial.println(port);
     }
+
+    TaskCallback funct = std::bind(&WifiTelnetServer::process, this);
+    taskReceiveCmd.set(task_listen_interval
+        , TASK_FOREVER
+        , funct
+        );
+    runner.addTask(taskReceiveCmd);
+    taskReceiveCmd.enable();
 }
 
 WiFiClient WifiTelnetServer::getClient()
@@ -109,18 +128,32 @@ void WifiTelnetServer::send(const String& s_msg)
     {
         if(telnetClient && telnetClient.connected())
         {                    
-            //telnetClient.flush();  //??
+            //ECHO Telnet client
+            telnetClient.flush();  //??
             telnetClient.println(s_msg);
 
-            // echo to debugstream            
+            // print to debugstream            
             dbgstream->println("Telnet OUT -> " + s_msg);
         }
     }
 }
 
-String WifiTelnetServer::process()
+void WifiTelnetServer::handleInputCommand(String& command)
+{
+    if(command.startsWith("/"))
+    {
+        showHelp();
+    }
+    else
+    {
+        String response = rs485.sendMasterCommand(command);
+        send(response); //toTelnetclient
+    }    
+}
+
+bool WifiTelnetServer::process()
 {   
-    String ret;
+    bool ret=false;
 
     if(enable)
     {
@@ -128,19 +161,22 @@ String WifiTelnetServer::process()
         if(telnetClient && telnetClient.connected())
         {        
             //RECEIVE
-            while (telnetClient.available())
+            if (telnetClient.available())
             {
                 _lastTimeCommand = millis();
                 
-                String r_cmd = telnetClient.readString();
+                String r_cmd = telnetClient.readStringUntil('\r');
+                r_cmd.trim();
                 if(r_cmd.length()>0)
                 {
+                    // echo to debugstream            
+                    dbgstream->println("Telnet IN <- " + r_cmd);
                     
-                    ret = lastCommandReceived = r_cmd;
+                    lastCommandReceived = r_cmd;
+                    handleInputCommand(r_cmd);
+                    ret = true;
                 }
                 
-                // echo to debugstream            
-                dbgstream->println("Telnet IN <- " + r_cmd);
             }
                 
             // Inactivit - close connection if not received commands from user in telnet
