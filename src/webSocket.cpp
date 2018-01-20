@@ -5,7 +5,7 @@
 
 
 #define WEBSOCKETSERVER_PORT_DEFAULT 81
-#define WEBSOCKETSERVER_PROTOCOL_DEFAULT "SHGw"
+#define WEBSOCKETSERVER_PROTOCOL_DEFAULT "SHGw_modbus"
 #define WEBSOCKET_LISTEN_TASK_INTERVAL_DEFAULT 1 //ms
 
 
@@ -25,7 +25,7 @@ void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, si
                 DEBUG_OUTPUT.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
 				
                 // send message to client
-                this->showHello(num);
+                //this->showHello(num);
 				//this->webSocketsServer.sendTXT(num, "Connected");
             }
             break;
@@ -33,8 +33,8 @@ void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, si
             {
                 DEBUG_OUTPUT.printf("[%u] get Text: %s\n", num, payload);            
                 
-                // send message to client
-                this->webSocketsServer.sendTXT(num, String("ECHO: [") + ((const char *)payload) + "]");
+                // send ECHO message to client
+                //this->webSocketsServer.sendTXT(num, String("ECHO: [") + ((const char *)payload) + "]");
                 
                 // send data to all connected clients
                 // webSocket.broadcastTXT("message here");
@@ -52,12 +52,18 @@ void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, si
             DEBUG_OUTPUT.printf("[%u] get binary length: %u\n", num, length);
             hexdump(payload, length);
 
-            // send message to client
+            // ECHO bin message to client
             this->webSocketsServer.sendBIN(num, payload, length);
             break;
+
+
+        case WStype_ERROR:
+        {
+            DEBUG_OUTPUT.printf("[%u] error length: %u, pyload:[%s]\n", num, length, payload);
+            
+            break;
+        }       
     }
-
-
 }
 
 

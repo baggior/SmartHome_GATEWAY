@@ -6,7 +6,7 @@
         "static_ip": "192.168.1.12",
         "static_gw": "192.168.1.1",
         "static_sn": "255.255.255.0",
-        "phy_mode": "B", //N, G, B
+        "phy_mode": "N", //N, G, B
         "connectionTimeout": 20//,
 //        "captivePortalTimeout": 300,
 //        "minimumSignalQuality": null,
@@ -15,8 +15,9 @@
 	"rs485": {
         "baud": 19200,
         "databits": 7,
-        "stopbits": 2,
+        "stopbits": 2,        
         "parity": "N"//,
+        // "defaultCommandTimeout" : "1000",
 		// "prefix": ":",
 		// "appendLRC": false
     },
@@ -34,7 +35,7 @@
             "username": null,
             "password": null
         },
-        "task_listen_interval" : 1 //ms
+        "task_listen_interval" : 10 //ms
     },
     "rest" : {//TODO
         "enable" : true,
@@ -43,9 +44,9 @@
     "ftp": {
         "enable" : true,
         "server_auth" : {
-            "username": null,
-            "password": null
+            "username": "esp8266",
+            "password": "esp8266"
         },
-        "task_listen_interval" : 500 //ms
+        "task_listen_interval" : 0 //ms
     }
 }

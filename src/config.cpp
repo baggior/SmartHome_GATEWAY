@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <TaskScheduler.h>
+
 #include <ESP8266WiFi.h>
 #include <BaseUtils.h>
 

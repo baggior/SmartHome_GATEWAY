@@ -10,13 +10,15 @@ class Rs485
     Stream * dbgstream;
     ConfigurableSoftwareSerial swSer;
     bool appendLRC=false;
-    String prefix="";
+    String prefix;
+    int defaultCommandTimeout;
 
 public:
     Rs485();
 
     void setup(Stream &dbgstream);
-    String sendMasterCommand(String& CMD, int maxReponseWaitTime=500 );    //  maxReponseWaitTime<=0 ==> broadcast  
+    String sendMasterCommand(String& CMD, int maxReponseWaitTime );    //  maxReponseWaitTime<=0 ==> broadcast  
+    String sendMasterCommand(String& CMD);   
     inline void broadcastMasterCommand(String& CMD) {sendMasterCommand(CMD,0);}
 
 private:

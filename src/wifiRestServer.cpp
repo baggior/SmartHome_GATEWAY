@@ -24,6 +24,7 @@ WifiRestServer::WifiRestServer(const uint8_t listenport)
 
 void WifiRestServer::setup(Stream &serial)
 {
+  
   current_serial = &serial;
 
   // Init variables and expose them to REST API

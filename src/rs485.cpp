@@ -15,6 +15,8 @@
 #define UART_PARITY "N"
 #define UART_DATA_BITS 7
 
+#define DEFAULT_COMMAND_TIMEOUT 1000
+
 Rs485::Rs485()
     : swSer(RS485_RO_RX, RS485_DI_TX)
 {
@@ -31,14 +33,16 @@ void Rs485::setup(Stream &dbgstream)
   int _databits = root["rs485"]["databits"];
   int _stopbits = root["rs485"]["stopbits"];
   const char *_parity = root["rs485"]["parity"];
-
-  DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n",
-          _prefix, this->appendLRC, _baud, _databits, _stopbits, _parity);
+  this->defaultCommandTimeout = root["rs485"]["defaultCommandTimeout"];
+  DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n",
+          _prefix, this->appendLRC, defaultCommandTimeout, _baud, _databits, _stopbits, _parity);
 
   this->dbgstream = &dbgstream;
   if (_prefix)
     this->prefix = prefix;
-
+  
+  if(!this->defaultCommandTimeout)
+    this->defaultCommandTimeout = DEFAULT_COMMAND_TIMEOUT;
   if (!_baud)
     _baud = UART_BAUD;
   if (!_databits)
@@ -55,8 +59,14 @@ void Rs485::setup(Stream &dbgstream)
   // pinMode(RS485_REDE_CONTROL, OUTPUT);
   // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
 }
-   
-//  maxReponseWaitTime<=0 ==> broadcast)
+
+
+String Rs485::sendMasterCommand(String &CMD)
+{
+  return sendMasterCommand(CMD, defaultCommandTimeout);
+}
+
+//  maxReponseWaitTime<=0 ==> broadcast -> no response)
 String Rs485::sendMasterCommand(String &CMD, int maxReponseWaitTime)
 { 
   //SLAVE DEVICE
@@ -126,7 +136,7 @@ String Rs485::sendMasterCommand(String &CMD, int maxReponseWaitTime)
   String RESPONSE;
   if(maxReponseWaitTime>0)
   {
-    //RESPONSE    
+    //wait for a RESPONSE    
     long delayTime = _min(maxReponseWaitTime,10);
     delay(delayTime);
     while (swSer.available()==0 && delayTime<maxReponseWaitTime)

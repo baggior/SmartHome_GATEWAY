@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include <ESP8266WiFi.h>
+#include <TextFinder.h>
 
 #include "wifiTelnetServer.h"
 #include "rs485.h"
@@ -140,11 +141,17 @@ void WifiTelnetServer::send(const String& s_msg)
 
 void WifiTelnetServer::handleInputCommand(String& command)
 {
+    //Stream s;
+    //TextFinder finder(command);
     if(command.startsWith("/"))
     {
         showHelp();
     }
-    else
+    else if(command.equalsIgnoreCase("quit"))
+    {
+        telnetClient.stopAll();        
+    }
+    else if(command.startsWith(":"))
     {
         String response = rs485.sendMasterCommand(command);
         send(response); //toTelnetclient
