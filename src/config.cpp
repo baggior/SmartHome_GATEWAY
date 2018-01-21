@@ -1,9 +1,13 @@
 #include "config.h"
 
+#include <BaseUtils.h>
 #include <TaskScheduler.h>
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
-#include <BaseUtils.h>
+#else 
+#include <WiFi.h>
+#endif
 
 
 #define CONFIG_FILE_PATH "/config.json"

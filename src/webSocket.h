@@ -2,7 +2,7 @@
 #ifndef websocket_h
 #define websocket_h
 
-#include <Hash.h>
+//#include <Hash.h>
 #include <WebSocketsServer.h>
 
 
