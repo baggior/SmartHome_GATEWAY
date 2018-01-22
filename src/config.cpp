@@ -89,8 +89,13 @@ void Config::printConfigFileTo(Stream& stream)
 String Config::getDeviceInfoString(const char* crlf)
 {
     String ret;
-
+#ifdef ESP8266
     ret.concat("ESP8266 Chip ID: " + String(ESP.getChipId()) +crlf);
+#elif defined(ESP32)    
+    ret.concat("ESP32: " + String((uint16_t) (ESP.getEfuseMac()>>32)) + String((uint32_t)ESP.getEfuseMac()) + crlf);
+#else
+    //TODO other
+#endif
     ret.concat("- software version: "); ret.concat(Config::getSoftwareVersion()); ret.concat(crlf);
     #ifdef MY_DEBUG
     ret.concat("* DEBUG is ON "); 
@@ -104,8 +109,17 @@ String Config::getDeviceInfoString(const char* crlf)
 
     if(WiFi.isConnected())
     {
-        ret.concat("* WiFI SSID:");ret.concat(WiFi.SSID()); ret.concat(" channel:");ret.concat(WiFi.channel()); ret.concat(" WiFiMode:");ret.concat(WiFi.getMode()); ret.concat(" PhyMode:");ret.concat(WiFi.getPhyMode()); ret.concat(crlf);
-        ret.concat("* Host:");ret.concat(WiFi.hostname()); ret.concat(" IP:");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
+        ret.concat("* WiFI SSID:");ret.concat(WiFi.SSID()); ret.concat(" channel:");ret.concat(WiFi.channel()); ret.concat(" WiFiMode:");ret.concat(WiFi.getMode()); ret.concat(" PhyMode:");
+
+#ifdef ESP8266
+        ret.concat(WiFi.getPhyMode()); ret.concat(crlf);
+        ret.concat("* Host:");ret.concat(WiFi.hostname()); 
+#elif defined (ESP32)
+        ret.concat(WiFi.getMode()); ret.concat(crlf);
+        ret.concat("* Host:");ret.concat(WiFi.getHostname()); 
+#endif
+
+        ret.concat(" IP:");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
         ret.concat("* subnet mask:");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP:");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP:");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        
     }   
 
