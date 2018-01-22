@@ -5,7 +5,7 @@
 #include "wifiFtpServer.h"
 #include "wifiTelnetServer.h"
 #include "rs485.h"
-#include "webSocket.h"
+#include "webSocketRs485Gateway.h"
 #include "ota.h"
 
 
@@ -26,7 +26,7 @@ WiFiConnection connection;
 WifiFtpServer wifiFtpServer;
 WifiTelnetServer wifiTelnetServer;
 WifiRestServer restServer;
-WebSocket webSocket;
+WebSocketRs485Gateway webSocketRs485Gateway;
 
 Rs485 rs485;
 
@@ -71,7 +71,7 @@ config.getBlinker().start(1);//1sec.
     wifiFtpServer.setup(Serial);
     wifiTelnetServer.setup(Serial);    
     restServer.setup(Serial);
-    webSocket.setup(Serial);
+    webSocketRs485Gateway.setup(Serial);
     rs485.setup(Serial);
     
     DPRINTLN("main seup done");

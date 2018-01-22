@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "WebSocket.h"
+#include "webSocketRs485Gateway.h"
 #include "Rs485.h"
 
 
@@ -13,7 +13,7 @@ extern Scheduler runner;
 extern Rs485 rs485;
 
 
-void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
+void WebSocketRs485Gateway::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
 {
     switch(type) {
         case WStype_DISCONNECTED:
@@ -67,13 +67,13 @@ void WebSocket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, si
 }
 
 
-WebSocket::WebSocket()
+WebSocketRs485Gateway::WebSocketRs485Gateway()
 :   webSocketsServer(WEBSOCKETSERVER_PORT_DEFAULT)
 {
     
 }
 
-void WebSocket::setup(Stream &dbgstream)
+void WebSocketRs485Gateway::setup(Stream &dbgstream)
 {
     JsonObject & root = config.getJsonRoot();   
 
@@ -85,7 +85,7 @@ void WebSocket::setup(Stream &dbgstream)
 
     const char* _protocol = root["websocket"]["protocol"];
 
-    int task_listen_interval = root["telnet"]["task_listen_interval"];
+    int task_listen_interval = root["websocket"]["task_listen_interval"];
 
     DPRINTF(">WebSocket SETUP: enable: %d, server_port: %d, protocol: %s, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n", 
         enable, _server_port, _protocol, _server_auth_username, _server_auth_password, task_listen_interval);
@@ -102,7 +102,7 @@ void WebSocket::setup(Stream &dbgstream)
         webSocketsServer.begin(); 
         
         // event handler
-        WebSocketsServer::WebSocketServerEvent serverevent_function = std::bind(&WebSocket::webSocketEvent, this, 
+        WebSocketsServer::WebSocketServerEvent serverevent_function = std::bind(&WebSocketRs485Gateway::webSocketEvent, this, 
             std::placeholders::_1,std::placeholders::_2,std::placeholders::_3,std::placeholders::_4);
         webSocketsServer.onEvent(serverevent_function);
         
@@ -113,7 +113,7 @@ void WebSocket::setup(Stream &dbgstream)
         }
         
         //TASK setting
-        TaskCallback funct = std::bind(&WebSocket::process, this);
+        TaskCallback funct = std::bind(&WebSocketRs485Gateway::process, this);
         taskReceiveCmd.set(task_listen_interval
             , TASK_FOREVER
             , funct
@@ -125,7 +125,7 @@ void WebSocket::setup(Stream &dbgstream)
 
 }
 
-bool WebSocket::process()
+bool WebSocketRs485Gateway::process()
 {
     if(enable)
     {
@@ -139,7 +139,7 @@ bool WebSocket::process()
     return false;
 }
 
-void WebSocket::handleInputCommand(CommandObject& command)
+void WebSocketRs485Gateway::handleInputCommand(CommandObject& command)
 {
     //TODO
     if(command.inputCommand.startsWith("/"))
@@ -164,14 +164,14 @@ void WebSocket::handleInputCommand(CommandObject& command)
     }
 }
 
-void WebSocket::showHello( uint8_t clientNum)
+void WebSocketRs485Gateway::showHello( uint8_t clientNum)
 {
     String info = Config::getDeviceInfoString("\r\n");
     this->webSocketsServer.sendTXT(clientNum, "Connected:\n" + info);
 }
 
 
-void WebSocket::sendResponse(String response, uint8_t clientNum)
+void WebSocketRs485Gateway::sendResponse(String response, uint8_t clientNum)
 {
     if(clientNum<0)
     {

@@ -12,7 +12,7 @@
 
 
 extern Scheduler runner;
-extern Rs485 rs485;
+//extern Rs485 rs485;
 
 WifiTelnetServer::WifiTelnetServer()
     : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),
@@ -153,8 +153,8 @@ void WifiTelnetServer::handleInputCommand(String& command)
     }
     else if(command.startsWith(":"))
     {
-        String response = rs485.sendMasterCommand(command);
-        send(response); //toTelnetclient
+        // String response = rs485.sendMasterCommand(command);
+        // send(response); //toTelnetclient
     }    
 }
 

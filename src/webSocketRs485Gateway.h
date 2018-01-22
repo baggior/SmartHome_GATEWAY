@@ -2,11 +2,12 @@
 #ifndef websocket_h
 #define websocket_h
 
-//#include <Hash.h>
+#include "objectModel.h"
+#include <TaskSchedulerDeclarations.h>
 #include <WebSocketsServer.h>
 
 
-class WebSocket
+class WebSocketRs485Gateway
 {
 
     Stream * dbgstream;
@@ -18,7 +19,7 @@ class WebSocket
     void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) ;
 
 public:
-    WebSocket();
+    WebSocketRs485Gateway();
 
     void setup(Stream &dbgstream);
     bool process();

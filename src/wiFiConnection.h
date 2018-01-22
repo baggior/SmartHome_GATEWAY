@@ -5,7 +5,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 //#include <ESP8266LLMNR.h>
-#else // #elif defined(ESP32)
+#elif defined (ESP32)
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #endif

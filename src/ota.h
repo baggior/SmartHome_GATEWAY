@@ -3,8 +3,8 @@
 #include <ArduinoOta.h>
 #ifdef ESP8266
 #include <ESP8266mDNS.h>
-#else
-#include <ESP32mDNS.h>
+#elif defined(ESP32)
+#include <ESPmDNS.h>
 #endif
 
 class Ota 
