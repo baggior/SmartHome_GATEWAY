@@ -50,8 +50,10 @@ void WebSocketRs485Gateway::webSocketEvent(uint8_t num, WStype_t type, uint8_t *
             }
         case WStype_BIN:
             DEBUG_OUTPUT.printf("[%u] get binary length: %u\n", num, length);
-            hexdump(payload, length);
 
+#ifdef ESP8266
+            hexdump(payload, length);
+#endif
             // ECHO bin message to client
             this->webSocketsServer.sendBIN(num, payload, length);
             break;

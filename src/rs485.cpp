@@ -3,10 +3,17 @@
 #include "rs485.h"
 #include "ExponentialBackoffTimer.h"
 
-
+#ifdef ESP8266
 #define RS485_RO_RX D1        //receive out
 #define RS485_DI_TX D2        //data in
 #define RS485_REDE_CONTROL D6 //receive enable / data enable
+
+#elif defined ESP32 //TODO
+#define RS485_RO_RX RX        //receive out
+#define RS485_DI_TX TX        //data in
+#define RS485_REDE_CONTROL T0 //receive enable / data enable
+#endif
+
 #define RS485_Tx HIGH         //control send
 #define RS485_Rx LOW          //control receive
 

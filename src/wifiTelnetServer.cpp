@@ -1,6 +1,10 @@
 #include "config.h"
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#elif defined ESP32
+#include <WiFi.h>
+#endif
 #include <TextFinder.h>
 
 #include "wifiTelnetServer.h"
@@ -149,7 +153,12 @@ void WifiTelnetServer::handleInputCommand(String& command)
     }
     else if(command.equalsIgnoreCase("quit"))
     {
+#ifdef ESP32        
+        telnetClient.stop();        
+#else
         telnetClient.stopAll();        
+#endif
+
     }
     else if(command.startsWith(":"))
     {
