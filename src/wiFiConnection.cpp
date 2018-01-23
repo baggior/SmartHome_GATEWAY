@@ -4,6 +4,7 @@
 
 #define THING_GATEEWAY_DISCOVERY_ID "gateway"
 
+#ifdef ESP8266
 WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
 {
     WiFiPhyMode ret=WIFI_PHY_MODE_11N;
@@ -28,7 +29,7 @@ WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
     }
     return ret;
 }
-
+#endif
 
 void WiFiConnection::wifiManagerOpenConnection()
 {
@@ -58,8 +59,12 @@ void WiFiConnection::wifiManagerOpenConnection()
     // Connect to WiFi
     uint8_t status =WiFi.status();
     if(status!= WL_CONNECTED)
-    {                     
+    {                
+#ifdef ESP8266
         if(hostname) WiFi.hostname(hostname);
+#elif defined ESP32
+        if(hostname) WiFi.setHostname(hostname);
+#endif
         if (!SSID)  
         {           
             WiFiManager wifiManager;             
@@ -81,10 +86,11 @@ void WiFiConnection::wifiManagerOpenConnection()
                     wifiManager.setSTAStaticIPConfig(ip1, ip2, ip3);
                 }
             }
-            
+
+#ifdef ESP8266            
             if(outputPower) WiFi.setOutputPower(outputPower);    //max: +20.5dBm  min: 0dBm
             if(_phy_mode) WiFi.setPhyMode(parsePhyModeParamString(_phy_mode));           
-            
+#endif
             bool connected= wifiManager.autoConnect();  //use this for auto generated name ESP + ChipID   
             if(!connected)
             {
@@ -129,7 +135,12 @@ void WiFiConnection::wifiManagerOpenConnection()
     String connectedSSID = WiFi.SSID();
     IPAddress connectedIPAddress = WiFi.localIP();  
     dbgstream->print("WiFi connected to SSID: ");    dbgstream->print(connectedSSID);
-    dbgstream->print(" HOSTNAME: ");    dbgstream->println(WiFi.hostname());
+    dbgstream->print(" HOSTNAME: ");    
+#ifdef ESP8266
+    dbgstream->println(WiFi.hostname());
+#elif defined ESP32
+    dbgstream->println(WiFi.getHostname());
+#endif
     dbgstream->print(" IP: ");    dbgstream->println(connectedIPAddress.toString());
 
 }
@@ -145,9 +156,14 @@ void WiFiConnection::DEBUG_printDiagWiFI()
 
 void WiFiConnection::announceTheDevice()
 {
+#ifdef ESP8266
     String hostname = WiFi.hostname();
-    IPAddress ip = WiFi.localIP();
     uint32_t chipId = ESP.getChipId();
+#elif defined ESP32
+    String hostname = WiFi.getHostname();
+    uint32_t chipId = (uint32_t)ESP.getEfuseMac();
+#endif
+    IPAddress ip = WiFi.localIP();
 
     if (!MDNS.begin(hostname.c_str())) {
         dbgstream->println("Error setting up MDNS responder! ");
