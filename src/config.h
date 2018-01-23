@@ -6,7 +6,7 @@
 #include <ArduinoJson.h>
 
 #define     _TASK_STD_FUNCTION
-//#define     _TASK_SLEEP_ON_IDLE_RUN
+// #define     _TASK_SLEEP_ON_IDLE_RUN
 //#define     _TASK_STATUS_REQUEST
 #define     _TASK_WDT_IDS
 //#define     _TASK_LTS_POINTER

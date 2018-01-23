@@ -3,7 +3,6 @@
 #define websocket_h
 
 #include "objectModel.h"
-#include <TaskSchedulerDeclarations.h>
 #include <WebSocketsServer.h>
 
 

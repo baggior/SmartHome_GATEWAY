@@ -1,6 +1,7 @@
 #include "config.h"
 #include "wifiConnection.h"
-#include <WifiManager.h>
+
+#include <ESPAsyncWiFiManager.h>
 
 #define THING_GATEEWAY_DISCOVERY_ID "gateway"
 
@@ -67,7 +68,9 @@ void WiFiConnection::wifiManagerOpenConnection()
 #endif
         if (!SSID)  
         {           
-            WiFiManager wifiManager;             
+            AsyncWebServer server(80);
+            DNSServer dns;
+            AsyncWiFiManager wifiManager(&server,&dns);             
 
             dbgstream->println("Start WiFiManager connection.. ");            
             

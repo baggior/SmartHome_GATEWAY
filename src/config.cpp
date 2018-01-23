@@ -13,7 +13,7 @@
 #define CONFIG_FILE_PATH "/config.json"
 
 
-Config::Config() 
+Config::Config() : blinker(LED_BUILTIN)
 {
 
 }
