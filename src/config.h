@@ -1,6 +1,12 @@
 #ifndef config_h
 #define config_h
 
+#ifdef ESP32
+#define LED_PIN 5   //TODO
+#else
+#define LED_PIN BUILTIN_LED
+#endif
+
 #include <Arduino.h>
 
 #include <ArduinoJson.h>
