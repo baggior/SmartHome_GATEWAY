@@ -6,20 +6,26 @@
         "static_ip": "192.168.1.12",
         "static_gw": "192.168.1.1",
         "static_sn": "255.255.255.0",
-        "phy_mode": "N",
-        "connectionTimeout": 20
+        "phy_mode": "N", //N, G, B
+        "connectionTimeout": 20//,
+//        "captivePortalTimeout": 300,
+//        "minimumSignalQuality": null,
+//        "outputPower": 20.5 //max: +20.5dBm  min: 0dBm
 	},
 	"rs485": {
         "baud": 19200,
         "databits": 7,
         "stopbits": 2,        
-        "parity": "N"
+        "parity": "N"//,
+        // "defaultCommandTimeout" : "1000",
+		// "prefix": ":",
+		// "appendLRC": false
     },
     "telnet": {
         "enable" : true,
         "port": 23,
         "inactivetime": 300,
-        "task_listen_interval" : 100
+        "task_listen_interval" : 100 //ms
     },
     "websocket": {
         "enable" : true,
@@ -29,11 +35,11 @@
             "username": null,
             "password": null
         },
-        "task_listen_interval" : 10
+        "task_listen_interval" : 10 //ms
     },
-    "rest" : {
+    "rest" : {//TODO
         "enable" : true,
-        "task_listen_interval" : 100
+        "task_listen_interval" : 100 //ms
     },
     "ftp": {
         "enable" : true,
@@ -41,6 +47,6 @@
             "username": "esp8266",
             "password": "esp8266"
         },
-        "task_listen_interval" : 0
+        "task_listen_interval" : 0 //ms
     }
 }

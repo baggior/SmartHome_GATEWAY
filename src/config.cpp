@@ -11,9 +11,11 @@
 
 
 #define CONFIG_FILE_PATH "/config.json"
+#define JSON_BUFFER_SIZE 248
 
-
-Config::Config() : blinker(LED_PIN)
+Config::Config() 
+: blinker(LED_PIN),
+  jsonBuffer(JSON_BUFFER_SIZE)
 {
 
 }
@@ -29,11 +31,11 @@ void Config::load()
         DPRINTF("Error opening SPIFFS filesystem\n");   
     }
     
-    DPRINTF("Using config file: %s \n",CONFIG_FILE_PATH);   
+    DPRINTF("Using config file: %s \n", CONFIG_FILE_PATH);   
     
-    String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
-    this->jsonObject = jsonBuffer.parseObject(configJsonString);
-
+    this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
+    // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
+ 
     #ifdef DEBUG_OUTPUT
     this->printConfigFileTo(DEBUG_OUTPUT);
     #endif
@@ -42,10 +44,21 @@ void Config::load()
 }
 
 
-// JsonObject& Config::getJsonRoot()
-// {
-//     return this->jsonObject;
-// }
+JsonObject& Config::getJsonRoot(const char* node)
+{       
+    JsonObject& jsonObject = this->jsonBuffer.parseObject(this->configJsonString);
+    if(jsonObject.success())
+    {
+        if(node) return jsonObject[node];
+        return jsonObject;
+    }
+    else
+    {
+        DPRINTF("Error parsing node %s of json: \n %s \n", (node?node:"<ROOT>"), configJsonString.c_str() );
+        // throw error TODO
+    } 
+    return jsonObject;
+}
 
 void Config::persist()
 {

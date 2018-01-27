@@ -12,7 +12,7 @@
 #include <ArduinoJson.h>
 
 #define     _TASK_STD_FUNCTION
-// #define     _TASK_SLEEP_ON_IDLE_RUN
+//#define     _TASK_SLEEP_ON_IDLE_RUN
 //#define     _TASK_STATUS_REQUEST
 #define     _TASK_WDT_IDS
 //#define     _TASK_LTS_POINTER
@@ -22,15 +22,16 @@
 #include <pragmautils.h>
 #include <dbgutils.h>
 #include <baseutils.h>
+
 #include <Blinker.h>
 
 #include "ObjectModel.h"
 
 class Config
 {
-    DynamicJsonBuffer jsonBuffer;
-    JsonVariant jsonObject;
+    DynamicJsonBuffer jsonBuffer;    
     Blinker blinker; 
+    String configJsonString;
     
 public:
     
@@ -39,7 +40,7 @@ public:
     void load();
     void persist();
     
-    inline JsonObject& getJsonRoot() {return jsonObject;} 
+    JsonObject& getJsonRoot(const char* node=NULL);
     void printConfigFileTo(Stream& stream) ;
     
     inline Blinker& getBlinker() {return blinker;}

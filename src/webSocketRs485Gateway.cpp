@@ -9,6 +9,8 @@
 #define WEBSOCKET_LISTEN_TASK_INTERVAL_DEFAULT 1 //ms
 
 
+
+
 extern Scheduler runner;
 extern Rs485 rs485;
 
@@ -84,14 +86,13 @@ void WebSocketRs485Gateway::setup(Stream &dbgstream)
     
     const char* _server_auth_username = root["websocket"]["server_auth"]["username"];
     const char* _server_auth_password = root["websocket"]["server_auth"]["password"];
-
     const char* _protocol = root["websocket"]["protocol"];
 
     int task_listen_interval = root["websocket"]["task_listen_interval"];
 
     DPRINTF(">WebSocket SETUP: enable: %d, server_port: %d, protocol: %s, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n", 
-        enable, _server_port, _protocol, _server_auth_username, _server_auth_password, task_listen_interval);
-
+        enable, _server_port, REPLACE_NULL_STR(_protocol), REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), task_listen_interval);
+    
     if(!_server_port) _server_port=WEBSOCKETSERVER_PORT_DEFAULT;    
     if(!_protocol) _protocol =WEBSOCKETSERVER_PROTOCOL_DEFAULT;
     if(!task_listen_interval) task_listen_interval= WEBSOCKET_LISTEN_TASK_INTERVAL_DEFAULT;
@@ -108,12 +109,12 @@ void WebSocketRs485Gateway::setup(Stream &dbgstream)
             std::placeholders::_1,std::placeholders::_2,std::placeholders::_3,std::placeholders::_4);
         webSocketsServer.onEvent(serverevent_function);
         
-        if(_server_auth_username)
+        if(_server_auth_username && strlen(_server_auth_username)>0)
         {
             // use HTTP Basic Authorization this is optional remove if not needed
             webSocketsServer.setAuthorization(_server_auth_username, _server_auth_password);        
         }
-        
+
         //TASK setting
         TaskCallback funct = std::bind(&WebSocketRs485Gateway::process, this);
         taskReceiveCmd.set(task_listen_interval
@@ -122,7 +123,6 @@ void WebSocketRs485Gateway::setup(Stream &dbgstream)
             );
         runner.addTask(taskReceiveCmd);
         taskReceiveCmd.enable();
-       
     }
 
 }

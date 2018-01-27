@@ -23,7 +23,11 @@
             ],
             "problemMatcher": [
                 "$platformio"
-            ]
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         },
         {
             "type": "PlatformIO",
@@ -34,11 +38,7 @@
             ],
             "problemMatcher": [
                 "$platformio"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            ]
         }
     ]
 }
