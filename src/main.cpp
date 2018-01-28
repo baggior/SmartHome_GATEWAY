@@ -1,3 +1,4 @@
+
 #include "config.h"
 
 #include "wifiConnection.h"
@@ -20,6 +21,7 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_PORT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(FTP_DEBUG))
 
+
 Config config;
 WiFiConnection connection;
 
@@ -35,11 +37,19 @@ Ota ota;
 Scheduler runner;
 
 
+#ifndef UNIT_TEST  
 
 void setup() {
+    delay(2000);
+
     // put your setup code here, to run once:    
-    Serial.flush();
+    Serial.end();
     Serial.begin(9600);
+
+    #ifdef MY_DEBUG
+    Serial.setDebugOutput(true);
+    #endif
+    
     Serial.println();
     DPRINTLN("main setup start");
 /* 
@@ -158,3 +168,6 @@ void loop()
     }       
 }
 
+
+
+#endif

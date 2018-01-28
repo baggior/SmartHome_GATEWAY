@@ -103,9 +103,9 @@ String Config::getDeviceInfoString(const char* crlf)
 {
     String ret;
 #ifdef ESP8266
-    ret.concat("ESP8266 Chip ID: " + String(ESP.getChipId()) +crlf);
+    ret.concat("ESP8266 Chip ID: " + baseutils::getChipId() +crlf);
 #elif defined(ESP32)    
-    ret.concat("ESP32: " + String((uint16_t) (ESP.getEfuseMac()>>32)) + String((uint32_t)ESP.getEfuseMac()) + crlf);
+    ret.concat("ESP32: Chip ID:" + baseutils::getChipId() + crlf);
 #else
     //TODO other
 #endif

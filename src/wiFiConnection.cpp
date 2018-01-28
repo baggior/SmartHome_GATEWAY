@@ -53,12 +53,12 @@ void WiFiConnection::wifiManagerOpenConnection()
 
     dbgstream->printf(">WiFI Connection SETUP: hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, "
         "phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
-        hostname, static_ip, static_gw,static_sn,
-        _phy_mode,
+        REPLACE_NULL_STR(hostname), REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn),
+        REPLACE_NULL_STR(_phy_mode),
         connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
        
-    // Connect to WiFi
-    uint8_t status =WiFi.status();
+    // Connect to WiFi    
+    uint8_t status = WiFi.begin();
     if(status!= WL_CONNECTED)
     {                
 #ifdef ESP8266

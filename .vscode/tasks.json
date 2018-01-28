@@ -2,18 +2,7 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "PlatformIO",
-            "args": [
-                "run",
-                "--target",
-                "uploadfs"
-            ],
-            "problemMatcher": [
-                "$platformio"
-            ]
-        },
+    "tasks": [       
         {
             "type": "PlatformIO",
             "args": [
@@ -35,6 +24,19 @@
                 "run",
                 "--environment",
                 "nodemcuv2"
+            ],
+            "problemMatcher": [
+                "$platformio"
+            ]
+        },
+        {
+            "type": "PlatformIO",
+            "args": [
+                "run",
+                "--target",
+                "uploadfs",
+                "--environment",
+                "esp32dev"
             ],
             "problemMatcher": [
                 "$platformio"

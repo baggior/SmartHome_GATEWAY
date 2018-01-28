@@ -215,7 +215,11 @@ void WifiTelnetServer::showHelp()
 {
     String help ="";
     help.concat("******************************************************\r\n");  
+    #ifdef ESP32
+    help.concat("* ESP32 GATEWAY Telnet Server ");     
+    #else
     help.concat("* ESP8266 GATEWAY Telnet Server ");     
+    #endif
     String info = Config::getDeviceInfoString("\r\n");
     help.concat(info);
     help.concat("******************************************************\r\n");  

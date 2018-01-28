@@ -2,7 +2,7 @@
 #define config_h
 
 #ifdef ESP32
-#define LED_PIN 5   //TODO
+#define LED_PIN 0 // esp32dev no builtin LED
 #else
 #define LED_PIN BUILTIN_LED
 #endif
