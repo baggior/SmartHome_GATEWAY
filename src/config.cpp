@@ -2,6 +2,7 @@
 
 #include <BaseUtils.h>
 #include <TaskScheduler.h>
+#include <StreamString.h>
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -11,7 +12,7 @@
 
 
 #define CONFIG_FILE_PATH "/config.json"
-#define JSON_BUFFER_SIZE 248
+#define JSON_BUFFER_SIZE 1024
 
 Config::Config() 
 : blinker(LED_PIN),
@@ -45,8 +46,10 @@ void Config::load()
 
 
 JsonObject& Config::getJsonRoot(const char* node)
-{       
-    JsonObject& jsonObject = this->jsonBuffer.parseObject(this->configJsonString);
+{   
+    this->jsonBuffer.clear();
+    
+    JsonObject& jsonObject = this->jsonBuffer.parseObject(this->configJsonString);    
     if(jsonObject.success())
     {
         if(node) return jsonObject[node];
@@ -136,5 +139,11 @@ String Config::getDeviceInfoString(const char* crlf)
         ret.concat("* subnet mask:");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP:");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP:");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        
     }   
 
+    StreamString ss;
+    baseutils::printBoardInfo(ss); ss.replace("\n", crlf);
+    ret.concat(crlf);
+    ret.concat(ss);
+    ret.concat(crlf);
+    
     return ret;
 }

@@ -38,7 +38,7 @@ void WifiRestServer::setup(Stream &serial)
 
   // Give name & ID to the device (ID should be 6 characters long)
   rest.set_id("1");
-  rest.set_name("esp8266");
+  rest.set_name("esp");
   
   // Start the server
   server.begin();  

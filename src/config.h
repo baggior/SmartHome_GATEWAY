@@ -30,8 +30,8 @@
 class Config
 {
     DynamicJsonBuffer jsonBuffer;    
-    Blinker blinker; 
     String configJsonString;
+    Blinker blinker; 
     
 public:
     

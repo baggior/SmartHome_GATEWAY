@@ -28,19 +28,7 @@
             "problemMatcher": [
                 "$platformio"
             ]
-        },
-        {
-            "type": "PlatformIO",
-            "args": [
-                "run",
-                "--target",
-                "uploadfs",
-                "--environment",
-                "esp32dev"
-            ],
-            "problemMatcher": [
-                "$platformio"
-            ]
         }
+        
     ]
 }
