@@ -3,7 +3,8 @@
 
 #include <ESPAsyncWiFiManager.h>
 
-#define THING_GATEEWAY_DISCOVERY_ID "gateway"
+#define THING_GATEEWAY_DISCOVERY_SERVICE    "_gateway"
+#define THING_GATEEWAY_DISCOVERY_PROTO      "_tcp"
 
 #ifdef ESP8266
 WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
@@ -168,18 +169,26 @@ void WiFiConnection::announceTheDevice()
 #endif
     IPAddress ip = WiFi.localIP();
 
+    hostname.toLowerCase();
     if (!MDNS.begin(hostname.c_str())) {
         dbgstream->println("Error setting up MDNS responder! ");
     }
-    dbgstream->printf("mDNS responder started: %s.local (ip: %s) \n"
+    dbgstream->printf("mDNS responder started. hostname: %s (ip: %s) \n"
         , hostname.c_str(), ip.toString().c_str());
    
-    //TODO rest port
-    const char* proto="tcp";
-    const int port =80;
-    MDNS.addService(THING_GATEEWAY_DISCOVERY_ID, proto, port); // Announce esp tcp service on port 80
-    dbgstream->printf("mDNS service: %s, proto:%s, port: %d \n"
-        , THING_GATEEWAY_DISCOVERY_ID, proto, port);
+
+    const char* proto = THING_GATEEWAY_DISCOVERY_PROTO;
+    const int port = 80; //TODO take from REST server config
+     // Announce esp tcp service on port 80
+    MDNS.addService(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);
+    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "service", "theservice");
+    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "type", "thetype");
+//    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "id", "theid");
+//TEST
+    MDNS.addService("_gateway-telnet", THING_GATEEWAY_DISCOVERY_PROTO, 21);
+
+    dbgstream->printf("mDNS service: %s, proto: %s, port: %d \n"
+        , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);
 }
 
 
@@ -199,16 +208,36 @@ void WiFiConnection::process()
     
 }
 
-
-void WiFiConnection::query(String service)
+QueryResult WiFiConnection::query()
 {
-    dbgstream->println("Sending mDNS query");
-    //"thing:server"
-    int n = MDNS.queryService(service, "tcp"); // Send out query for esp tcp services
-    dbgstream->println("mDNS query done");
+    return this->query(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO);
+}
+QueryResult WiFiConnection::query(String service, String proto)
+{
+    QueryResult ret( {.port=0} );
+    
+    dbgstream->printf("mDNS query for service _%s._%s.local. ...\n", service.c_str(), proto.c_str());
+
+    int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
     if (n == 0) {
-        dbgstream->println("no services found");
+        dbgstream->println("\tno services found");
+    } else {
+        dbgstream->printf(" \t%d services found\n", n);
+        
+        ret.host = MDNS.hostname(0);
+        ret.port = MDNS.port(0);
+        ret.ip = MDNS.IP(0);
+
+        #ifdef MY_DEBUG
+        for (int i = 0; i < n; ++i) {
+            // Print details for each service found
+            dbgstream->printf("\t%d: %s (%s:%d)\n",
+                (i+1), MDNS.hostname(i).c_str(), MDNS.IP(i).toString().c_str(), MDNS.port(i));
+        }
+        #endif
     }
+
+    return ret;
 }
 
 

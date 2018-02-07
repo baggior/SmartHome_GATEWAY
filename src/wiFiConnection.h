@@ -10,6 +10,8 @@
 #include <ESPmDNS.h>
 #endif
 
+struct QueryResult;
+
 //Wifi connection STA
 class WiFiConnection{
 public:
@@ -22,7 +24,8 @@ public:
 
     void process();
 
-    void query(String service);
+    QueryResult query();
+    QueryResult query(String service, String proto);
 
 private:
     Stream *  dbgstream;
@@ -33,5 +36,11 @@ private:
     void restartESP();
 };
 
+struct QueryResult {
+public:
+    uint16_t port;
+    String host;
+    IPAddress ip;
+};
 
 #endif

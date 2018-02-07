@@ -2,7 +2,7 @@
 	"wifi": {
 		"SSID": null,
 		"password": null,
-        "hostname": "SHGw",
+        "hostname": "shgw",
         "static_ip": "192.168.1.12",
         "static_gw": "192.168.1.1",
         "static_sn": "255.255.255.0",

@@ -6,7 +6,6 @@
 #else
 #define LED_PIN BUILTIN_LED
 #endif
-
 #include <Arduino.h>
 
 #include <ArduinoJson.h>
@@ -25,7 +24,8 @@
 
 #include <Blinker.h>
 
-#include "ObjectModel.h"
+#include "hw_config.h"
+#include "objectModel.h"
 
 class Config
 {
@@ -37,8 +37,8 @@ public:
     
     Config();
     ~Config() ;
-    void load();
-    void persist();
+    int load(boolean formatSPIFFSOnFails=false);
+    int persist();
     
     JsonObject& getJsonRoot(const char* node=NULL);
     void printConfigFileTo(Stream& stream) ;

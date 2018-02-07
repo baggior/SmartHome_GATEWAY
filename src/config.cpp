@@ -22,26 +22,40 @@ Config::Config()
 }
 Config::~Config() 
 {
-    
 }
 
-void Config::load()
+int Config::load(boolean formatSPIFFSOnFail)
 {
-    if(!SPIFFS.begin())
+    bool b = false;
+#ifdef ESP32
+    b = SPIFFS.begin(formatSPIFFSOnFail);
+#elif defined ESP8266
+    b = SPIFFS.begin();
+#endif
+
+    if(!b)
     {
-        DPRINTF("Error opening SPIFFS filesystem\n");   
+        DPRINTF(F("Error opening SPIFFS filesystem\n"));   
+        return -1;
     }
+    else {
+#ifdef ESP32
+        DPRINTF(F("SPIFFS filesystem open(%d used Bytes)\n"), SPIFFS.usedBytes() );  
+#elif defined ESP8266   
+        DPRINTF(F("SPIFFS filesystem open"));
+#endif  
+        DPRINTF(F("Using config file: %s \n"), CONFIG_FILE_PATH);   
+        
+        this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
+        // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
     
-    DPRINTF("Using config file: %s \n", CONFIG_FILE_PATH);   
-    
-    this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
-    // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
- 
-    #ifdef DEBUG_OUTPUT
-    this->printConfigFileTo(DEBUG_OUTPUT);
-    #endif
-    
-    SPIFFS.end();    
+        #ifdef DEBUG_OUTPUT
+        this->printConfigFileTo(DEBUG_OUTPUT);
+        #endif
+
+        SPIFFS.end();   
+        return 0; 
+    }    
 }
 
 
@@ -58,16 +72,17 @@ JsonObject& Config::getJsonRoot(const char* node)
     else
     {
         DPRINTF("Error parsing node %s of json: \n %s \n", (node?node:"<ROOT>"), configJsonString.c_str() );
-        // throw error TODO
+        // throw error TODO        
     } 
     return jsonObject;
 }
 
-void Config::persist()
+int Config::persist()
 {
     if(!SPIFFS.begin())
     {
         DPRINTF("Error opening SPIFFS filesystem\n");   
+        return -1;
     }
 
     //ArduinoUtil au;    
@@ -92,6 +107,7 @@ void Config::persist()
     configFile.close();
 
     SPIFFS.end();
+    return 0;
 }
 
 void Config::printConfigFileTo(Stream& stream) 
