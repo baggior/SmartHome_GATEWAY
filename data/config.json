@@ -1,13 +1,11 @@
 {
 	"wifi": {
-		"SSID": null,
-		"password": null,
+		"SSID": "cent15c",
+		"password": "elettronica",
         "hostname": "shgw",
         "static_ip": "192.168.1.12",
         "static_gw": "192.168.1.1",
-        "static_sn": "255.255.255.0",
-        "phy_mode": "N",
-        "connectionTimeout": 20
+        "static_sn": "255.255.255.0"       
 	},
 	"rs485": {
         "baud": 19200,

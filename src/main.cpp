@@ -44,7 +44,7 @@ void setup() {
 
     // put your setup code here, to run once:    
     Serial.end();
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     #ifdef MY_DEBUG
     Serial.setDebugOutput(true);
@@ -84,7 +84,7 @@ config.getBlinker().start(1);//1sec.
     webSocketRs485Gateway.setup(Serial);
     rs485.setup(Serial);
     
-    DPRINTLN("main seup done");
+    DPRINTLN("main setup done");
        
     connection.announceTheDevice();
     

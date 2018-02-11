@@ -35,16 +35,16 @@ int Config::load(boolean formatSPIFFSOnFail)
 
     if(!b)
     {
-        DPRINTF(F("Error opening SPIFFS filesystem\n"));   
+        DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
         return -1;
     }
     else {
 #ifdef ESP32
-        DPRINTF(F("SPIFFS filesystem open(%d used Bytes)\n"), SPIFFS.usedBytes() );  
+        DPRINTF(F("SPIFFS filesystem open(%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
 #elif defined ESP8266   
-        DPRINTF(F("SPIFFS filesystem open"));
+        DPRINTF(F("SPIFFS filesystem open\r\n"));
 #endif  
-        DPRINTF(F("Using config file: %s \n"), CONFIG_FILE_PATH);   
+        DPRINTF(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
         
         this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
         // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
@@ -71,7 +71,7 @@ JsonObject& Config::getJsonRoot(const char* node)
     }
     else
     {
-        DPRINTF("Error parsing node %s of json: \n %s \n", (node?node:"<ROOT>"), configJsonString.c_str() );
+        DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
         // throw error TODO        
     } 
     return jsonObject;
@@ -81,7 +81,7 @@ int Config::persist()
 {
     if(!SPIFFS.begin())
     {
-        DPRINTF("Error opening SPIFFS filesystem\n");   
+        DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
         return -1;
     }
 
@@ -95,11 +95,11 @@ int Config::persist()
     File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
     if (!configFile) 
     {
-        DPRINTF("ERROR Writing config file: %s \n",CONFIG_FILE_PATH);           
+        DPRINTF(F("ERROR Writing config file: %s \r\n"),CONFIG_FILE_PATH);           
     }
     else
     {
-        DPRINTF("Written config file: %s \n",CONFIG_FILE_PATH);   
+        DPRINTF(F("Written config file: %s \r\n"),CONFIG_FILE_PATH);   
     }
    
     getJsonRoot().prettyPrintTo(configFile);

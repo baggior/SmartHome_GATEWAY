@@ -3,8 +3,8 @@
 
 #include <ESPAsyncWiFiManager.h>
 
-#define THING_GATEEWAY_DISCOVERY_SERVICE    "_gateway"
-#define THING_GATEEWAY_DISCOVERY_PROTO      "_tcp"
+#define THING_GATEEWAY_DISCOVERY_SERVICE    "gateway"
+#define THING_GATEEWAY_DISCOVERY_PROTO      "tcp"
 
 #ifdef ESP8266
 WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
@@ -52,28 +52,30 @@ void WiFiConnection::wifiManagerOpenConnection()
     float outputPower = root["wifi"]["outputPower"];
     char buff[20];
 
-    dbgstream->printf(">WiFI Connection SETUP: hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, "
-        "phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \n", 
+    Serial_printf(*dbgstream, F(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
+        REPLACE_NULL_STR(SSID), REPLACE_NULL_STR(password),
         REPLACE_NULL_STR(hostname), REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn),
         REPLACE_NULL_STR(_phy_mode),
         connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
        
+    // dbgstream->printf(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n", 
+    //     REPLACE_NULL_STR(SSID), REPLACE_NULL_STR(password),
+    //     REPLACE_NULL_STR(hostname), REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn),
+    //     REPLACE_NULL_STR(_phy_mode),
+    //     connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
+
     // Connect to WiFi    
     uint8_t status = WiFi.begin();
     if(status!= WL_CONNECTED)
     {                
-#ifdef ESP8266
-        if(hostname) WiFi.hostname(hostname);
-#elif defined ESP32
-        if(hostname) WiFi.setHostname(hostname);
-#endif
+
         if (!SSID)  
         {           
             AsyncWebServer server(80);
             DNSServer dns;
             AsyncWiFiManager wifiManager(&server,&dns);             
 
-            dbgstream->println("Start WiFiManager connection.. ");            
+            dbgstream->println(F("Start WiFiManager connection.. \r\n"));            
             
             #ifdef MY_DEBUG
             wifiManager.setDebugOutput(true);
@@ -81,8 +83,9 @@ void WiFiConnection::wifiManagerOpenConnection()
             if(connectionTimeout) wifiManager.setConnectTimeout(connectionTimeout);                 //cerca di stabilire una connessione in 15 secondi
             if(captivePortalTimeout) wifiManager.setConfigPortalTimeout(captivePortalTimeout);      //il portale dura per 5 minuti poi fa reset
             if(minimumSignalQuality) wifiManager.setMinimumSignalQuality(minimumSignalQuality);
-            if(static_ip) 
+            if(static_ip && static_gw && static_sn) 
             {
+                Serial_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
                 IPAddress ip1,ip2,ip3;                 
                 if(ip1.fromString(static_ip))
                 {
@@ -108,14 +111,21 @@ void WiFiConnection::wifiManagerOpenConnection()
                WiFi.setAutoReconnect(true);            
             }            
         }
-        else
+        else //SSID defined
         {
-            dbgstream->println("Custom STA IP/GW/Subnet");
-            IPAddress ip1,ip2,ip3;
-            if(ip1.fromString(static_ip))
+            Serial_printf(*dbgstream, F("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
+            if(static_ip && static_gw && static_sn) 
             {
-                ip2.fromString(static_gw); ip3.fromString(static_sn);
-                WiFi.config(ip1, ip2, ip3);                
+                Serial_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
+                IPAddress ip1,ip2,ip3;
+                if(ip1.fromString(static_ip) && ip2.fromString(static_gw) && ip3.fromString(static_sn))
+                {                    
+                    WiFi.config(ip1, ip2, ip3);                
+                }
+                else
+                {
+                   Serial_printf(*dbgstream, F("STA Failed to configure: ERROR on reading static ip config params\r\n")); 
+                }
             }
 
             WiFi.begin(SSID, password);
@@ -134,26 +144,35 @@ void WiFiConnection::wifiManagerOpenConnection()
             }
         }
          
-    }     
+    }
+
+#ifdef ESP8266
+    if(hostname) WiFi.hostname(hostname);
+#elif defined ESP32
+    if(hostname) WiFi.setHostname(hostname);
+#endif  
 
     String connectedSSID = WiFi.SSID();
-    IPAddress connectedIPAddress = WiFi.localIP();  
-    dbgstream->print("WiFi connected to SSID: ");    dbgstream->print(connectedSSID);
-    dbgstream->print(" HOSTNAME: ");    
+    dbgstream->print(F("WiFi connected to SSID: "));    dbgstream->print(connectedSSID);
+    dbgstream->print(F(" HOSTNAME: "));    
 #ifdef ESP8266
     dbgstream->println(WiFi.hostname());
 #elif defined ESP32
     dbgstream->println(WiFi.getHostname());
 #endif
-    dbgstream->print(" IP: ");    dbgstream->println(connectedIPAddress.toString());
-
+    IPAddress connectedIPAddress = WiFi.localIP();  
+    dbgstream->print(F(" IP address: "));    dbgstream->println(connectedIPAddress.toString());
+    dbgstream->print(F("ESP Mac Address: ")); dbgstream->println(WiFi.macAddress());
+    dbgstream->print(F("Subnet Mask: ")); dbgstream->println(WiFi.subnetMask());
+    dbgstream->print(F("Gateway IP: "));  dbgstream->println(WiFi.gatewayIP());
+    dbgstream->print(F("DNS: ")); dbgstream->println(WiFi.dnsIP());
 }
 
 
 void WiFiConnection::DEBUG_printDiagWiFI()
 {
     #ifdef MY_DEBUG
-    dbgstream->println("WiFI printDiag:");
+    dbgstream->println(F("WiFI printDiag:"));
     WiFi.printDiag(DEBUG_OUTPUT);
     #endif
 }
@@ -171,21 +190,23 @@ void WiFiConnection::announceTheDevice()
 
     hostname.toLowerCase();
     if (!MDNS.begin(hostname.c_str())) {
-        dbgstream->println("Error setting up MDNS responder! ");
+        dbgstream->println(F("Error setting up MDNS responder! "));
     }
-    dbgstream->printf("mDNS responder started. hostname: %s (ip: %s) \n"
+    Serial_printf(*dbgstream, F("mDNS responder started. hostname: %s (ip: %s) \n")
         , hostname.c_str(), ip.toString().c_str());
    
+    String proto("_"), service("_");    
+    // proto.concat("_"); 
+    proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
+    // service.concat("_"); 
+    service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
 
-    const char* proto = THING_GATEEWAY_DISCOVERY_PROTO;
     const int port = 80; //TODO take from REST server config
      // Announce esp tcp service on port 80
-    MDNS.addService(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);
-    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "service", "theservice");
-    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "type", "thetype");
-//    MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, "id", "theid");
-//TEST
-    MDNS.addService("_gateway-telnet", THING_GATEEWAY_DISCOVERY_PROTO, 21);
+    MDNS.addService(service, proto, port);
+//TEST    
+    MDNS.addServiceTxt(service, proto, "service", "theservice");
+    MDNS.addServiceTxt(service, proto, "type", "thetype");
 
     dbgstream->printf("mDNS service: %s, proto: %s, port: %d \n"
         , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);
@@ -216,13 +237,13 @@ QueryResult WiFiConnection::query(String service, String proto)
 {
     QueryResult ret( {.port=0} );
     
-    dbgstream->printf("mDNS query for service _%s._%s.local. ...\n", service.c_str(), proto.c_str());
+    Serial_printf(*dbgstream, F("mDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
 
     int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
     if (n == 0) {
-        dbgstream->println("\tno services found");
+        dbgstream->println(F("\tno services found"));
     } else {
-        dbgstream->printf(" \t%d services found\n", n);
+        Serial_printf(*dbgstream, F(" \t%d services found\n"), n);
         
         ret.host = MDNS.hostname(0);
         ret.port = MDNS.port(0);
