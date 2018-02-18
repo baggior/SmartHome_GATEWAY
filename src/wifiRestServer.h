@@ -1,35 +1,28 @@
 #ifndef wifirestserver_h
 #define wifirestserver_h
 
-/*
-  This a simple example of the aREST Library for the ESP8266 WiFi chip.
-  See the README file for more details.
-
-  Written in 2015 by Marco Schwartz under a GPL license.
-*/
 
 // Import required libraries
 #include <WifiServer.h>
 #include <WifiClient.h>
-#include <aREST.h>
+#include <ESPAsyncWebServer.h>
 
 
 
 class WifiRestServer {
 
+private:
 
-  // Create aREST instance
-  aREST rest;
-  
-  // The port to listen for incoming TCP connections
-  uint8_t listenport = 80;
+  // Create RestServer instance
+  AsyncWebServer webServer;
+  Stream *  dbgstream;
 
-  // Create an instance of the server
-  WiFiServer server;
+  uint8_t _listenport;
 
-  // Variables to be exposed to the API
-  int temperature;
-  int humidity;
+  void _setupHandlers();
+  void _onBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+  void _onUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+  void _onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
 public:
   WifiRestServer(const uint8_t listenport=80);

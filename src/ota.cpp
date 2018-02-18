@@ -3,7 +3,7 @@
 #include "ota.h"
 
 
-#define OTA_LISTEN_TASK_INTERVAL_DEFAULT 100 //ms
+#define OTA_LISTEN_TASK_INTERVAL_DEFAULT 1000 //ms
 
 extern Scheduler runner;
 

@@ -18,7 +18,7 @@ Config::Config()
 : blinker(LED_PIN),
   jsonBuffer(JSON_BUFFER_SIZE)
 {
-
+    this->startupTimeMillis = millis();
 }
 Config::~Config() 
 {
@@ -121,38 +121,41 @@ void Config::printConfigFileTo(Stream& stream)
 String Config::getDeviceInfoString(const char* crlf)
 {
     String ret;
-#ifdef ESP8266
-    ret.concat("ESP8266 Chip ID: " + baseutils::getChipId() +crlf);
-#elif defined(ESP32)    
-    ret.concat("ESP32: Chip ID:" + baseutils::getChipId() + crlf);
-#else
-    //TODO other
-#endif
     ret.concat("- software version: "); ret.concat(Config::getSoftwareVersion()); ret.concat(crlf);
+// #ifdef ESP8266
+//     ret.concat("ESP8266 Chip ID: " + baseutils::getChipId() +crlf);
+// #elif defined(ESP32)    
+//     ret.concat("ESP32: Chip ID:" + baseutils::getChipId() + crlf);
+// #else
+//     //TODO other
+// #endif
+    String secRunning( millis() / 1000 );
+    ret.concat("* Started up ");ret.concat(secRunning);ret.concat(" seconds ago.\n"); 
+
     #ifdef MY_DEBUG
     ret.concat("* DEBUG is ON "); 
     #ifdef DEBUG_OUTPUT
-    ret.concat(" Serial Port: "+ String(VALUE_TO_STRING(DEBUG_OUTPUT))); ret.concat(crlf);
+    ret.concat("Serial Port: "+ String(VALUE_TO_STRING(DEBUG_OUTPUT))); ret.concat(crlf);
     #endif
     #endif
     ret.concat(crlf);
     ret.concat("* Free Heap RAM: "); ret.concat(ESP.getFreeHeap()); ret.concat(crlf);
-    ret.concat("* Mac address:"); ret.concat(WiFi.macAddress()); ret.concat(crlf);
+    ret.concat("* Mac address: "); ret.concat(WiFi.macAddress()); ret.concat(crlf);
 
     if(WiFi.isConnected())
     {
-        ret.concat("* WiFI SSID:");ret.concat(WiFi.SSID()); ret.concat(" channel:");ret.concat(WiFi.channel()); ret.concat(" WiFiMode:");ret.concat(WiFi.getMode()); ret.concat(" PhyMode:");
+        ret.concat("* WiFI SSID: ");ret.concat(WiFi.SSID()); ret.concat(" channel: ");ret.concat(WiFi.channel()); ret.concat(" WiFiMode: ");ret.concat(WiFi.getMode()); ret.concat(" PhyMode: ");
 
 #ifdef ESP8266
         ret.concat(WiFi.getPhyMode()); ret.concat(crlf);
         ret.concat("* Host:");ret.concat(WiFi.hostname()); 
 #elif defined (ESP32)
         ret.concat(WiFi.getMode()); ret.concat(crlf);
-        ret.concat("* Host:");ret.concat(WiFi.getHostname()); 
+        ret.concat("* Host: ");ret.concat(WiFi.getHostname()); 
 #endif
 
-        ret.concat(" IP:");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
-        ret.concat("* subnet mask:");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP:");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP:");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        
+        ret.concat(" IP: ");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
+        ret.concat("* subnet mask: ");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP: ");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP: ");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        
     }   
 
     StreamString ss;

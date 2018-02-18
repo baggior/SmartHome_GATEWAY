@@ -43,23 +43,6 @@ void test_setup_wifi(void) {
     
     delay(1000);
     connection.announceTheDevice();
-    // delay(3000);
-
-// //    WiFi.setHostname("espressif");
-// 	MDNS.begin("espressif");
-//     delay(2000);
-// 	MDNS.addService("_osc","_udp",4500);
-// 	MDNS.addServiceTxt("_osc","_udp","does","it");
-// 	// MDNS.addServiceTxt("_osc","_udp","work","work");
-// 	// MDNS.addServiceTxt("_osc","_udp","yes","yes");
-}
-
-void test_mdns(void) {
-
-
-MDNS.addServiceTxt("_osc","_udp","does","it");
-    // QueryResult results = connection.query(String("osc"), String("udp"));
-    // TEST_ASSERT_EQUAL_UINT_MESSAGE(4500,results.port, "MDNS service not found");
 
 }
 
@@ -85,7 +68,7 @@ void loop() {
     if (i < max_loops)
     {
         delay(2000);
-        RUN_TEST(test_mdns);
+        
     
         i++;
     }

@@ -32,7 +32,7 @@ class Config
     DynamicJsonBuffer jsonBuffer;    
     String configJsonString;
     Blinker blinker; 
-    
+    unsigned long startupTimeMillis;
 public:
     
     Config();
@@ -47,6 +47,9 @@ public:
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
+ 
+    inline unsigned long millisSinceStartup() {return millis()-startupTimeMillis;} 
+
 };
 
 

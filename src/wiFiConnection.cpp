@@ -201,12 +201,14 @@ void WiFiConnection::announceTheDevice()
     // service.concat("_"); 
     service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
 
-    const int port = 80; //TODO take from REST server config
+    const int port = 9; //TODO take from REST server config
      // Announce esp tcp service on port 80
     MDNS.addService(service, proto, port);
+    MDNS.enableWorkstation();
+    MDNS.enableArduino(9);
 //TEST    
-    MDNS.addServiceTxt(service, proto, "service", "theservice");
-    MDNS.addServiceTxt(service, proto, "type", "thetype");
+    // MDNS.addServiceTxt(service, proto, "serviceAttr", "theservice");
+    // MDNS.addServiceTxt(service, proto, "typeAttr", "thetype");
 
     dbgstream->printf("mDNS service: %s, proto: %s, port: %d \n"
         , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);

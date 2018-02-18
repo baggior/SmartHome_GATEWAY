@@ -5,7 +5,6 @@
 #elif defined ESP32
 #include <WiFi.h>
 #endif
-#include <TextFinder.h>
 
 #include "wifiTelnetServer.h"
 #include "rs485.h"
