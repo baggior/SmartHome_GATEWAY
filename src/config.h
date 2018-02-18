@@ -1,6 +1,11 @@
 #ifndef config_h
 #define config_h
 
+#ifdef ESP32
+#define LED_PIN 0 // esp32dev no builtin LED
+#else
+#define LED_PIN BUILTIN_LED
+#endif
 #include <Arduino.h>
 
 #include <ArduinoJson.h>
@@ -16,30 +21,35 @@
 #include <pragmautils.h>
 #include <dbgutils.h>
 #include <baseutils.h>
+
 #include <Blinker.h>
 
-#include "ObjectModel.h"
+#include "hw_config.h"
+#include "objectModel.h"
 
 class Config
 {
-    DynamicJsonBuffer jsonBuffer;
-    JsonVariant jsonObject;
+    DynamicJsonBuffer jsonBuffer;    
+    String configJsonString;
     Blinker blinker; 
-    
+    unsigned long startupTimeMillis;
 public:
     
     Config();
     ~Config() ;
-    void load();
-    void persist();
+    int load(boolean formatSPIFFSOnFails=false);
+    int persist();
     
-    inline JsonObject& getJsonRoot() {return jsonObject;} 
+    JsonObject& getJsonRoot(const char* node=NULL);
     void printConfigFileTo(Stream& stream) ;
     
     inline Blinker& getBlinker() {return blinker;}
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
+ 
+    inline unsigned long millisSinceStartup() {return millis()-startupTimeMillis;} 
+
 };
 
 

@@ -1,3 +1,4 @@
+
 #include "config.h"
 
 #include "wifiConnection.h"
@@ -11,6 +12,7 @@
 
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
+PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ESP8266))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ESP32))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(__AVR__))
@@ -18,7 +20,7 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(MY_DEBUG))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_OUTPUT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_PORT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
-PRAGMA_MESSAGE (VAR_NAME_VALUE(FTP_DEBUG))
+
 
 Config config;
 WiFiConnection connection;
@@ -35,11 +37,19 @@ Ota ota;
 Scheduler runner;
 
 
+#ifndef UNIT_TEST  
 
 void setup() {
+    delay(2000);
+
     // put your setup code here, to run once:    
-    Serial.flush();
-    Serial.begin(9600);
+    Serial.end();
+    Serial.begin(115200);
+
+    #ifdef MY_DEBUG
+    Serial.setDebugOutput(true);
+    #endif
+    
     Serial.println();
     DPRINTLN("main setup start");
 /* 
@@ -74,7 +84,7 @@ config.getBlinker().start(1);//1sec.
     webSocketRs485Gateway.setup(Serial);
     rs485.setup(Serial);
     
-    DPRINTLN("main seup done");
+    DPRINTLN("main setup done");
        
     connection.announceTheDevice();
     
@@ -158,3 +168,6 @@ void loop()
     }       
 }
 
+
+
+#endif

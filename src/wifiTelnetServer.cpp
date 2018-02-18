@@ -1,10 +1,14 @@
 #include "config.h"
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
-#include <TextFinder.h>
+#elif defined ESP32
+#include <WiFi.h>
+#endif
 
 #include "wifiTelnetServer.h"
 #include "rs485.h"
+#include "wifiConnection.h"
 
 #define MAX_TIME_INACTIVE_DEFAULT 10*60*1000 //10 minuti (in millis)
 #define TELNET_LISTEN_PORT_DEFAULT 23
@@ -13,6 +17,7 @@
 
 extern Scheduler runner;
 //extern Rs485 rs485;
+extern WiFiConnection connection;
 
 WifiTelnetServer::WifiTelnetServer()
     : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),
@@ -143,13 +148,22 @@ void WifiTelnetServer::handleInputCommand(String& command)
 {
     //Stream s;
     //TextFinder finder(command);
-    if(command.startsWith("/"))
+    if(command.equalsIgnoreCase("/"))
     {
         showHelp();
     }
-    else if(command.equalsIgnoreCase("quit"))
+    else if(command.equalsIgnoreCase("/mdns"))
     {
+        connection.announceTheDevice();
+    }
+    else if(command.equalsIgnoreCase("/quit"))
+    {
+#ifdef ESP32        
+        telnetClient.stop();        
+#else
         telnetClient.stopAll();        
+#endif
+
     }
     else if(command.startsWith(":"))
     {
@@ -190,8 +204,8 @@ bool WifiTelnetServer::process()
             // For reduce overheads
             if ((millis() - _lastTimeCommand) > MAX_TIME_INACTIVE) {
                 String ip = telnetClient.remoteIP().toString();
-                dbgstream->println("Telnet Client Stop by inactivity ip: "+ ip);
-                telnetClient.println("* Closing session by inactivity");
+                dbgstream->print(F("Telnet Client Stop by inactivity ip: ")); dbgstream->println(ip);
+                telnetClient.println(F("* Closing session by inactivity"));
                 telnetClient.stop();          
                 
             }
@@ -206,7 +220,11 @@ void WifiTelnetServer::showHelp()
 {
     String help ="";
     help.concat("******************************************************\r\n");  
+    #ifdef ESP32
+    help.concat("* ESP32 GATEWAY Telnet Server ");     
+    #else
     help.concat("* ESP8266 GATEWAY Telnet Server ");     
+    #endif
     String info = Config::getDeviceInfoString("\r\n");
     help.concat(info);
     help.concat("******************************************************\r\n");  

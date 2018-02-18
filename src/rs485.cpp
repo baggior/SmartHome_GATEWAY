@@ -1,12 +1,19 @@
 #include "config.h"
 
 #include "rs485.h"
-#include "ExponentialBackoffTimer.h"
+//#include "ExponentialBackoffTimer.h"
 
-
+#ifdef ESP8266
 #define RS485_RO_RX D1        //receive out
 #define RS485_DI_TX D2        //data in
 #define RS485_REDE_CONTROL D6 //receive enable / data enable
+
+#elif defined ESP32 //TODO
+#define RS485_RO_RX RX        //receive out
+#define RS485_DI_TX TX        //data in
+#define RS485_REDE_CONTROL T0 //receive enable / data enable
+#endif
+
 #define RS485_Tx HIGH         //control send
 #define RS485_Rx LOW          //control receive
 
@@ -28,14 +35,15 @@ void Rs485::setup(Stream &dbgstream)
   JsonObject &root = config.getJsonRoot();
 
   this->appendLRC = root["rs485"]["appendLRC"];
-  const char *_prefix = root["rs485"]["prefix"];
+  const char * _prefix = root["rs485"]["prefix"];
   int _baud = root["rs485"]["baud"];
   int _databits = root["rs485"]["databits"];
   int _stopbits = root["rs485"]["stopbits"];
-  const char *_parity = root["rs485"]["parity"];
+  const char * _parity = root["rs485"]["parity"];
   this->defaultCommandTimeout = root["rs485"]["defaultCommandTimeout"];
+  
   DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n",
-          _prefix, this->appendLRC, defaultCommandTimeout, _baud, _databits, _stopbits, _parity);
+          REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
   this->dbgstream = &dbgstream;
   if (_prefix)
