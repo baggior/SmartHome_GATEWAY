@@ -4,11 +4,13 @@
         {
             "type": "gdb",
             "request": "launch",
-            "cwd": "${workspaceRoot}",
+            "cwd": "${workspaceFolder}",
             "name": "PlatformIO Debugger",
             "target": "c:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/nodemcuv2/firmware.elf",
             "gdbpath": "C:/Users/Marco/.platformio/penv/Scripts/piodebuggdb",
-            "autorun": [ "source .pioinit" ]
+            "autorun": [ "source .pioinit" ],
+            "preLaunchTask": "PlatformIO: Pre-Debug",
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }
