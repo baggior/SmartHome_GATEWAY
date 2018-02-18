@@ -86,7 +86,7 @@ config.getBlinker().start(1);//1sec.
     
     DPRINTLN("main setup done");
        
-    connection.announceTheDevice();
+    // connection.announceTheDevice();
     
 config.getBlinker().start(3);//3sec.
     DPRINTLN("Initialized the scheduler");

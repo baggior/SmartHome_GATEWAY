@@ -1,12 +1,21 @@
 #include "config.h"
 
 // #include <WifiClient.h>
+#ifdef ESP32
 #include <Update.h>
+#endif
+
 #include <SPIFFSEditor.h>
 #include <AsyncJson.h>
 
 #include "wifiRestServer.h"
 #include "wifiRestServerJsonHandler.h"
+
+#include "WiFiConnection.h"
+
+#define RESTSERVER_PORT_DEFAULT   80
+
+extern WiFiConnection connection;
 
 // static AsyncEventSource _events("/events"); // event source (Server-Sent events to browser)
 
@@ -21,38 +30,64 @@ static void _onScanWiFi(AsyncWebServerRequest *request) ;
 static void _onFwUpdate1(Stream* dbgstream, AsyncWebServerRequest *request) ;
 static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
 
-
   
-WifiRestServer::WifiRestServer(const uint8_t listenport) 
-: webServer(listenport)
+WifiRestServer::WifiRestServer() 
+: webServer(NULL), enable(true)
 {
   this->dbgstream=NULL;
-  this->_listenport = listenport;
+  this->_server_port = RESTSERVER_PORT_DEFAULT;
+}
+WifiRestServer::~WifiRestServer()
+{
+  // this->dbgstream=NULL;
+  if(webServer) delete webServer;
 }
 
 
 void WifiRestServer::setup(Stream &dbgstream)
 {  
   this->dbgstream = &dbgstream;
+
+  JsonObject & root = config.getJsonRoot();   
+
+  this->enable = root["rest"]["enable"];   
+  this->_server_port=root["rest"]["server_port"];
+
+  //TODO request authentication not implemented
+  const char* _server_auth_username = root["rest"]["server_auth"]["username"];
+  const char* _server_auth_password = root["rest"]["server_auth"]["password"];
+
+  Serial_printf(dbgstream, F(">RESTServer SETUP: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+    enable, _server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
+
+  if(this->enable)
+  {
+    if(!_server_port) _server_port=RESTSERVER_PORT_DEFAULT;
+          
+    webServer = new AsyncWebServer(_server_port);    
+
+    // Setup the server handlers
+    _setupHandlers();
+
+    // CORS headers
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Server","ESP Async Web Server");
+
+    // Start the server
+    webServer->begin();
+    this->dbgstream->print(F(">RESTServer SETUP: started on port:")); this->dbgstream->println(this->_server_port);
+
+    baseutils::StringArray attributes;
+    attributes.add(String("pippo"));
+    attributes.add(String("pluto"));
+    connection.announceTheDevice(this->_server_port, attributes);
+  }
   
-  // Setup the server handlers
-  _setupHandlers();
-
-  // CORS headers
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  DefaultHeaders::Instance().addHeader("Server","ESP Async Web Server");
-
-  // Start the server
-  webServer.begin();
-  this->dbgstream->print(">RESTServer SETUP: started on port:"); this->dbgstream->println(this->_listenport);
 }
 
 bool WifiRestServer::process() 
-{
-  
-
-  return false; //TODO
-
+{  
+  return false; //unused ASYNC server
 }
 
 void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod )
@@ -61,7 +96,7 @@ void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callb
   {
     // GET 
 
-    webServer.on(uri, HTTP_GET, [callback](AsyncWebServerRequest *request)
+    webServer->on(uri, HTTP_GET, [callback](AsyncWebServerRequest *request)
     {
       AsyncJsonResponse * response = new AsyncJsonResponse();
       response->setContentType("application/json");
@@ -89,9 +124,9 @@ void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callb
       response->setLength();
       request->send(response);   
     });
-    webServer.addHandler(jsonHandler);
+    webServer->addHandler(jsonHandler);
 
-//     webServer.on( uri, HTTP_POST, [callback](AsyncWebServerRequest *request)
+//     webServer->on( uri, HTTP_POST, [callback](AsyncWebServerRequest *request)
 //     {
 //       AsyncJsonResponse * response = new AsyncJsonResponse();
 //       response->setContentType("application/json");
@@ -125,22 +160,27 @@ void WifiRestServer::_setupHandlers()
   // _events.onConnect([](AsyncEventSourceClient *client){
   //   client->send("hello!",NULL,millis(),1000);
   // });
-  // webServer.addHandler(&_events);
+  // webServer->addHandler(&_events);
 
   // REQUEST HANDLERS 
 
-  webServer.on("/heapTxt", HTTP_GET, [](AsyncWebServerRequest *request){
+  webServer->on("/api/plain/heap", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
 
-  this->addRestApiMethod("/heap", [](JsonObject* requestPostBody,  JsonObject* responseBody) {
+  webServer->on("/api/restart", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/plain", String("Restarting ESP.."));
+    ESP.restart();
+  });
+
+  this->addRestApiMethod("/api/heap", [](JsonObject* requestPostBody,  JsonObject* responseBody) {
     JsonObject& root = (*responseBody);
     root["heap"] = ESP.getFreeHeap();
     root["ssid"] = WiFi.SSID();
   });
 
-//TEST 
-  this->addRestApiMethod("/heapPost", [this](JsonObject* requestPostBody,  JsonObject* responseBody) {
+//TEST POST
+  this->addRestApiMethod("/api/heapPost", [this](JsonObject* requestPostBody,  JsonObject* responseBody) {
     requestPostBody->prettyPrintTo((*this->dbgstream));
 
     JsonObject& root = (*responseBody);
@@ -148,40 +188,31 @@ void WifiRestServer::_setupHandlers()
     root["ssid"] = WiFi.SSID();
   }, false);
 
-  // webServer.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request){
-  //   AsyncJsonResponse * response = new AsyncJsonResponse();    
-  //   response->setContentType("application/json");
-  //   JsonObject& root = response->getRoot();
-  //   root["heap"] = ESP.getFreeHeap();
-  //   root["ssid"] = WiFi.SSID();
-  //   response->setLength();
-  //   request->send(response);    
-  // });
 
-  webServer.on("/help", HTTP_GET, _showHelp);
+  webServer->on("/api/help", HTTP_GET, _showHelp);
 
-  webServer.on("/echo", HTTP_ANY, _printToResponseHandler);
+  webServer->on("/api/echo", HTTP_ANY, _printToResponseHandler);
 
-  webServer.on("/scanWifi", HTTP_GET, _onScanWiFi);
+  webServer->on("/api/scanWifi", HTTP_GET, _onScanWiFi);
 
-  webServer.on("/firmwareUpdate", HTTP_GET, [](AsyncWebServerRequest *request){
+  webServer->on("/api/firmwareUpdate", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", "<form method='POST' action='/firmwareUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
   });
   // ArRequestHandlerFunction _onFwUpdate=
-  // webServer.on("/update", HTTP_POST,_onFwUpdate1, _onFwUpdate2);
+  // webServer->on("/update", HTTP_POST,_onFwUpdate1, _onFwUpdate2);
 
   // attach filesystem root at URL /
-  webServer.serveStatic("/", SPIFFS, "/");
+  webServer->serveStatic("/", SPIFFS, "/");
 
   // Web SPIFFS Editor
-  webServer.addHandler(& _theSPIFFSEditor );
+  webServer->addHandler(& _theSPIFFSEditor );
 
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it
   // ends in the callbacks below.  
-  webServer.onNotFound( std::bind(_onNotFoundHandler, this->dbgstream, std::placeholders::_1) );
-  webServer.onFileUpload( std::bind(_onUpload, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
-  webServer.onRequestBody( std::bind(_onBody, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+  webServer->onNotFound( std::bind(_onNotFoundHandler, this->dbgstream, std::placeholders::_1) );
+  webServer->onFileUpload( std::bind(_onUpload, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
+  webServer->onRequestBody( std::bind(_onBody, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
 }
 

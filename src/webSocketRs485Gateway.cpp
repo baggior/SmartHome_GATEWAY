@@ -5,7 +5,7 @@
 
 
 #define WEBSOCKETSERVER_PORT_DEFAULT 81
-#define WEBSOCKETSERVER_PROTOCOL_DEFAULT "SHGw_modbus"
+#define WEBSOCKETSERVER_PROTOCOL_DEFAULT "SH_RS485"
 #define WEBSOCKET_LISTEN_TASK_INTERVAL_DEFAULT 1 //ms
 
 
@@ -72,7 +72,7 @@ void WebSocketRs485Gateway::webSocketEvent(uint8_t num, WStype_t type, uint8_t *
 
 
 WebSocketRs485Gateway::WebSocketRs485Gateway()
-:   webSocketsServer(WEBSOCKETSERVER_PORT_DEFAULT)
+: webSocketsServer(WEBSOCKETSERVER_PORT_DEFAULT), enable(true)
 {
     
 }
@@ -90,7 +90,7 @@ void WebSocketRs485Gateway::setup(Stream &dbgstream)
 
     int task_listen_interval = root["websocket"]["task_listen_interval"];
 
-    DPRINTF(">WebSocket SETUP: enable: %d, server_port: %d, protocol: %s, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n", 
+    DPRINTF(F(">WebSocket SETUP: enable: %d, server_port: %d, protocol: %s, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n"), 
         enable, _server_port, REPLACE_NULL_STR(_protocol), REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), task_listen_interval);
     
     if(!_server_port) _server_port=WEBSOCKETSERVER_PORT_DEFAULT;    

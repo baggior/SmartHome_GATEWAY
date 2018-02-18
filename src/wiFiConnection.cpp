@@ -3,7 +3,8 @@
 
 #include <ESPAsyncWiFiManager.h>
 
-#define THING_GATEEWAY_DISCOVERY_SERVICE    "gateway"
+
+#define THING_GATEEWAY_DISCOVERY_SERVICE    "sht_gtw"
 #define THING_GATEEWAY_DISCOVERY_PROTO      "tcp"
 
 #ifdef ESP8266
@@ -146,20 +147,26 @@ void WiFiConnection::wifiManagerOpenConnection()
          
     }
 
-#ifdef ESP8266
-    if(hostname) WiFi.hostname(hostname);
-#elif defined ESP32
-    if(hostname) WiFi.setHostname(hostname);
-#endif  
+    //set device host name
+    if(hostname) 
+    {
+        String str_hostname(hostname);
+        str_hostname.toLowerCase();        
+        String chipId = baseutils::getChipId();
+        str_hostname.replace("*", chipId);
+        str_hostname.toLowerCase();
+
+        #ifdef ESP8266
+        WiFi.hostname(str_hostname.c_str());
+        #elif defined ESP32
+        WiFi.setHostname(str_hostname.c_str());
+        #endif  
+    }
 
     String connectedSSID = WiFi.SSID();
     dbgstream->print(F("WiFi connected to SSID: "));    dbgstream->print(connectedSSID);
-    dbgstream->print(F(" HOSTNAME: "));    
-#ifdef ESP8266
-    dbgstream->println(WiFi.hostname());
-#elif defined ESP32
-    dbgstream->println(WiFi.getHostname());
-#endif
+    dbgstream->print(F(" HOSTNAME: "));  dbgstream->println(this->getHostname());
+
     IPAddress connectedIPAddress = WiFi.localIP();  
     dbgstream->print(F(" IP address: "));    dbgstream->println(connectedIPAddress.toString());
     dbgstream->print(F("ESP Mac Address: ")); dbgstream->println(WiFi.macAddress());
@@ -177,41 +184,46 @@ void WiFiConnection::DEBUG_printDiagWiFI()
     #endif
 }
 
-void WiFiConnection::announceTheDevice()
+void WiFiConnection::announceTheDevice(unsigned int rest_server_port, baseutils::StringArray attributes)
 {
-#ifdef ESP8266
-    String hostname = WiFi.hostname();
-    uint32_t chipId = ESP.getChipId();
-#elif defined ESP32
-    String hostname = WiFi.getHostname();
-    uint32_t chipId = (uint32_t)ESP.getEfuseMac();
-#endif
-    IPAddress ip = WiFi.localIP();
+    if(rest_server_port)
+    {
+        String hostname =this->getHostname();   
+        IPAddress ip = WiFi.localIP();
 
-    hostname.toLowerCase();
-    if (!MDNS.begin(hostname.c_str())) {
-        dbgstream->println(F("Error setting up MDNS responder! "));
+        hostname.toLowerCase();
+        if (!MDNS.begin(hostname.c_str())) {
+            dbgstream->println(F("Error setting up MDNS responder! "));
+        }
+        Serial_printf(*dbgstream, F("MDNS responder started. hostname: %s (ip: %s) \n")
+            , hostname.c_str(), ip.toString().c_str());
+    
+        String proto("_"), service("_");    
+        // proto.concat("_"); 
+        proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
+        // service.concat("_"); 
+        service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
+
+        // Announce esp tcp service on port 80
+        MDNS.addService(service, proto, rest_server_port);      
+
+        for(auto it = attributes.begin(); it != attributes.end(); ++it)
+        {
+            String attr( *it ); ++it;
+            if(it != attributes.end())
+            {
+                const String attrV( *it ); 
+                MDNS.addServiceTxt(service, proto, attr.c_str(), attrV.c_str());
+            }
+            else
+            {
+                break;
+            }
+        }
+  
+        dbgstream->printf(">MDNS announced service: %s, proto: %s, port: %d \n"
+            , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, rest_server_port);
     }
-    Serial_printf(*dbgstream, F("mDNS responder started. hostname: %s (ip: %s) \n")
-        , hostname.c_str(), ip.toString().c_str());
-   
-    String proto("_"), service("_");    
-    // proto.concat("_"); 
-    proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
-    // service.concat("_"); 
-    service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
-
-    const int port = 9; //TODO take from REST server config
-     // Announce esp tcp service on port 80
-    MDNS.addService(service, proto, port);
-    MDNS.enableWorkstation();
-    MDNS.enableArduino(9);
-//TEST    
-    // MDNS.addServiceTxt(service, proto, "serviceAttr", "theservice");
-    // MDNS.addServiceTxt(service, proto, "typeAttr", "thetype");
-
-    dbgstream->printf("mDNS service: %s, proto: %s, port: %d \n"
-        , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, port);
 }
 
 
@@ -229,6 +241,14 @@ void WiFiConnection::setup(Stream &dbgstream)
 void WiFiConnection::process()
 {
     
+}
+
+String WiFiConnection::getHostname() {
+    #ifdef ESP8266
+    return WiFi.hostname();
+    #elif defined ESP32
+    return WiFi.getHostname();
+    #endif
 }
 
 QueryResult WiFiConnection::query()

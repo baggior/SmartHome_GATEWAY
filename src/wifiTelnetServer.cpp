@@ -154,7 +154,7 @@ void WifiTelnetServer::handleInputCommand(String& command)
     }
     else if(command.equalsIgnoreCase("/mdns"))
     {
-        connection.announceTheDevice();
+        // connection.announceTheDevice();
     }
     else if(command.equalsIgnoreCase("/quit"))
     {

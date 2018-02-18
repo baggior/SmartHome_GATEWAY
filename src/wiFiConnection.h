@@ -10,6 +10,8 @@
 #include <ESPmDNS.h>
 #endif
 
+#include "LinkedList.h"
+
 struct QueryResult;
 
 //Wifi connection STA
@@ -20,12 +22,14 @@ public:
 
     void setup(Stream &dbgstream);
 
-    void announceTheDevice(); 
+    void announceTheDevice(unsigned int rest_server_port, baseutils::StringArray attributes);
 
     void process();
 
     QueryResult query();
     QueryResult query(String service, String proto);
+
+    String getHostname();
 
 private:
     Stream *  dbgstream;

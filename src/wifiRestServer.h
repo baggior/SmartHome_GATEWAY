@@ -12,8 +12,8 @@ public:
 
   typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
 
-
-  WifiRestServer(const uint8_t listenport=80);
+  WifiRestServer();
+  ~WifiRestServer();
 
   void setup(Stream &serial);
   
@@ -24,10 +24,11 @@ public:
 
 private:
   
-  AsyncWebServer webServer;
+  AsyncWebServer * webServer;
   Stream *  dbgstream;
+  bool enable;
 
-  uint8_t _listenport;
+  unsigned int _server_port;
 
   void _setupHandlers();
   
