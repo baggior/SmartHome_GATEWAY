@@ -150,7 +150,7 @@ void loop()
                     }*/
                     case 3:    
                     {
-                        restServer.send(CMD_response);
+                        // restServer.send(CMD_response);
                         DPRINTLN("..sent restServer response [" + CMD_response + "]");
                         break;
                     }

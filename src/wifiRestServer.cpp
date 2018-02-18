@@ -6,8 +6,22 @@
 #include <AsyncJson.h>
 
 #include "wifiRestServer.h"
+#include "wifiRestServerJsonHandler.h"
 
 // static AsyncEventSource _events("/events"); // event source (Server-Sent events to browser)
+
+static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
+
+static void _printToResponseHandler(AsyncWebServerRequest *request);
+static void _showHelp(AsyncWebServerRequest *request);
+static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request);
+static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+static void _onScanWiFi(AsyncWebServerRequest *request) ;
+static void _onFwUpdate1(Stream* dbgstream, AsyncWebServerRequest *request) ;
+static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
+
+
   
 WifiRestServer::WifiRestServer(const uint8_t listenport) 
 : webServer(listenport)
@@ -41,35 +55,61 @@ bool WifiRestServer::process()
 
 }
 
-
-void WifiRestServer::send(const String& s_msg)
+void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod )
 {
-  //TODO
-}
+  if(isGetMethod)
+  {
+    // GET 
 
-void WifiRestServer::_onBody(AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
-{
-  //Handle body
-  if(!index)
-    this->dbgstream->printf("BodyStart: %u\n", total);
-  
-  this->dbgstream->printf("%s", (const char*)data);
+    webServer.on(uri, HTTP_GET, [callback](AsyncWebServerRequest *request)
+    {
+      AsyncJsonResponse * response = new AsyncJsonResponse();
+      response->setContentType("application/json");
+      JsonObject& responseObjectRoot = response->getRoot();
 
-  if(index + len == total)
-    this->dbgstream->printf("BodyEnd: %u\n", total);
-}
+      callback( NULL, &responseObjectRoot );
 
-void WifiRestServer::_onUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
-{
-  //Handle upload
-  if(!index)
-    this->dbgstream->printf("UploadStart: %s\n", filename.c_str());
+      response->setLength();
+      request->send(response);          
+    });
+  }
+  else
+  {
+    // POST
     
-  this->dbgstream->printf("%s", (const char*)data);
+    AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri, [callback] (AsyncWebServerRequest *request, JsonVariant &json) 
+    {
+      AsyncJsonResponse * response = new AsyncJsonResponse();
+      response->setContentType("application/json");
+      JsonObject& responseObjectRoot = response->getRoot();
 
-  if(final)
-    this->dbgstream->printf("UploadEnd: %s (%u)\n", filename.c_str(), index+len);
+      JsonObject& requestObjectRoot = json.as<JsonObject>();
+      callback( &requestObjectRoot, &responseObjectRoot );
+
+      response->setLength();
+      request->send(response);   
+    });
+    webServer.addHandler(jsonHandler);
+
+//     webServer.on( uri, HTTP_POST, [callback](AsyncWebServerRequest *request)
+//     {
+//       AsyncJsonResponse * response = new AsyncJsonResponse();
+//       response->setContentType("application/json");
+//       JsonObject& responseObjectRoot = response->getRoot();
+      
+
+// //TODO parse request
+//       callback( NULL, &responseObjectRoot );
+
+//       response->setLength();
+//       request->send(response);          
+//     },    
+//     std::bind(_onUpload, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
+//     std::bind(_onBody, tis->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+
+  }
 }
+
 
 void WifiRestServer::_onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)
 {
@@ -77,14 +117,7 @@ void WifiRestServer::_onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * 
 }
 
 
-static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
 
-static void _printToResponseHandler(AsyncWebServerRequest *request);
-static void _showHelp(AsyncWebServerRequest *request);
-static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request);
-static void _onScanWiFi(AsyncWebServerRequest *request) ;
-static void _onFwUpdate1(Stream* dbgstream, AsyncWebServerRequest *request) ;
-static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
 
 void WifiRestServer::_setupHandlers() 
 {
@@ -99,15 +132,31 @@ void WifiRestServer::_setupHandlers()
   webServer.on("/heapTxt", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
-  webServer.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request){
-    AsyncJsonResponse * response = new AsyncJsonResponse();
-    response->addHeader("Content-Type", "application/json");
-    JsonObject& root = response->getRoot();
+
+  this->addRestApiMethod("/heap", [](JsonObject* requestPostBody,  JsonObject* responseBody) {
+    JsonObject& root = (*responseBody);
     root["heap"] = ESP.getFreeHeap();
     root["ssid"] = WiFi.SSID();
-    response->setLength();
-    request->send(response);    
   });
+
+//TEST 
+  this->addRestApiMethod("/heapPost", [this](JsonObject* requestPostBody,  JsonObject* responseBody) {
+    requestPostBody->prettyPrintTo((*this->dbgstream));
+
+    JsonObject& root = (*responseBody);
+    root["heap"] = ESP.getFreeHeap();
+    root["ssid"] = WiFi.SSID();
+  }, false);
+
+  // webServer.on("/heap", HTTP_GET, [](AsyncWebServerRequest *request){
+  //   AsyncJsonResponse * response = new AsyncJsonResponse();    
+  //   response->setContentType("application/json");
+  //   JsonObject& root = response->getRoot();
+  //   root["heap"] = ESP.getFreeHeap();
+  //   root["ssid"] = WiFi.SSID();
+  //   response->setLength();
+  //   request->send(response);    
+  // });
 
   webServer.on("/help", HTTP_GET, _showHelp);
 
@@ -116,7 +165,7 @@ void WifiRestServer::_setupHandlers()
   webServer.on("/scanWifi", HTTP_GET, _onScanWiFi);
 
   webServer.on("/firmwareUpdate", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(200, "text/html", "<form method='POST' action='/firmwareUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
+    request->send_P(200, "text/html", "<form method='POST' action='/firmwareUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
   });
   // ArRequestHandlerFunction _onFwUpdate=
   // webServer.on("/update", HTTP_POST,_onFwUpdate1, _onFwUpdate2);
@@ -131,8 +180,8 @@ void WifiRestServer::_setupHandlers()
   // Any request that can not find a Handler that canHandle it
   // ends in the callbacks below.  
   webServer.onNotFound( std::bind(_onNotFoundHandler, this->dbgstream, std::placeholders::_1) );
-  webServer.onFileUpload( std::bind(&WifiRestServer::_onUpload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
-  webServer.onRequestBody( std::bind(&WifiRestServer::_onBody, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+  webServer.onFileUpload( std::bind(_onUpload, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
+  webServer.onRequestBody( std::bind(_onBody, this->dbgstream, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
 }
 
@@ -241,6 +290,31 @@ static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request
 	}
 };
 
+static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+{
+  //Handle body
+  if(!index)
+    dbgstream->printf("BodyStart: %u\n", total);
+  
+  dbgstream->printf("%s", (const char*)data);
+
+  if(index + len == total)
+    dbgstream->printf("BodyEnd: %u\n", total);
+}
+
+static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+{
+  //Handle upload
+  if(!index)
+    dbgstream->printf("UploadStart: %s\n", filename.c_str());
+    
+  dbgstream->printf("%s", (const char*)data);
+
+  if(final)
+    dbgstream->printf("UploadEnd: %s (%u)\n", filename.c_str(), index+len);
+}
+
+
 static void _onScanWiFi(AsyncWebServerRequest *request) 
 {
   //First request will return 0 results unless you start scan from somewhere else (loop/setup)
@@ -288,6 +362,7 @@ static void _showHelp(AsyncWebServerRequest *request)
     request->send(200, "text/plain", help );
 
 }
+
 
 
 
