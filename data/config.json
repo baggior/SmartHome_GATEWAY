@@ -6,19 +6,23 @@
     "static_ip": "192.168.1.12",
     "static_gw": "192.168.1.1",
     "static_sn": "255.255.255.0"
-  },
-  "rs485": {
-    "baud": 19200,
-    "databits": 7,
-    "stopbits": 2,
-    "parity": "N"
-  },
+  },  
   "modbus": {
-    "protocol": "RTU",
-    "baud": 19200,
-    "databits": 8,
-    "stopbits": 1,
-    "parity": "N"
+    "enable": true,    
+    "rs485": {
+      "uart": 1,
+      "baud": 9600,
+      "databits": 8,
+      "stopbits": 1,
+      "parity": "N"
+    },         
+    "protocol": "RTU",    
+    "slave_id": 16,
+    "polling_interval": 10000,
+    "mapping_files": [
+      "modbus_analogics.json",
+      "modbus_coils.json"
+    ]
   },
   "telnet": {
     "enable": true,
@@ -51,5 +55,21 @@
       "password": "esp"
     },
     "task_listen_interval": 20
-  }
+  },
+  "mqtt": {
+    "enable": true,
+    "task_listen_interval": 50,
+
+    "cayenne" : {      
+      "enable": true,
+      "username_token": "36cc5bb0-266e-11e7-a4a6-237007b7399c",
+      "mqttpassword_token": "cd82e8f61ca283c10209db705d6c10582d619693",
+      "client_id": "e6fd0b70-b56f-11e7-bd7e-3193fab997a8",
+      "mqtt_server_host": "mqtt.mydevices.com",
+      "mqtt_server_port": 1883
+    }
+
+  }   
+
+  
 }

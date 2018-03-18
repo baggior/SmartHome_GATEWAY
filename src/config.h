@@ -8,6 +8,8 @@
 #endif
 #include <Arduino.h>
 
+#include <stdint.h>
+
 #include <ArduinoJson.h>
 
 #define     _TASK_STD_FUNCTION

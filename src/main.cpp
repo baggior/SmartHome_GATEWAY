@@ -8,6 +8,8 @@
 #include "rs485.h"
 #include "webSocketRs485Gateway.h"
 #include "ota.h"
+#include "mqttclient.h"
+#include "modbus.h"
 
 
 
@@ -34,6 +36,8 @@ Rs485 rs485;
 
 Ota ota;
 
+Modbus modbus;
+MqttClient mqtt;
 Scheduler runner;
 
 
@@ -83,13 +87,15 @@ config.getBlinker().start(1);//1sec.
     restServer.setup(Serial);
     webSocketRs485Gateway.setup(Serial);
     rs485.setup(Serial);
+    mqtt.setup(Serial);
+    modbus.setup(Serial);
     
-    DPRINTLN("main setup done");
+    DPRINTLN("\n-----Main setup done-----\n");
        
     // connection.announceTheDevice();
     
 config.getBlinker().start(3);//3sec.
-    DPRINTLN("Initialized the scheduler");
+    DPRINTLN("Initialized the Scheduler");
 }
 
 

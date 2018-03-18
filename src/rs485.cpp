@@ -2,55 +2,204 @@
 
 #include "rs485.h"
 //#include "ExponentialBackoffTimer.h"
+#include <ConfigurableSoftwareSerial.h>
+#include <HardwareSerial.h>
 
 #ifdef ESP8266
 #define RS485_RO_RX D1        //receive out
 #define RS485_DI_TX D2        //data in
 #define RS485_REDE_CONTROL D6 //receive enable / data enable
 
-#elif defined ESP32 //TODO
-#define RS485_RO_RX RX        //receive out
-#define RS485_DI_TX TX        //data in
-#define RS485_REDE_CONTROL T0 //receive enable / data enable
+#elif defined ESP32 
+#define RS485_RO_RX 16 //27        //receive out
+#define RS485_DI_TX 17 //26        //data in
+#define RS485_REDE_CONTROL 25 //receive enable / data enable
 #endif
 
-#define RS485_Tx HIGH         //control send
-#define RS485_Rx LOW          //control receive
+// #define RS485_Tx HIGH         //control send
+// #define RS485_Rx LOW          //control receive
 
 #define UART_BAUD 19200
 #define UART_STOP_BITS 2
 #define UART_PARITY "N"
 #define UART_DATA_BITS 7
 
-#define DEFAULT_COMMAND_TIMEOUT 1000
+#define DEFAULT_COMMAND_TIMEOUT 500
 
-Rs485::Rs485()
-    : swSer(RS485_RO_RX, RS485_DI_TX)
-{
-  this->dbgstream = &Serial;
+// -----------------------------------------------
+
+#define RS485_DEBUG_FN(...)  { if(p_dbgstream) {Serial_printf(*p_dbgstream, __VA_ARGS__);} }
+
+// -----------------------------------------------
+
+union conf0_t {
+  struct {
+      uint32_t parity:             1;         /*This register is used to configure the parity check mode.  0:even 1:odd*/
+      uint32_t parity_en:          1;         /*Set this bit to enable uart parity check.*/
+      uint32_t bit_num:            2;         /*This register is used to set the length of data:  0:5bits 1:6bits 2:7bits 3:8bits*/
+      uint32_t stop_bit_num:       2;         /*This register is used to set the length of  stop bit. 1:1bit  2:1.5bits  3:2bits*/
+      uint32_t sw_rts:             1;         /*This register is used to configure the software rts signal which is used in software flow control.*/
+      uint32_t sw_dtr:             1;         /*This register is used to configure the software dtr signal which is used in software flow control..*/
+      uint32_t txd_brk:            1;         /*Set this bit to enable transmitter to  send 0 when the process of sending data is done.*/
+      uint32_t irda_dplx:          1;         /*Set this bit to enable irda loop-back mode.*/
+      uint32_t irda_tx_en:         1;         /*This is the start enable bit for irda transmitter.*/
+      uint32_t irda_wctl:          1;         /*1：the irda transmitter's 11th bit is the same to the 10th bit. 0：set irda transmitter's 11th bit to 0.*/
+      uint32_t irda_tx_inv:        1;         /*Set this bit to inverse the level value of  irda transmitter's level.*/
+      uint32_t irda_rx_inv:        1;         /*Set this bit to inverse the level value of irda receiver's level.*/
+      uint32_t loopback:           1;         /*Set this bit to enable uart loop-back test mode.*/
+      uint32_t tx_flow_en:         1;         /*Set this bit to enable transmitter's flow control function.*/
+      uint32_t irda_en:            1;         /*Set this bit to enable irda protocol.*/
+      uint32_t rxfifo_rst:         1;         /*Set this bit to reset uart receiver's fifo.*/
+      uint32_t txfifo_rst:         1;         /*Set this bit to reset uart transmitter's fifo.*/
+      uint32_t rxd_inv:            1;         /*Set this bit to inverse the level value of uart rxd signal.*/
+      uint32_t cts_inv:            1;         /*Set this bit to inverse the level value of uart cts signal.*/
+      uint32_t dsr_inv:            1;         /*Set this bit to inverse the level value of uart dsr signal.*/
+      uint32_t txd_inv:            1;         /*Set this bit to inverse the level value of uart txd signal.*/
+      uint32_t rts_inv:            1;         /*Set this bit to inverse the level value of uart rts signal.*/
+      uint32_t dtr_inv:            1;         /*Set this bit to inverse the level value of uart dtr signal.*/
+      uint32_t clk_en:             1;         /*1：force clock on for registers：support clock only when write registers*/
+      uint32_t err_wr_mask:        1;         /*1：receiver stops storing data int fifo when data is wrong. 0：receiver stores the data even if the  received data is wrong.*/
+      uint32_t tick_ref_always_on: 1;         /*This register is used to select the clock.1：apb clock：ref_tick*/
+      uint32_t reserved28:         4;
+  };
+  uint32_t val;
+};
+
+// -----------------------------------------------
+
+static ConfigurableSoftwareSerial* p_sWser=NULL;
+static HardwareSerial* p_hWser=NULL;
+
+
+static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits, char _parity) {
+
+  if(_uart_nr==0) 
+  {
+    //SOFTWARE SERIAL
+    p_sWser = new ConfigurableSoftwareSerial(RS485_RO_RX, RS485_DI_TX);
+  
+    p_sWser->begin(_baud, _stopbits, _parity, _databits);
+    p_sWser->setTransmitEnablePin(RS485_REDE_CONTROL);
+    p_sWser->enableRx(true);
+    return p_sWser;
+      
+  }
+  else
+  {
+    //HARDWARE SERIAL
+    if (_uart_nr<1 || _uart_nr>3) return NULL; //uart out of range
+    if(_databits<5 && _databits>8) return NULL; //databit out of range
+    if(_stopbits<1 && _stopbits>2) return NULL; //_stopbits out of range
+
+    conf0_t c;
+    c.val = SERIAL_8N1;
+    c.parity = ('O'==_parity)?1:0;
+    c.parity_en = ('N'==_parity)?0:1;
+    c.bit_num = (_databits==5)?0:(_databits==6)?1:(_databits==7)?2:(_databits==8)?3 : 3;// error
+    c.stop_bit_num = (_stopbits==1)?1:(_stopbits==2)?3 : 1; //error 
+  
+    DPRINTF(F("serial config %X \n"), c.val);
+
+    p_hWser = new HardwareSerial( _uart_nr );
+    p_hWser->begin(_baud, c.val, RS485_RO_RX, RS485_DI_TX);
+    p_hWser->setDebugOutput(false);
+
+    return p_hWser;
+  }
+
 }
 
-void Rs485::setup(Stream &dbgstream)
+static void endSerial() {
+  if(p_hWser)
+  {
+    p_hWser->end();
+    p_hWser = NULL;
+  }
+  if(p_sWser)
+  {
+    p_sWser = NULL;
+  }
+}
+
+
+
+static String calculateLRC(String CMD, Stream* p_dbgstream)
 {
-  JsonObject &root = config.getJsonRoot();
+  unsigned char TOT = 0x00;
 
-  this->appendLRC = root["rs485"]["appendLRC"];
-  const char * _prefix = root["rs485"]["prefix"];
-  int _baud = root["rs485"]["baud"];
-  int _databits = root["rs485"]["databits"];
-  int _stopbits = root["rs485"]["stopbits"];
-  const char * _parity = root["rs485"]["parity"];
-  this->defaultCommandTimeout = root["rs485"]["defaultCommandTimeout"];
+  int index, count;
+  count = CMD.length();
+
+  for (index = 0; index < count; index++)
+  {
+    String hex_str(CMD[index]);
+    index++;
+    if (index < count)
+    {
+      hex_str += String(CMD[index]);
+      unsigned char c = ( ::strtoul(hex_str.c_str(), NULL, 16) & 0xFF);
+      TOT += c;
+    }
+  }
+
+  //unsigned char TOT_c = (0xFF-TOT) +1 ;   // 1's complement  // 2's complements
+  unsigned char TOT_c = ((~TOT + 1) & 0xFF);
+  if ((TOT + TOT_c) & 0xFF)
+  {
+    if(p_dbgstream) Serial_printf(*p_dbgstream, F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
+  }
+
+  String LRC_String(TOT_c, 16);
+  LRC_String.toUpperCase();
+  return LRC_String;
+}
+// -----------------------------------------------
+
+Rs485::Rs485()
+: m_bitTime_us(0),p_dbgstream(NULL), p_ser(NULL),
+  defaultCommandTimeout(DEFAULT_COMMAND_TIMEOUT)
+{
+}
+
+Rs485::~Rs485() {
+  if(p_ser!=NULL) {
+    endSerial();
+    
+    delete(p_ser);
+    p_ser = NULL;
+  }
+}
+
+int Rs485::setup(Stream& dbgstream)
+{
+  JsonObject &root = config.getJsonRoot()["rs485"];
+
+  return this->setup(dbgstream, root);
+}
+
+int Rs485::setup(Stream& dbgstream, JsonObject &root)
+{
+  //JsonObject &root = config.getJsonRoot();
+
+  int _uart_num = root["uart"];
+  this->appendLRC = root["appendLRC"];
+  const char * _prefix = root["prefix"];
+  int _baud = root["baud"];
+  int _databits = root["databits"];
+  int _stopbits = root["stopbits"];
+  const char * _parity = root["parity"];
+  this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  DPRINTF(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n",
-          REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
+  Serial_printf(dbgstream, F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+          REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
-  this->dbgstream = &dbgstream;
+  this->p_dbgstream = &dbgstream;
   if (_prefix)
     this->prefix = prefix;
   
   if(!this->defaultCommandTimeout)
     this->defaultCommandTimeout = DEFAULT_COMMAND_TIMEOUT;
+
   if (!_baud)
     _baud = UART_BAUD;
   if (!_databits)
@@ -60,23 +209,36 @@ void Rs485::setup(Stream &dbgstream)
   if (!_parity)
     _parity = UART_PARITY;
 
-  swSer.begin(_baud, _stopbits, String(_parity).charAt(0), _databits);
-  swSer.enableRx(true);
-  swSer.setTransmitEnablePin(RS485_REDE_CONTROL);
+  this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
 
-  // pinMode(RS485_REDE_CONTROL, OUTPUT);
-  // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
+  if(!p_ser) {
+    DPRINTLN(F("Error initializing Serial. Config out of range"));
+    return -1;
+  }
+  
+  p_ser->flush();
+
+  pinMode(RS485_REDE_CONTROL, OUTPUT);
+  digitalWrite(RS485_REDE_CONTROL, LOW);
+
+  //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
+  this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
+
+  Serial_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
+
+  return 0;
 }
 
 
 String Rs485::sendMasterCommand(String &CMD)
 {
-  return sendMasterCommand(CMD, defaultCommandTimeout);
+  return sendMasterCommand(CMD, this->defaultCommandTimeout);
 }
 
 //  maxReponseWaitTime<=0 ==> broadcast -> no response)
 String Rs485::sendMasterCommand(String &CMD, int maxReponseWaitTime)
 { 
+  if(!p_ser) return "";
   //SLAVE DEVICE
   //seriale : 205513 (0x31AF9)
   //ID: 02
@@ -124,79 +286,123 @@ String Rs485::sendMasterCommand(String &CMD, int maxReponseWaitTime)
     
     if (appendLRC)
     {
-      String LRC = calculateLRC(CMD);
+      String LRC = calculateLRC(CMD, p_dbgstream);
       packet += LRC;
     }
     
-    // digitalWrite(RS485_REDE_CONTROL, RS485_Tx);
     // delay(10);
+    this->preTransmit();
+
+    p_ser->println(packet);
+
+    this->postTransmit();
+
     
-    swSer.flush(); //?
-    swSer.println(packet);
-    
-    // digitalWrite(RS485_REDE_CONTROL, RS485_Rx);
-    
-    dbgstream->print("RS485 SENT: [");
-    dbgstream->print(packet);
-    dbgstream->println("]");
+    RS485_DEBUG_FN(F("RS485 SENT: [%s]"),packet);
+
+    // dbgstream->print("RS485 SENT: [");    dbgstream->print(packet);    dbgstream->println("]");
   }
   
   String RESPONSE;
-  if(maxReponseWaitTime>0)
+  if(maxReponseWaitTime>0) //attendi la risposta (altrimenti è un broadcast senza risposta)
   {
     //wait for a RESPONSE    
     long delayTime = _min(maxReponseWaitTime,10);
     delay(delayTime);
-    while (swSer.available()==0 && delayTime<maxReponseWaitTime)
+    while (p_ser->available()==0 && delayTime<maxReponseWaitTime)
     {
       delayTime = _min(maxReponseWaitTime,3*delayTime);
       delay(delayTime);
     }
     
-    while (swSer.available() > 0)
+    while (p_ser->available() > 0)
     {
-      // legge il contenuto del bus e lo stampa sulla Seriale per debug
-      RESPONSE += swSer.readString();
+      // legge il contenuto del bus 
+      RESPONSE += p_ser->readString();
       yield();      
     }
   }
     
   RESPONSE.trim();
-  dbgstream->println("RS485 READ: [" + RESPONSE + "]");       
+  RS485_DEBUG_FN(F("RS485 READ: [%s]"),RESPONSE.c_str());
+  // dbgstream->println("RS485 READ: [" + RESPONSE + "]");       
 
   return RESPONSE;
   //valore atteso :020302000CED
 }
 
-String Rs485::calculateLRC(String CMD)
+Rs485::BINARY_BUFFER_T Rs485::sendMasterCommand(Rs485::BINARY_BUFFER_T& CMD)
 {
-  unsigned char TOT = 0x00;
+  return sendMasterCommand(CMD, this->defaultCommandTimeout);
+}
 
-  int index, count;
-  count = CMD.length();
+Rs485::BINARY_BUFFER_T Rs485::sendMasterCommand(Rs485::BINARY_BUFFER_T& CMD, int maxReponseWaitTime)
+{
+  if(!p_ser) return BINARY_BUFFER_T();
 
-  for (index = 0; index < count; index++)
+  BINARY_BUFFER_T RESPONSE;
+
+  this->preTransmit();
+
+  for (uint8_t data: CMD) 
   {
-    String hex_str(CMD[index]);
-    index++;
-    if (index < count)
+    size_t ret = p_ser->write(data);   
+    RS485_DEBUG_FN( F("serial write data: 0x%0X\n"), data) ;
+    // Serial_printf(*dbgstream, F("serial write %d\n"), data);
+  }
+
+  this->postTransmit();
+  
+
+  if(maxReponseWaitTime>0)
+  {
+    //wait for a RESPONSE    
+    long delayTime = _min(maxReponseWaitTime,10);
+    RS485_DEBUG_FN( F("serial wait %d\n"), delayTime) ;
+    // Serial_printf(*dbgstream, F("serial wait %d\n"), delayTime);
+    delay(delayTime);
+    while (p_ser->available()==0 && delayTime<maxReponseWaitTime)
     {
-      hex_str += String(CMD[index]);
-      unsigned char c = (strtoul(hex_str.c_str(), NULL, 16) & 0xFF);
-      TOT += c;
+      delayTime = _min(maxReponseWaitTime,3*delayTime);
+      RS485_DEBUG_FN( F("serial wait %d\n"), delayTime) ;
+      delay(delayTime);
+    }
+    
+    while (p_ser->available() > 0)
+    {
+      // legge il contenuto del bus 
+      RS485_DEBUG_FN( F("serial available to read %d bytes.."), p_ser->available()) ;      
+      uint8_t data = p_ser->read();
+      RS485_DEBUG_FN( F(", read data: 0x%0X\n"), data);
+
+      RESPONSE.push_back(data);
+      yield();      
     }
   }
+  return RESPONSE;
+}
 
-  //unsigned char TOT_c = (0xFF-TOT) +1 ;   // 1's complement  // 2's complements
 
-  unsigned char TOT_c = ((~TOT + 1) & 0xFF);
+void Rs485::fixSerialFlush() {
 
-  if ((TOT + TOT_c) & 0xFF)
-  {
-    DPRINTF("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X ", TOT, TOT_c);
-  }
+  p_ser->flush();
 
-  String LRC_String(TOT_c, 16);
-  LRC_String.toUpperCase();
-  return LRC_String;
+  //Workaround for a bug in serial not actually being finished yet
+  //Wait for 8 data bits, 1 parity and 2 stop bits, just in case
+  delayMicroseconds(m_bitTime_us);
+}
+
+
+//TODO
+void Rs485::preTransmit() {
+  this->p_ser->flush();
+  digitalWrite(RS485_REDE_CONTROL, HIGH);
+}
+
+void Rs485::postTransmit() {
+  this->fixSerialFlush();  
+  digitalWrite(RS485_REDE_CONTROL, LOW);
+}
+
+void Rs485::idle() {
 }

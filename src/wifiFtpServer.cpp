@@ -16,7 +16,7 @@ void WifiFtpServer::setup(Stream &serial)
     const char* _server_auth_password = root["ftp"]["server_auth"]["password"];
     int task_listen_interval = root["ftp"]["task_listen_interval"];
     
-    DPRINTF(">FTP Server SETUP: enable: %d, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n", 
+    DPRINTF(F(">FTP Server SETUP: enable: %d, server_auth_username: %s, server_auth_password: %s, task_listen_interval: %d \n"), 
     enable, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), task_listen_interval);
     
     if(!_server_auth_username) _server_auth_username="";

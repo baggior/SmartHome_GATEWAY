@@ -34,6 +34,17 @@ WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
 }
 #endif
 
+
+
+String WiFiConnection::getHostname() {
+    #ifdef ESP8266
+    return WiFi.hostname();
+    #elif defined ESP32
+    return WiFi.getHostname();
+    #endif
+}
+
+
 void WiFiConnection::wifiManagerOpenConnection()
 {
     JsonObject & root = config.getJsonRoot();    
@@ -184,11 +195,11 @@ void WiFiConnection::DEBUG_printDiagWiFI()
     #endif
 }
 
-void WiFiConnection::announceTheDevice(unsigned int rest_server_port, baseutils::StringArray attributes)
+void WiFiConnection::announceTheDevice(unsigned int server_port, baseutils::StringArray attributes)
 {
-    if(rest_server_port)
+    if(server_port)
     {
-        String hostname =this->getHostname();   
+        String hostname = WiFiConnection::getHostname();   
         IPAddress ip = WiFi.localIP();
 
         hostname.toLowerCase();
@@ -205,7 +216,7 @@ void WiFiConnection::announceTheDevice(unsigned int rest_server_port, baseutils:
         service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
 
         // Announce esp tcp service on port 80
-        MDNS.addService(service, proto, rest_server_port);      
+        MDNS.addService(service, proto, server_port);      
 
         for(auto it = attributes.begin(); it != attributes.end(); ++it)
         {
@@ -222,7 +233,7 @@ void WiFiConnection::announceTheDevice(unsigned int rest_server_port, baseutils:
         }
   
         dbgstream->printf(">MDNS announced service: %s, proto: %s, port: %d \n"
-            , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, rest_server_port);
+            , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
     }
 }
 
@@ -232,10 +243,12 @@ void WiFiConnection::setup(Stream &dbgstream)
     this->dbgstream = &dbgstream;
 
     wifiManagerOpenConnection();
+
+    announceTheDevice();
+    
     #ifdef MY_DEBUG
     DEBUG_printDiagWiFI();
     #endif
-
 }
 
 void WiFiConnection::process()
@@ -243,13 +256,6 @@ void WiFiConnection::process()
     
 }
 
-String WiFiConnection::getHostname() {
-    #ifdef ESP8266
-    return WiFi.hostname();
-    #elif defined ESP32
-    return WiFi.getHostname();
-    #endif
-}
 
 QueryResult WiFiConnection::query()
 {

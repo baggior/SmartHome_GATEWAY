@@ -16,25 +16,26 @@ struct QueryResult;
 
 //Wifi connection STA
 class WiFiConnection{
+
 public:
+    static String getHostname();
 
     WiFiConnection() {}
 
     void setup(Stream &dbgstream);
-
-    void announceTheDevice(unsigned int rest_server_port, baseutils::StringArray attributes);
 
     void process();
 
     QueryResult query();
     QueryResult query(String service, String proto);
 
-    String getHostname();
+    void announceTheDevice(unsigned int server_port=80, baseutils::StringArray attributes=baseutils::StringArray());
 
 private:
     Stream *  dbgstream;
 
     void wifiManagerOpenConnection();
+
     void DEBUG_printDiagWiFI();  
 
     void restartESP();

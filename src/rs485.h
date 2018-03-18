@@ -1,28 +1,46 @@
 #ifndef rs485_h
 #define rs485_h
 
-#include <ConfigurableSoftwareSerial.h>
 
+#include <vector.h>
 
 class Rs485
 {
-
-    Stream * dbgstream;
-    ConfigurableSoftwareSerial swSer;
-    bool appendLRC=false;
-    String prefix;
-    int defaultCommandTimeout;
-
+    
 public:
-    Rs485();
+    typedef etl::vector<uint8_t, 1024> BINARY_BUFFER_T;
 
-    void setup(Stream &dbgstream);
+    Rs485();
+    virtual ~Rs485();
+
+    //mode text
+    int setup(Stream &dbgstream);
+    int setup(Stream &dbgstream, JsonObject &root);
     String sendMasterCommand(String& CMD, int maxReponseWaitTime );    //  maxReponseWaitTime<=0 ==> broadcast  
     String sendMasterCommand(String& CMD);   
     inline void broadcastMasterCommand(String& CMD) {sendMasterCommand(CMD,0);}
 
+    //mode binary
+    BINARY_BUFFER_T sendMasterCommand(BINARY_BUFFER_T& CMD, int maxReponseWaitTime);  
+    BINARY_BUFFER_T sendMasterCommand(BINARY_BUFFER_T& CMD);  
+    inline void broadcastMasterCommand(BINARY_BUFFER_T& CMD) {sendMasterCommand(CMD,0);} 
+
 private:
-    static String calculateLRC(String CMD);
+
+    void fixSerialFlush();
+    void preTransmit();
+    void postTransmit();
+    void idle();
+
+    
+    Stream * p_dbgstream;
+    Stream * p_ser;
+
+    bool appendLRC=false;
+    String prefix;
+    int defaultCommandTimeout;
+
+    uint32_t m_bitTime_us=0;
 };
 
 #endif
