@@ -4,11 +4,12 @@
 
 #include "objectModel.h"
 #include <WebSocketsServer.h>
+#include "rs485.h"
 
 
 class WebSocketRs485Gateway
 {
-
+    Rs485 rs485;
     Stream * dbgstream;
     WebSocketsServer webSocketsServer;
     CommandObject lastCommandReceived;
@@ -20,7 +21,7 @@ class WebSocketRs485Gateway
 public:
     WebSocketRs485Gateway();
 
-    void setup(Stream &dbgstream);
+    int setup(Stream &dbgstream);
     bool process();
 
     inline String& getLastCommandReceived() {return lastCommandReceived.inputCommand;}

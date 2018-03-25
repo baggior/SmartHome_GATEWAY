@@ -8,17 +8,21 @@
 // #include <AsyncMqttClient.h>
 #include <PubSubClient.h>
 
+#include "modbus.h"
+
+//----------------------------------------------------
+
 #define MQTT_LISTEN_TASK_INTERVAL_DEFAULT 1 //ms
+
 extern Scheduler runner;
 
 // AsyncMqttClient mqttClient;
 static WiFiClient espClient;
-static PubSubClient mqttClient(espClient);
+static PubSubClient mqttPubsubClient(espClient);
 
 static String cayenneTopicPrefix;
+
 //----------------------------------------------------
-
-
 
 void connectToMqtt() {
   Serial.println("Connecting to MQTT...");
@@ -40,6 +44,43 @@ void connectToMqtt() {
 //     connectToMqtt();
 //   }
 // }
+
+//-----------------------------------------------------
+extern Modbus modbus;
+
+void processModbusMemoryToCayenne(const MqttClient& mqttClient) 
+{
+    static int type=0;
+    static int nextProcessedIndex = 0;
+    static long lastProcessedTime = millis();
+
+    long deltaTime = millis()-lastProcessedTime;
+    if( deltaTime < 1000)
+    {
+        delay(1000-deltaTime);
+    }
+
+    const ModbusDataMemory& memory = modbus.getModbusDataMemory();
+
+    const etl::ivector<ModbusDataMemory::Item>& buffer = (type%3)==0? memory.getRegisters2() : ( (type%3)==1? memory.getRegisters() : memory.getCoils() );        
+
+    if (buffer.size() > nextProcessedIndex)
+    {
+        const ModbusDataMemory::Item& item = buffer.at(nextProcessedIndex);
+
+        mqttClient.publish(item.name, item.value);
+
+        nextProcessedIndex++;
+    }
+    else
+    {
+        nextProcessedIndex=0;
+        type++;
+    }
+    
+    lastProcessedTime = millis();
+    
+}
 
 //-----------------------------------------------------
 
@@ -81,44 +122,52 @@ void MqttClient::setup(Stream &dbgstream)
         connectToMqtt();
         */
         // mqttClient.setServer(mqtt_server_host.c_str(), mqtt_server_port);
-        mqttClient.setServer({34,225,11,151}, mqtt_server_port);        
+        mqttPubsubClient.setServer({34,225,11,151}, mqtt_server_port);        
         
-        bool ret = mqttClient.connect(clientID.c_str(), username.c_str(), password.c_str());
+        bool ret = mqttPubsubClient.connect(clientID.c_str(), username.c_str(), password.c_str());
 
-        DPRINTF("mqttClient.connect -> %d state: %d \n", ret, mqttClient.state());
+        DPRINTF("mqttPubsubClient.connect -> %d state: %d \n", ret, mqttPubsubClient.state());
 
         cayenneTopicPrefix = String("v1/") 
             + username + String("/things/")
             + clientID + String("/data/");
 
+        this->setExtraProcessFn(std::bind(processModbusMemoryToCayenne, std::placeholders::_1));
+
         //TASK setting
         TaskCallback funct = std::bind(&MqttClient::process, this);
-        taskReceiveCmd.set(8000 // task_listen_interval
+        taskProcess.set(1000 // task_listen_interval
             , TASK_FOREVER
             , funct
             );
-        runner.addTask(taskReceiveCmd);
-        taskReceiveCmd.enable();
+        runner.addTask(taskProcess);
+        taskProcess.enable();
+
     }
 
 }
 
 
 void MqttClient::process() {
-    mqttClient.loop();
-
+    bool connected = mqttPubsubClient.loop();
     
     //uptime
-    this->publish("0", millis());
+    // this->publish("0", millis());
+
+    //publish modbus memory data
+    if(this->process_fn!=NULL)
+    {
+        this->process_fn(*this);
+    }
 }
 
 
-void MqttClient::publish(String name, int value) 
+void MqttClient::publish(String name, int value) const
 {
     String topic = cayenneTopicPrefix + name;
     String value_str = String(value);
 
-    mqttClient.publish( topic.c_str(), value_str.c_str());
+    bool connected = mqttPubsubClient.publish( topic.c_str(), value_str.c_str());
 
     DPRINTF("published topic: %s -> [%s]\n", topic.c_str(), value_str.c_str());    
 }

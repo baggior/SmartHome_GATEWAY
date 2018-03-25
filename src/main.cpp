@@ -5,7 +5,7 @@
 #include "wifiRestServer.h"
 #include "wifiFtpServer.h"
 #include "wifiTelnetServer.h"
-#include "rs485.h"
+// #include "rs485.h"
 #include "webSocketRs485Gateway.h"
 #include "ota.h"
 #include "mqttclient.h"
@@ -32,12 +32,13 @@ WifiTelnetServer wifiTelnetServer;
 WifiRestServer restServer;
 WebSocketRs485Gateway webSocketRs485Gateway;
 
-Rs485 rs485;
+// Rs485 rs485;
 
 Ota ota;
 
 Modbus modbus;
 MqttClient mqtt;
+
 Scheduler runner;
 
 
@@ -86,7 +87,7 @@ config.getBlinker().start(1);//1sec.
     wifiTelnetServer.setup(Serial);    
     restServer.setup(Serial);
     webSocketRs485Gateway.setup(Serial);
-    rs485.setup(Serial);
+    // rs485.setup(Serial);
     mqtt.setup(Serial);
     modbus.setup(Serial);
     
@@ -109,65 +110,65 @@ void loop()
         // put your main code here, to run repeatedly:
         //DPRINTLN("main loop start..");
     
-        uint8_t response_to=0;
-        String CMD_received;
+        // uint8_t response_to=0;
+        // String CMD_received;
     
-        /* CMD_received = wifiTelnetServer.getLastCommandReceived();
-        if(CMD_received.length()>0)
-        {
-            DPRINTLN("..processed Telnet: received [" + CMD_received +"]");       
-            response_to=1;
-        }
-        else  if (webSocket.process())
-        {
-            CMD_received = webSocket.getLastCommandReceived();
-            DPRINTLN("..processed webSocket: received [" + CMD_received +"]");  
-            response_to=2;
-        }
-        else */if(restServer.process())
-        {
-            ;
-            DPRINTLN("..processed REST..TODO");    
-            response_to=3;
-        }    
+        // /* CMD_received = wifiTelnetServer.getLastCommandReceived();
+        // if(CMD_received.length()>0)
+        // {
+        //     DPRINTLN("..processed Telnet: received [" + CMD_received +"]");       
+        //     response_to=1;
+        // }
+        // else  if (webSocket.process())
+        // {
+        //     CMD_received = webSocket.getLastCommandReceived();
+        //     DPRINTLN("..processed webSocket: received [" + CMD_received +"]");  
+        //     response_to=2;
+        // }
+        // else */if(restServer.process())
+        // {
+        //     ;
+        //     DPRINTLN("..processed REST..TODO");    
+        //     response_to=3;
+        // }    
         
-        //String CMD="020300CA0001";  //:020300CA000130
-        if(CMD_received.length()>0)
-        {
-            String CMD_response = rs485.sendMasterCommand(CMD_received);
-            DPRINTLN("..processed rs485 sent [" + CMD_received +"] received [" + CMD_response +"]");
+        // //String CMD="020300CA0001";  //:020300CA000130
+        // if(CMD_received.length()>0)
+        // {
+        //     String CMD_response = rs485.sendMasterCommand(CMD_received);
+        //     DPRINTLN("..processed rs485 sent [" + CMD_received +"] received [" + CMD_response +"]");
             
-            //response
-            if(CMD_response.length()>0)
-            {
-                switch (response_to)
-                {
-                    /* case 1:
-                    {
-                        wifiTelnetServer.send(CMD_response);
-                        DPRINTLN("..sent Telnet response [" + CMD_response + "]");
-                        break;
-                    }     
-                    case 2:
-                    {
-                        webSocket.send(CMD_response);
-                        DPRINTLN("..sent webSocket response [" + CMD_response + "]");
-                        break;
-                    }*/
-                    case 3:    
-                    {
-                        // restServer.send(CMD_response);
-                        DPRINTLN("..sent restServer response [" + CMD_response + "]");
-                        break;
-                    }
-                    default:
-                    {
-                        DPRINTLN("..ERROR: can't sent response [" + CMD_response + "] WHERE??");
-                    }
-                }
-            }
+        //     //response
+        //     if(CMD_response.length()>0)
+        //     {
+        //         switch (response_to)
+        //         {
+        //             /* case 1:
+        //             {
+        //                 wifiTelnetServer.send(CMD_response);
+        //                 DPRINTLN("..sent Telnet response [" + CMD_response + "]");
+        //                 break;
+        //             }     
+        //             case 2:
+        //             {
+        //                 webSocket.send(CMD_response);
+        //                 DPRINTLN("..sent webSocket response [" + CMD_response + "]");
+        //                 break;
+        //             }*/
+        //             case 3:    
+        //             {
+        //                 // restServer.send(CMD_response);
+        //                 DPRINTLN("..sent restServer response [" + CMD_response + "]");
+        //                 break;
+        //             }
+        //             default:
+        //             {
+        //                 DPRINTLN("..ERROR: can't sent response [" + CMD_response + "] WHERE??");
+        //             }
+        //         }
+        //     }
     
-        }    
+        // }    
     
         //DPRINTLN("main loop done");    
         yield();

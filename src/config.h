@@ -29,6 +29,10 @@
 #include "hw_config.h"
 #include "objectModel.h"
 
+#define SUCCESS_OK  0
+#define SETUP_FAIL  -1
+#define SETUP_FAIL_CONFIG_ERROR  -2
+
 class Config
 {
     DynamicJsonBuffer jsonBuffer;    

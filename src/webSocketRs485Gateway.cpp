@@ -12,7 +12,7 @@
 
 
 extern Scheduler runner;
-extern Rs485 rs485;
+
 
 
 void WebSocketRs485Gateway::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length)
@@ -77,8 +77,14 @@ WebSocketRs485Gateway::WebSocketRs485Gateway()
     
 }
 
-void WebSocketRs485Gateway::setup(Stream &dbgstream)
+int WebSocketRs485Gateway::setup(Stream &dbgstream)
 {
+    //TODO rs485
+    int ret = rs485.setup(dbgstream);
+    if ( ret < 0) {
+        return ret;
+    }
+
     JsonObject & root = config.getJsonRoot();   
 
     this->enable = root["websocket"]["enable"];
@@ -125,6 +131,7 @@ void WebSocketRs485Gateway::setup(Stream &dbgstream)
         taskReceiveCmd.enable();
     }
 
+    return  SUCCESS_OK;
 }
 
 bool WebSocketRs485Gateway::process()

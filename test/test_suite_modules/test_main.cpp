@@ -2,8 +2,8 @@
 #include <unity.h>
 #include "../../src/config.h"
 #include "wifiConnection.h"
-#include "rs485.h"
-
+#include "modbus.h"
+#include "mqttclient.h"
 #include "strutils.h"
 
 #define RS485_REDE_CONTROL 25
@@ -20,8 +20,8 @@
 
 extern Config config;
 extern WiFiConnection connection;
-extern Rs485 rs485;
-
+extern Modbus modbus;
+extern MqttClient mqtt;
 
 void test_setup_config(void) {
    
@@ -47,35 +47,27 @@ void test_setup_wifi(void) {
     connection.announceTheDevice();
 
 }
-void test_rs485_setup(void) {
-    JsonObject &root = config.getJsonRoot()["modbus"]["rs485"];
 
-    TEST_ASSERT_MESSAGE(root.success(), "error parsing JSON file. [modbus.rs485]");
-
-    rs485.setup(Serial, root);
+void test_setup_mqtt(void) {
+    mqtt.setup(Serial);
     
 }
 
-void test_rs485_binary(void) {
-    
-    //10 01 00 00 00 50 3F 77
-    uint8_t data[] = {0x10, 0x01, 0x00, 0x00, 0x00, 0x50, 0x3F, 0x77};
+void test_modbus_setup(void) {
+    JsonObject &root = config.getJsonRoot();
 
-    Rs485::BINARY_BUFFER_T command;
-    command.insert(command.begin(), &data[0], &data[sizeof(data)]);
+    TEST_ASSERT_MESSAGE(root.success(), "error parsing JSON file. [modbus]");
 
-    uint8_t* p_vdata = command.data();    
-    String str = baseutils::byteToHexString(p_vdata, command.size(), ".");
-    Serial.println("command: "+ str);
+    int ret = modbus.setup(Serial);
+    TEST_ASSERT_MESSAGE(ret==SUCCESS_OK, "error modbus.setup");
+}
 
-    Rs485::BINARY_BUFFER_T ret = rs485.sendMasterCommand(command,100);
-    // Response: 10 01 0A 02 24 10 00 00 00 00 00 00 10 EB 6B 
+void test_modbus_process(void) {
+    modbus.process();
+}
 
-    p_vdata = ret.data();  
-    str = baseutils::byteToHexString(p_vdata, ret.size(), ".");
-    Serial.println("response: "+ str);
-
-    TEST_ASSERT_MESSAGE(str.length()>0, "empty response");
+void test_mqtt_process() {
+    mqtt.process();
 }
 
 void setup() {
@@ -87,22 +79,25 @@ void setup() {
     UNITY_BEGIN();    // IMPORTANT LINE!
 
     RUN_TEST(test_setup_config);
+    RUN_TEST(test_setup_wifi);
+    RUN_TEST(test_setup_mqtt);
 
-    // RUN_TEST(test_setup_wifi);
 
-    RUN_TEST(test_rs485_setup);
+    RUN_TEST(test_modbus_setup);
     
+    RUN_TEST(test_modbus_process);
 }
 
 uint16_t i = 0;
-uint16_t max_loops = 3;
+uint16_t max_loops = 800;
 void loop() {
 
-    if (i < max_loops)
+    if (true)
     {
-        delay(2000);
-        RUN_TEST(test_rs485_binary);
-    
+        delay(1000);
+        
+        RUN_TEST(test_mqtt_process);
+
         i++;
     }
     else {

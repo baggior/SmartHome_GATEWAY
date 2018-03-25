@@ -25,13 +25,15 @@ public:
     BINARY_BUFFER_T sendMasterCommand(BINARY_BUFFER_T& CMD);  
     inline void broadcastMasterCommand(BINARY_BUFFER_T& CMD) {sendMasterCommand(CMD,0);} 
 
-private:
+    //
+    inline Stream* getSerialAsStream() {return p_ser;}
 
-    void fixSerialFlush();
     void preTransmit();
     void postTransmit();
     void idle();
 
+private:
+    void fixSerialFlush();
     
     Stream * p_dbgstream;
     Stream * p_ser;

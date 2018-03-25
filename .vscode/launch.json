@@ -6,7 +6,7 @@
             "request": "launch",
             "cwd": "${workspaceRoot}",
             "name": "PlatformIO Debugger",
-            "target": "c:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
+            "target": "C:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
             "gdbpath": "C:/Users/Marco/.platformio/penv/Scripts/piodebuggdb",
             "autorun": [ "source .pioinit" ],
             "preLaunchTask": "PlatformIO: Pre-Debug",

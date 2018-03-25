@@ -2,21 +2,16 @@
 #define modbus_h
 
 
-// #include "LinkedList.h"
 #include <vector.h>
-// #include <container.h>
 
-class Modbus 
+#include "rs485.h"
+
+#define ModbusDataMemory_max_buff_size 255
+
+class ModbusDataMemory
 {
-
+    friend class Modbus;
 public:
-    Modbus();
-    void setup(Stream &dbgstream);
-
-    void process();
-
-
-private:
     struct Item {
         uint16_t modbus_address;
         String name;
@@ -25,26 +20,60 @@ private:
 
     enum ItemType {
         coil,
-        holding,
-        input,
-        discrete,
+        holding_register,     
+        holding_register2,    
+
         UNKNOWN
     };
+    
+    inline const etl::ivector<Item>& getCoils() const     { return this->coils_buffer; }
+    inline const etl::ivector<Item>& getRegisters() const     { return this->registers_buffer; }
+    inline const etl::ivector<Item>& getRegisters2() const     { return this->registers2_buffer; }
+private:
+    
+    ModbusDataMemory();
+    void clean();
+    void addItem(ItemType type, uint16_t modbus_address, String name);
+
+    etl::vector<Item, ModbusDataMemory_max_buff_size> coils_buffer;
+    uint16_t min_coil_address=-1;
+    etl::vector<Item, ModbusDataMemory_max_buff_size> registers_buffer;
+    uint16_t min_reg_address=-1;    
+    etl::vector<Item, ModbusDataMemory_max_buff_size> registers2_buffer;
+    uint16_t min_reg2_address=-1;    
+
+};
+
+
+//---------------------------------------------------------------
+
+
+class Modbus 
+{
+
+public:
+    
+    Modbus();
+    int setup(Stream &dbgstream);
+
+    void process();
+
+    inline const ModbusDataMemory& getModbusDataMemory() const 
+    {
+        return this->modbusDataMemory;
+    }
+
+private:   
 
     void buildDataMemory();
-    void addItem(ItemType type, uint16_t modbus_address, String name);
+    
     void updateDataMemoryValues();
-    void publishItemValues();
-    void publish(const Item& item);
+    
+    ModbusDataMemory modbusDataMemory;
 
-    etl::vector<Item, 100> coils_buffer;
-    uint16_t min_coil_address=0;
-    uint16_t coil_count=0;
-
-    etl::vector<Item, 100> register_buffer;
-    uint16_t min_reg_address=0;
-    uint16_t reg_count=0;
     bool enable;   
+    Stream * p_dbgstream=NULL;
+    Rs485 rs485;
 
 };
 

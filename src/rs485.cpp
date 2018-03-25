@@ -179,8 +179,10 @@ int Rs485::setup(Stream& dbgstream)
 
 int Rs485::setup(Stream& dbgstream, JsonObject &root)
 {
-  //JsonObject &root = config.getJsonRoot();
-
+  if(! root.success()) {
+    DPRINTLN(F(">Rs485 Error initializing configuration. Json file error"));
+    return SETUP_FAIL_CONFIG_ERROR;
+  }
   int _uart_num = root["uart"];
   this->appendLRC = root["appendLRC"];
   const char * _prefix = root["prefix"];
@@ -212,8 +214,8 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
 
   if(!p_ser) {
-    DPRINTLN(F("Error initializing Serial. Config out of range"));
-    return -1;
+    DPRINTLN(F(">Rs485 Error initializing Serial. Config out of range"));
+    return SETUP_FAIL_CONFIG_ERROR;
   }
   
   p_ser->flush();
@@ -226,7 +228,7 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
 
   Serial_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
 
-  return 0;
+  return SUCCESS_OK;
 }
 
 
