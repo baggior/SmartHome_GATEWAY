@@ -11,7 +11,7 @@
 #include "mqttclient.h"
 #include "modbus.h"
 
-
+#include "coreapi.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
@@ -41,6 +41,8 @@ MqttClient mqtt;
 
 Scheduler runner;
 
+
+_Application app;
 
 #ifndef UNIT_TEST  
 
@@ -97,6 +99,11 @@ config.getBlinker().start(1);//1sec.
     
 config.getBlinker().start(3);//3sec.
     DPRINTLN("Initialized the Scheduler");
+
+
+    //////////////////
+    app.addModule(NULL);
+    app.setup();
 }
 
 
