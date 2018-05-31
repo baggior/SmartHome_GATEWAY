@@ -5,11 +5,7 @@
     "tasks": [
         {
             "type": "PlatformIO",
-            "args": [
-                "run",
-                "--environment",
-                "esp32dev"
-            ],
+            "task": "Build",
             "problemMatcher": [
                 "$platformio"
             ],
@@ -17,28 +13,6 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },
-        {
-            "type": "PlatformIO",
-            "args": [
-                "run",
-                "--environment",
-                "nodemcuv2"
-            ],
-            "problemMatcher": [
-                "$platformio"
-            ]
-        },
-        {
-            "type": "PlatformIO",
-            "args": [
-                "test",
-                "--environment",
-                "esp32dev"
-            ],
-            "problemMatcher": [
-                "$platformio"
-            ]
         }
     ]
 }

@@ -38,32 +38,60 @@ extern _Error _NoError;
 class _BaseModule {
     friend _Application;
 public:    
+    _BaseModule(String _title, String _descr): title(_title), descr(_descr) {}
     virtual ~_BaseModule() {}
+
     virtual _Error setup()=0;
     virtual void shutdown()=0;
     virtual void loop() =0;
-    virtual String info() =0;
+    
+    inline String getTitle() {return this->title; }
+    inline String getDescr() {return this->descr; }
+    
+    inline virtual String info() {return title + "\n" + descr;}
+    inline void setEnabled(bool _enabled) {this->enabled = _enabled;}
+    inline bool isEnabled() {return this->enabled;}
 
 protected:   
     const _Application* theApp = NULL;
+    bool enabled = false;
+
     String title;
     String descr;
-
 };
 
 class _Module : public _BaseModule {
 public:    
+    inline _Module(String _title, String _descr) : _BaseModule(_title, _descr) {}
     virtual ~_Module() {}
-    virtual _Error setup() {return _NoError;}
-    virtual void shutdown() {}
-    virtual void loop() {}
-    virtual String info() {return title + "\n" + descr;}
 
+protected:
+    virtual _Error setup()  { this->setEnabled(true); return _NoError;}
+    virtual void shutdown() { this->setEnabled(false);}
+    virtual void loop() {}
+    
 };
 
-class _RestApiModule : public _Module {
+class AsyncWebServer;
+class _RestApiModule : public _Module 
+{
 public:
+    typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
+    
+    inline _RestApiModule(): _Module(("_RestApiModule"), ("Rest Api module")) {}
     virtual ~_RestApiModule() {}
+
+protected:
+    virtual _Error setup() ;
+    virtual void shutdown() ;
+    virtual void loop() ;
+
+    void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
+    virtual _Error restApiMethodSetup();
+
+    AsyncWebServer * webServer = NULL;
+    unsigned int _server_port = 0;    
+
 };
 
 
@@ -71,12 +99,14 @@ public:
 class _ApplicationLogger {
     friend _Application;
 public:
-    void setup(HardwareSerial* hwserial);
+    void setup(HardwareSerial& hwserial);
     void setup(Stream* dbgstream);
     virtual ~_ApplicationLogger();
 
-    void printf(const char *fmt, ...);
-    void printf(const __FlashStringHelper *fmt, ...);
+    void printf(const char *fmt, ...) const;
+    void printf(const __FlashStringHelper *fmt, ...) const;
+
+    inline Stream* getStream()const {return this->dbgstream; }
 private:
     Stream * dbgstream = NULL;
 };
@@ -89,13 +119,13 @@ public:
     virtual ~_ApplicationConfig();
 
     JsonObject* getJsonObject(const char* node=NULL);
-    void printConfigFileTo(Stream& stream) ;
+    void printConfigFileTo(Stream* stream)const ;
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
 
 private:
-    _Error load(bool formatSPIFFSOnFails=false);
+    _Error load(_ApplicationLogger& logger, bool formatSPIFFSOnFails=false);
 
     JsonObject* jsonObject=NULL;
     String configJsonString;
@@ -116,17 +146,18 @@ public:
     _Error setup();
     void addModule(_BaseModule* module);
     void removeModule(_BaseModule* module);
+    _BaseModule* getModule(String title);
 
     void loop();
 
-    inline unsigned long millisSinceStartup() {return millis() - this->startupTimeMillis;} 
-    inline Stream* getLoggerStream() {return this->logger.dbgstream;}
+    inline unsigned long millisSinceStartup() const {return millis() - this->startupTimeMillis;} 
+    inline const _ApplicationLogger& getLogger() const {return this->logger;}
 
     inline void addTask(Task& task) { this->runner.addTask(task); }
     inline Scheduler& getScheduler() {return this->runner;}
 
 private:    
-    void buildCoreModules();
+    void addCoreModules();
 
     _Error webServerSetup();
     void shutdown();
@@ -136,6 +167,7 @@ private:
     etl::list<_BaseModule*, 100> modules;
     Scheduler runner;
     _ApplicationLogger logger;
+
     bool debug=false;
 };
 

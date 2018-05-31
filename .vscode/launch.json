@@ -12,7 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PlatformIO Debugger",
-            "executable": "c:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
+            "executable": "C:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
             "toolchainBinDir": "C:/Users/Marco/.platformio/packages/toolchain-xtensa32/bin",
             "preLaunchTask": "PlatformIO: Pre-Debug",
             "internalConsoleOptions": "openOnSessionStart"
@@ -21,7 +21,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PlatformIO Debugger (Skip Pre-Debug)",
-            "executable": "c:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
+            "executable": "C:/Users/Marco/OneDrive/IOT/PlatformIO/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
             "toolchainBinDir": "C:/Users/Marco/.platformio/packages/toolchain-xtensa32/bin",
             "internalConsoleOptions": "openOnSessionStart"
         }

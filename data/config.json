@@ -8,7 +8,7 @@
     "static_sn": "255.255.255.0"
   },  
   "modbus": {
-    "enable": true,    
+    "enable": false,    
     "rs485": {
       "uart": 1,
       "baud": 9600,
@@ -57,7 +57,7 @@
     "task_listen_interval": 20
   },
   "mqtt": {
-    "enable": true,
+    "enable": false,
     "task_listen_interval": 50,
 
     "cayenne" : {      

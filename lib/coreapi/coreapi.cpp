@@ -1,7 +1,6 @@
 #include "coreapi.h"
 
 #define STARTUP_DELAY_MS                2000
-#define STARTUP_LOG_SERIAL              Serial
 #define STARTUP_LOG_SERIAL_BAUDRATE     115200
 
 ////////////////////////////
@@ -14,12 +13,12 @@ _Error _NoError;
 _Application::_Application()
 : startupTimeMillis(millis())
 {
-#ifdef MY_DEBUG
+#ifdef DEBUG_OUTPUT
     this->debug=true;
 #endif
 
     //create core modules
-    buildCoreModules();
+    addCoreModules();
 }
 
 
@@ -28,29 +27,32 @@ _Application::~_Application()
     this->shutdown();
 }
 
-void _Application::buildCoreModules() 
+void _Application::addCoreModules() 
 {
-
+    //TODO
 }
 
 _Error _Application::setup()
 {
     delay(STARTUP_DELAY_MS);
-    
-    STARTUP_LOG_SERIAL.end();
-    STARTUP_LOG_SERIAL.begin(STARTUP_LOG_SERIAL_BAUDRATE);
-    STARTUP_LOG_SERIAL.println();
+
+#ifdef DEBUG_OUTPUT
+    DEBUG_OUTPUT.end();
+    DEBUG_OUTPUT.begin(STARTUP_LOG_SERIAL_BAUDRATE);
+    DEBUG_OUTPUT.println();
 
     if(this->debug)
-        STARTUP_LOG_SERIAL.setDebugOutput(true);    
-    
+        DEBUG_OUTPUT.setDebugOutput(true);    
+
     //setup logger
-    this->logger.setup(&STARTUP_LOG_SERIAL);    
+    this->logger.setup(DEBUG_OUTPUT);    
+#endif 
+
     this->logger.printf(F("_Application setup start\n"));
 
-    //setup config
+    //setup main configuration
     this->logger.printf(F("_Application config load start\n"));
-    _Error ret = this->config.load();
+    _Error ret = this->config.load(this->logger);
     if(ret!=_NoError) 
     {
         this->logger.printf(F("ERROR in _Application config: %s (%d)\n"), 
@@ -61,13 +63,19 @@ _Error _Application::setup()
 
     //setup all modules in order
     this->logger.printf(F("_Application modules setup start\n"));
-    for(_BaseModule* module : this->modules) {
+    for(_BaseModule* module : this->modules) 
+    {
+        this->logger.printf(F(">[%s] module: setup start\n"), module->getTitle().c_str());        
         const _Error& err = module->setup();
         if(ret!=_NoError) 
         {
-            this->logger.printf(F("ERROR in _Application modules setup: %s (%d)\n"), 
-                ret.message, ret.errorCode);
+            this->logger.printf(F(">ERROR in %s module setup: %s (%d)\n"), 
+                module->getTitle().c_str(), ret.message, ret.errorCode);                
             return ret;
+        }
+        else
+        {
+            this->logger.printf(F(">[%s] module: setup done\n"), module->getTitle().c_str());
         }
     }
     
@@ -100,11 +108,28 @@ void _Application::removeModule(_BaseModule* module)
         this->modules.remove(module);
     }
 }
+_BaseModule* _Application::getModule(String title)
+{
+    if(title.length()>0) {
+        for(_BaseModule* module : this->modules) {
+            if (title.equalsIgnoreCase(module->getTitle()) )
+            {
+                return module;
+            }
+        }
+    }
+
+    return NULL;
+}
 
 void _Application::loop()
 {
-    for(_BaseModule* module : this->modules) {
-        module->loop();
+    for(_BaseModule* module : this->modules) 
+    {
+        if(module->isEnabled())
+        {
+            module->loop();
+        }
     }
 }
 
@@ -114,10 +139,9 @@ void _Application::loop()
 
 ////////////////////////////////////////////
 
-void _ApplicationLogger::setup(HardwareSerial* hwserial)
-{
-    if(hwserial)
-        this->dbgstream = hwserial;        
+void _ApplicationLogger::setup(HardwareSerial& hwserial)
+{    
+    this->dbgstream = &hwserial;        
 }
 void _ApplicationLogger::setup(Stream* _dbgstream)
 {
@@ -129,23 +153,23 @@ _ApplicationLogger::~_ApplicationLogger()
 
 }
 
-void _ApplicationLogger:: printf(const char *fmt, ...)
+void _ApplicationLogger:: printf(const char *fmt, ...) const
 {
     if(this->dbgstream)
     {
         va_list args;
         va_start (args, fmt );
-        Serial_printf(*this->dbgstream, fmt, args);
+        Stream_printf_args(*this->dbgstream, fmt, args);
         va_end (args);
     }
 }
-void _ApplicationLogger::printf(const __FlashStringHelper *fmt, ...)
+void _ApplicationLogger::printf(const __FlashStringHelper *fmt, ...) const
 {
     if(this->dbgstream)
     {
         va_list args;
         va_start (args, fmt );
-        Serial_printf(*this->dbgstream, fmt, args);
+        Stream_printf_args(*this->dbgstream, fmt, args);
         va_end (args);
     }
 }

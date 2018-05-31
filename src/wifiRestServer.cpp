@@ -1,49 +1,56 @@
-#include "config.h"
+// #include "config.h"
 
 // #include <WifiClient.h>
-#ifdef ESP32
-#include <Update.h>
-#endif
+// #ifdef ESP32
+// #include <Update.h>
+// #endif
 
-#include <SPIFFSEditor.h>
-#include <AsyncJson.h>
+// #include <SPIFFSEditor.h>
+// #include <AsyncJson.h>
 
 #include "wifiRestServer.h"
-#include "wifiRestServerJsonHandler.h"
 
-#include "WiFiConnection.h"
+// #include "asynccallbackjsonwebhandler.h"
 
-#define RESTSERVER_PORT_DEFAULT   80
+// #include "WiFiConnection.h"
 
-extern WiFiConnection connection;
+// #define RESTSERVER_PORT_DEFAULT   80
+
+// extern WiFiConnection connection;
 
 // static AsyncEventSource _events("/events"); // event source (Server-Sent events to browser)
 
-static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
+// static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
 
-static void _printToResponseHandler(AsyncWebServerRequest *request);
-static void _showHelp(AsyncWebServerRequest *request);
-static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request);
-static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
-static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
-static void _onScanWiFi(AsyncWebServerRequest *request) ;
-static void _onFwUpdate1(Stream* dbgstream, AsyncWebServerRequest *request) ;
-static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
+// static void _printToResponseHandler(AsyncWebServerRequest *request);
+// static void _showHelp(AsyncWebServerRequest *request);
+// static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request);
+// static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total);
+// static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final);
+// static void _onScanWiFi(AsyncWebServerRequest *request) ;
+// static void _onFwUpdate1(Stream* dbgstream, AsyncWebServerRequest *request) ;
+// static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
 
   
 WifiRestServer::WifiRestServer() 
-: webServer(NULL), enable(true)
-{
-  this->dbgstream=NULL;
-  this->_server_port = RESTSERVER_PORT_DEFAULT;
+: _RestApiModule()//, enable(true)//, webServer(NULL)
+{  
+  // this->dbgstream=NULL;
+  // this->_server_port = RESTSERVER_PORT_DEFAULT;
 }
 WifiRestServer::~WifiRestServer()
 {
   // this->dbgstream=NULL;
-  if(webServer) delete webServer;
+  // if(this->webServer) delete this->webServer;
 }
 
+_Error WifiRestServer::restApiMethodSetup() 
+{
+  // additional module config & handlers
+  return _NoError;
+}
 
+/*
 void WifiRestServer::setup(Stream &dbgstream)
 {  
   this->dbgstream = &dbgstream;
@@ -57,7 +64,7 @@ void WifiRestServer::setup(Stream &dbgstream)
   const char* _server_auth_username = root["rest"]["server_auth"]["username"];
   const char* _server_auth_password = root["rest"]["server_auth"]["password"];
 
-  Serial_printf(dbgstream, F(">RESTServer SETUP: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+  Stream_printf(dbgstream, F(">RESTServer SETUP: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
     enable, _server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
 
   if(this->enable)
@@ -89,7 +96,9 @@ bool WifiRestServer::process()
 {  
   return false; //unused ASYNC server
 }
+*/
 
+/*
 void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod )
 {
   if(isGetMethod)
@@ -144,8 +153,10 @@ void WifiRestServer::addRestApiMethod(const char* uri, RestHandlerCallback callb
 
   }
 }
+*/
 
 
+/*
 void WifiRestServer::_onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len)
 {
   //Handle WebSocket event
@@ -394,7 +405,7 @@ static void _showHelp(AsyncWebServerRequest *request)
 
 }
 
-
+*/
 
 
   // Firmware Update 

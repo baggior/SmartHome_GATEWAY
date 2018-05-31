@@ -39,7 +39,7 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncJson.h>
 
-const char* JSON_MIMETYPE = "application/json";
+static const char* JSON_MIMETYPE = "application/json";
 
 typedef std::function<void(AsyncWebServerRequest *request, JsonVariant &json)> ArJsonRequestHandlerFunction;
 

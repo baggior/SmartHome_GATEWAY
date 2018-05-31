@@ -15,8 +15,7 @@
 #define JSON_BUFFER_SIZE 1024
 
 Config::Config() 
-: blinker(LED_PIN),
-  jsonBuffer(JSON_BUFFER_SIZE)
+: jsonBuffer(JSON_BUFFER_SIZE), blinker(LED_PIN)
 {
     this->startupTimeMillis = millis();
 }

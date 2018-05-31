@@ -64,7 +64,7 @@ void WiFiConnection::wifiManagerOpenConnection()
     float outputPower = root["wifi"]["outputPower"];
     char buff[20];
 
-    Serial_printf(*dbgstream, F(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
+    Stream_printf(*dbgstream, F(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
         REPLACE_NULL_STR(SSID), REPLACE_NULL_STR(password),
         REPLACE_NULL_STR(hostname), REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn),
         REPLACE_NULL_STR(_phy_mode),
@@ -97,7 +97,7 @@ void WiFiConnection::wifiManagerOpenConnection()
             if(minimumSignalQuality) wifiManager.setMinimumSignalQuality(minimumSignalQuality);
             if(static_ip && static_gw && static_sn) 
             {
-                Serial_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
+                Stream_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
                 IPAddress ip1,ip2,ip3;                 
                 if(ip1.fromString(static_ip))
                 {
@@ -125,10 +125,10 @@ void WiFiConnection::wifiManagerOpenConnection()
         }
         else //SSID defined
         {
-            Serial_printf(*dbgstream, F("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
+            Stream_printf(*dbgstream, F("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
             if(static_ip && static_gw && static_sn) 
             {
-                Serial_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
+                Stream_printf(*dbgstream, F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
                 IPAddress ip1,ip2,ip3;
                 if(ip1.fromString(static_ip) && ip2.fromString(static_gw) && ip3.fromString(static_sn))
                 {                    
@@ -136,7 +136,7 @@ void WiFiConnection::wifiManagerOpenConnection()
                 }
                 else
                 {
-                   Serial_printf(*dbgstream, F("STA Failed to configure: ERROR on reading static ip config params\r\n")); 
+                   Stream_printf(*dbgstream, F("STA Failed to configure: ERROR on reading static ip config params\r\n")); 
                 }
             }
 
@@ -206,7 +206,7 @@ void WiFiConnection::announceTheDevice(unsigned int server_port, baseutils::Stri
         if (!MDNS.begin(hostname.c_str())) {
             dbgstream->println(F("Error setting up MDNS responder! "));
         }
-        Serial_printf(*dbgstream, F("MDNS responder started. hostname: %s (ip: %s) \n")
+        Stream_printf(*dbgstream, F("MDNS responder started. hostname: %s (ip: %s) \n")
             , hostname.c_str(), ip.toString().c_str());
     
         String proto("_"), service("_");    
@@ -265,13 +265,13 @@ QueryResult WiFiConnection::query(String service, String proto)
 {
     QueryResult ret( {.port=0} );
     
-    Serial_printf(*dbgstream, F("mDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
+    Stream_printf(*dbgstream, F("mDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
 
     int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
     if (n == 0) {
         dbgstream->println(F("\tno services found"));
     } else {
-        Serial_printf(*dbgstream, F(" \t%d services found\n"), n);
+        Stream_printf(*dbgstream, F(" \t%d services found\n"), n);
         
         ret.host = MDNS.hostname(0);
         ret.port = MDNS.port(0);

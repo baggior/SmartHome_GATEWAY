@@ -4,36 +4,38 @@
 
 #include <ESPAsyncWebServer.h>
 
+#include <coreapi.h>
 
-
-class WifiRestServer {
-
+class WifiRestServer : public _RestApiModule 
+{
 public:
 
-  typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
+  // typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
 
   WifiRestServer();
-  ~WifiRestServer();
+  virtual ~WifiRestServer();
 
-  void setup(Stream &serial);
   
-  bool process() ;
-
-  void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
-
-
-private:
+  // void setup(Stream &serial);
   
-  AsyncWebServer * webServer;
-  Stream *  dbgstream;
-  bool enable;
+  // bool process() ;
 
-  unsigned int _server_port;
+  // void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
 
-  void _setupHandlers();
+
+private:  
+  // AsyncWebServer * webServer;
+  // Stream *  dbgstream;
+  // bool enable;
+
+  // unsigned int _server_port;
+
+  // void _setupHandlers();
   
-  void _onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  // void _onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
+
+  virtual _Error restApiMethodSetup() ;
 };
 
 #endif

@@ -22,7 +22,7 @@ _ApplicationConfig::~_ApplicationConfig()
 {  
 }
 
-_Error _ApplicationConfig::load(bool formatSPIFFSOnFails)
+_Error _ApplicationConfig::load(_ApplicationLogger& logger, bool formatSPIFFSOnFails)
 {
     bool b = false;
 #ifdef ESP32
@@ -33,35 +33,32 @@ _Error _ApplicationConfig::load(bool formatSPIFFSOnFails)
 
     if(!b)
     {
-        DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
+        logger.printf(F("Error opening SPIFFS filesystem\r\n"));   
 
         _Error err(-1, "Error opening SPIFFS filesystem");
         return err;
     }
-    else {
+    else 
+    {
 #ifdef ESP32
-        DPRINTF(F("SPIFFS filesystem open(%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
+        logger.printf(F("SPIFFS filesystem open(%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
 #elif defined ESP8266   
-        DPRINTF(F("SPIFFS filesystem open\r\n"));
+        logger.printf(F("SPIFFS filesystem open\r\n"));
 #endif  
-        DPRINTF(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
+        logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
         
         this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
         // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
     
-        #ifdef DEBUG_OUTPUT
-        this->printConfigFileTo(DEBUG_OUTPUT);
-        #endif
-
         SPIFFS.end();   
-
-
 
         jsonBuffer.clear();
         JsonObject& jsonObject_parsed = jsonBuffer.parseObject(this->configJsonString);    
         if(jsonObject_parsed.success())
         {
             this->jsonObject = &jsonObject_parsed;
+            this->printConfigFileTo(logger.getStream());
+
             return _NoError; 
         }
         else
@@ -73,11 +70,21 @@ _Error _ApplicationConfig::load(bool formatSPIFFSOnFails)
     
 }
 
-void _ApplicationConfig::printConfigFileTo(Stream& stream) 
+void _ApplicationConfig::printConfigFileTo(Stream* stream) const
 {
-    stream.println("Configuration: ");
-    getJsonObject()->prettyPrintTo(stream);
-    stream.println();
+    if(stream)
+    {
+        stream->println(F("Configuration: "));
+        if(this->jsonObject!=NULL)
+        {
+            this->jsonObject->prettyPrintTo(*stream);
+            stream->println();
+        }
+        else 
+        {
+            stream->println(F("<NULL>"));
+        }
+    }    
 }
 
 
@@ -86,14 +93,14 @@ void _ApplicationConfig::printConfigFileTo(Stream& stream)
 
 JsonObject* _ApplicationConfig::getJsonObject(const char* node)
 {   
-    if(jsonObject && jsonObject->success())
+    if(this->jsonObject)
     {
         if(node) 
         {
-            JsonObject& jsonNode = ((*jsonObject)[node]);
+            JsonObject& jsonNode = ((*this->jsonObject)[node]);
             return &jsonNode;
         }
-        return jsonObject;
+        return this->jsonObject;
     }
     else
     {

@@ -1,4 +1,4 @@
- #define UNIT_TEST
+#define UNIT_TEST
 
 #include <Arduino.h>
 
@@ -11,11 +11,15 @@
 #include <coreapi.h>
 #include <TaskScheduler.h>
 
+#include "wifiRestServer.h"
+
+
 #include <unity.h>
 
 #define RS485_REDE_CONTROL 25
 
 #ifdef UNIT_TEST
+#include "../../src/wifiRestServer.cpp"
 
 // void setUp(void) {
 // // set stuff up here
@@ -26,10 +30,11 @@
 // }
 
 _Application app;
+WifiRestServer restServerModule;
 
 void test_setup_config(void) {
    
-    app.addModule(NULL);
+    app.addModule(&restServerModule);
 
     _Error ret = app.setup();
     TEST_ASSERT_MESSAGE(ret==_NoError, (String("setup error. code: ") + ret.errorCode+ String("("+ret.message+")") ).c_str());

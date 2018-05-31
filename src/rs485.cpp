@@ -28,7 +28,7 @@
 
 // -----------------------------------------------
 
-#define RS485_DEBUG_FN(...)  { if(p_dbgstream) {Serial_printf(*p_dbgstream, __VA_ARGS__);} }
+#define RS485_DEBUG_FN(...)  { if(p_dbgstream) {Stream_printf(*p_dbgstream, __VA_ARGS__);} }
 
 // -----------------------------------------------
 
@@ -146,7 +146,7 @@ static String calculateLRC(String CMD, Stream* p_dbgstream)
   unsigned char TOT_c = ((~TOT + 1) & 0xFF);
   if ((TOT + TOT_c) & 0xFF)
   {
-    if(p_dbgstream) Serial_printf(*p_dbgstream, F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
+    if(p_dbgstream) Stream_printf(*p_dbgstream, F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
   }
 
   String LRC_String(TOT_c, 16);
@@ -192,7 +192,7 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   const char * _parity = root["parity"];
   this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  Serial_printf(dbgstream, F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+  Stream_printf(dbgstream, F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
   this->p_dbgstream = &dbgstream;
@@ -226,7 +226,7 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
 
-  Serial_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
+  Stream_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
 
   return SUCCESS_OK;
 }
@@ -350,7 +350,7 @@ Rs485::BINARY_BUFFER_T Rs485::sendMasterCommand(Rs485::BINARY_BUFFER_T& CMD, int
   {
     size_t ret = p_ser->write(data);   
     RS485_DEBUG_FN( F("serial write data: 0x%0X\n"), data) ;
-    // Serial_printf(*dbgstream, F("serial write %d\n"), data);
+    // Stream_printf(*dbgstream, F("serial write %d\n"), data);
   }
 
   this->postTransmit();
@@ -361,7 +361,7 @@ Rs485::BINARY_BUFFER_T Rs485::sendMasterCommand(Rs485::BINARY_BUFFER_T& CMD, int
     //wait for a RESPONSE    
     long delayTime = _min(maxReponseWaitTime,10);
     RS485_DEBUG_FN( F("serial wait %d\n"), delayTime) ;
-    // Serial_printf(*dbgstream, F("serial wait %d\n"), delayTime);
+    // Stream_printf(*dbgstream, F("serial wait %d\n"), delayTime);
     delay(delayTime);
     while (p_ser->available()==0 && delayTime<maxReponseWaitTime)
     {

@@ -41,7 +41,7 @@ MqttClient mqtt;
 
 Scheduler runner;
 
-
+///NEW///
 _Application app;
 
 #ifndef UNIT_TEST  
@@ -58,7 +58,7 @@ void setup() {
     #endif
     
     Serial.println();
-    DPRINTLN("main setup start");
+    DPRINTLN("\n-----OLD Main setup start-----\n");
 /* 
 #ifdef MY_DEBUG
     if(SaveCrash.count()>10)
@@ -87,23 +87,27 @@ config.getBlinker().start(1);//1sec.
 
     wifiFtpServer.setup(Serial);
     wifiTelnetServer.setup(Serial);    
-    restServer.setup(Serial);
+    // restServer.setup(Serial);
     webSocketRs485Gateway.setup(Serial);
     // rs485.setup(Serial);
     mqtt.setup(Serial);
     modbus.setup(Serial);
     
-    DPRINTLN("\n-----Main setup done-----\n");
-       
+      
     // connection.announceTheDevice();
     
 config.getBlinker().start(3);//3sec.
     DPRINTLN("Initialized the Scheduler");
 
+    DPRINTLN("\n-----OLD Main setup done-----\n");
 
     //////////////////
-    app.addModule(NULL);
+
+    DPRINTLN("\n-----NEW MAIN setup start-----\n");
+    app.addModule(&restServer);
     app.setup();
+
+    DPRINTLN("\n-----NEW MAIN setup done-----\n");
 }
 
 
