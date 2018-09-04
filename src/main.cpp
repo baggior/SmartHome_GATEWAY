@@ -25,7 +25,7 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
 
 
 Config config;
-WiFiConnection connection;
+// WiFiConnection connection;
 
 WifiFtpServer wifiFtpServer;
 WifiTelnetServer wifiTelnetServer;
@@ -37,7 +37,7 @@ WebSocketRs485Gateway webSocketRs485Gateway;
 Ota ota;
 
 Modbus modbus;
-MqttClient mqtt;
+//MqttClient mqtt;
 
 Scheduler runner;
 
@@ -80,17 +80,17 @@ config.getBlinker().start(0.1);//100 msec.
     config.load();   
 
     //digitalWrite(BUILTIN_LED, LOW); //LED ON
-    connection.setup(Serial); //open wifi connection    
+    // connection.setup(Serial); //open wifi connection    
     //digitalWrite(BUILTIN_LED, HIGH); //LED OFF           
 
 config.getBlinker().start(1);//1sec.
 
-    wifiFtpServer.setup(Serial);
+    // wifiFtpServer.setup(Serial);
     wifiTelnetServer.setup(Serial);    
     // restServer.setup(Serial);
     webSocketRs485Gateway.setup(Serial);
     // rs485.setup(Serial);
-    mqtt.setup(Serial);
+    //mqtt.setup(Serial);
     modbus.setup(Serial);
     
       
@@ -104,6 +104,7 @@ config.getBlinker().start(3);//3sec.
     //////////////////
 
     DPRINTLN("\n-----NEW MAIN setup start-----\n");
+    app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.setup();
 
@@ -112,8 +113,10 @@ config.getBlinker().start(3);//3sec.
 
 
 void loop() 
-{    
-    connection.process();
+{   
+    // connection.process();
+
+    app.loop();     
 
     bool idle = runner.execute();
     if(idle)

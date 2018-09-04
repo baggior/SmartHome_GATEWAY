@@ -12,6 +12,7 @@
 #include <TaskScheduler.h>
 
 #include "wifiRestServer.h"
+#include "wifiFtpServer.h"
 
 
 #include <unity.h>
@@ -20,6 +21,7 @@
 
 #ifdef UNIT_TEST
 #include "../../src/wifiRestServer.cpp"
+#include "../../src/wifiFtpServer.cpp"
 
 // void setUp(void) {
 // // set stuff up here
@@ -31,11 +33,14 @@
 
 _Application app;
 WifiRestServer restServerModule;
+WifiFtpServer wifiFtpServer;
 
 void test_setup_config(void) {
    
+    app.addModule(&wifiFtpServer);
     app.addModule(&restServerModule);
 
+    app.setIdleLoopCallback( []() -> void  {app.getLogger().printf(".");});
     _Error ret = app.setup();
     TEST_ASSERT_MESSAGE(ret==_NoError, (String("setup error. code: ") + ret.errorCode+ String("("+ret.message+")") ).c_str());
 }
@@ -56,14 +61,14 @@ void setup() {
 }
 
 uint16_t i = 0;
-uint16_t max_loops = 800;
+uint16_t max_loops = 20;
 void loop() {
 
-    if (true)
+    if (i<max_loops)
     {
         delay(1000);
         
-        
+        app.loop();
 
         i++;
     }

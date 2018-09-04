@@ -26,10 +26,10 @@ public:
 
     void process();
 
-    QueryResult query();
-    QueryResult query(String service, String proto);
+    // QueryResult query();
+    // QueryResult query(String service, String proto);
 
-    void announceTheDevice(unsigned int server_port=80, baseutils::StringArray attributes=baseutils::StringArray());
+    // void announceTheDevice(unsigned int server_port=80, baseutils::StringArray attributes=baseutils::StringArray());
 
 private:
     Stream *  dbgstream;

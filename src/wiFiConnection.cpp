@@ -195,47 +195,47 @@ void WiFiConnection::DEBUG_printDiagWiFI()
     #endif
 }
 
-void WiFiConnection::announceTheDevice(unsigned int server_port, baseutils::StringArray attributes)
-{
-    if(server_port)
-    {
-        String hostname = WiFiConnection::getHostname();   
-        IPAddress ip = WiFi.localIP();
+// void WiFiConnection::announceTheDevice(unsigned int server_port, baseutils::StringArray attributes)
+// {
+//     if(server_port)
+//     {
+//         String hostname = WiFiConnection::getHostname();   
+//         IPAddress ip = WiFi.localIP();
 
-        hostname.toLowerCase();
-        if (!MDNS.begin(hostname.c_str())) {
-            dbgstream->println(F("Error setting up MDNS responder! "));
-        }
-        Stream_printf(*dbgstream, F("MDNS responder started. hostname: %s (ip: %s) \n")
-            , hostname.c_str(), ip.toString().c_str());
+//         hostname.toLowerCase();
+//         if (!MDNS.begin(hostname.c_str())) {
+//             dbgstream->println(F("Error setting up MDNS responder! "));
+//         }
+//         Stream_printf(*dbgstream, F("MDNS responder started. hostname: %s (ip: %s) \n")
+//             , hostname.c_str(), ip.toString().c_str());
     
-        String proto("_"), service("_");    
-        // proto.concat("_"); 
-        proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
-        // service.concat("_"); 
-        service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
+//         String proto("_"), service("_");    
+//         // proto.concat("_"); 
+//         proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
+//         // service.concat("_"); 
+//         service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
 
-        // Announce esp tcp service on port 80
-        MDNS.addService(service, proto, server_port);      
+//         // Announce esp tcp service on port 80
+//         MDNS.addService(service, proto, server_port);      
 
-        for(auto it = attributes.begin(); it != attributes.end(); ++it)
-        {
-            String attr( *it ); ++it;
-            if(it != attributes.end())
-            {
-                const String attrV( *it ); 
-                MDNS.addServiceTxt(service, proto, attr.c_str(), attrV.c_str());
-            }
-            else
-            {
-                break;
-            }
-        }
+//         for(auto it = attributes.begin(); it != attributes.end(); ++it)
+//         {
+//             String attr( *it ); ++it;
+//             if(it != attributes.end())
+//             {
+//                 const String attrV( *it ); 
+//                 MDNS.addServiceTxt(service, proto, attr.c_str(), attrV.c_str());
+//             }
+//             else
+//             {
+//                 break;
+//             }
+//         }
   
-        dbgstream->printf(">MDNS announced service: %s, proto: %s, port: %d \n"
-            , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
-    }
-}
+//         dbgstream->printf(">MDNS announced service: %s, proto: %s, port: %d \n"
+//             , THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
+//     }
+// }
 
 
 void WiFiConnection::setup(Stream &dbgstream)
@@ -244,7 +244,7 @@ void WiFiConnection::setup(Stream &dbgstream)
 
     wifiManagerOpenConnection();
 
-    announceTheDevice();
+    // announceTheDevice();
     
     #ifdef MY_DEBUG
     DEBUG_printDiagWiFI();
@@ -257,37 +257,37 @@ void WiFiConnection::process()
 }
 
 
-QueryResult WiFiConnection::query()
-{
-    return this->query(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO);
-}
-QueryResult WiFiConnection::query(String service, String proto)
-{
-    QueryResult ret( {.port=0} );
+// QueryResult WiFiConnection::query()
+// {
+//     return this->query(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO);
+// }
+// QueryResult WiFiConnection::query(String service, String proto)
+// {
+//     QueryResult ret( {.port=0} );
     
-    Stream_printf(*dbgstream, F("mDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
+//     Stream_printf(*dbgstream, F("mDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
 
-    int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
-    if (n == 0) {
-        dbgstream->println(F("\tno services found"));
-    } else {
-        Stream_printf(*dbgstream, F(" \t%d services found\n"), n);
+//     int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
+//     if (n == 0) {
+//         dbgstream->println(F("\tno services found"));
+//     } else {
+//         Stream_printf(*dbgstream, F(" \t%d services found\n"), n);
         
-        ret.host = MDNS.hostname(0);
-        ret.port = MDNS.port(0);
-        ret.ip = MDNS.IP(0);
+//         ret.host = MDNS.hostname(0);
+//         ret.port = MDNS.port(0);
+//         ret.ip = MDNS.IP(0);
 
-        #ifdef MY_DEBUG
-        for (int i = 0; i < n; ++i) {
-            // Print details for each service found
-            dbgstream->printf("\t%d: %s (%s:%d)\n",
-                (i+1), MDNS.hostname(i).c_str(), MDNS.IP(i).toString().c_str(), MDNS.port(i));
-        }
-        #endif
-    }
+//         #ifdef MY_DEBUG
+//         for (int i = 0; i < n; ++i) {
+//             // Print details for each service found
+//             dbgstream->printf("\t%d: %s (%s:%d)\n",
+//                 (i+1), MDNS.hostname(i).c_str(), MDNS.IP(i).toString().c_str(), MDNS.port(i));
+//         }
+//         #endif
+//     }
 
-    return ret;
-}
+//     return ret;
+// }
 
 
 void WiFiConnection::restartESP()

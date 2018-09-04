@@ -2,8 +2,6 @@
 #define wifirestserver_h
 
 
-#include <ESPAsyncWebServer.h>
-
 #include <coreapi.h>
 
 class WifiRestServer : public _RestApiModule 

@@ -7,38 +7,62 @@
 #include <SPIFFSEditor.h>
 #include <ArduinoJson.h>
 
+#include <ESPAsyncWebServer.h>
+#include <AsyncJson.h>
 
-#include "asynccallbackjsonwebhandler.h"
 // #include "WiFiConnection.h"
 
 #define RESTSERVER_PORT_DEFAULT   80
 
-// extern WiFiConnection connection;
-
 
 _Error _RestApiModule::setup() 
 {
-  //configuration
+  bool on = true;
+  const char* _server_auth_username= NULL;
+  const char* _server_auth_password= NULL;
 
+  // configuration
+  const JsonObject& root = this->theApp->getConfig().getJsonObject("rest");  
+  if(root.success()) 
+  {
+    on = root["enable"];   
+    this->_server_port=root["server_port"];
+    if(this->_server_port==0) this->_server_port=RESTSERVER_PORT_DEFAULT;
     
-  if(!this->_server_port) this->_server_port=RESTSERVER_PORT_DEFAULT;
+    //TODO request authentication not implemented
+    _server_auth_username = root["server_auth"]["username"];
+    _server_auth_password = root["server_auth"]["password"];
+  }
 
-  this->webServer = new AsyncWebServer(this->_server_port);   
-  
-  // CORS headers
-  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
-  DefaultHeaders::Instance().addHeader("Server","ESP Async Web Server");
+  this->theApp->getLogger().printf( F("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+    this->getTitle().c_str(),
+    on, this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
 
-  // Setup the server handlers
-  _Error err = this->restApiMethodSetup();
-  if(err!=_NoError) return err;
+  if(on)
+  {
+    this->webServer = new AsyncWebServer(this->_server_port);   
+    
+    // CORS headers
+    DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+    DefaultHeaders::Instance().addHeader("Server","ESP Async Web Server");
 
-  // Start the server
-  this->webServer->begin();
-  this->theApp->getLogger().printf(F(">RESTServer SETUP: started on port: %d\n"), this->_server_port); 
+    // Setup the server handlers
+    _Error err = this->restApiMethodSetup();
+    if(err!=_NoError) {
+      return err;
+    }
 
+    // Start the server
+    this->webServer->begin();   
+    this->theApp->getLogger().printf(F("\t%s: WebServer started on port:%d\n"),
+      this->getTitle().c_str(), this->_server_port);
 
-  return _NoError;
+    return _NoError;
+  }
+  else
+  {
+    return _Disable;
+  }  
 }
 
 void _RestApiModule::shutdown() 
@@ -49,12 +73,9 @@ void _RestApiModule::shutdown()
       this->webServer = NULL;
   }
 
+  this->setEnabled(false);
 }
 
-void _RestApiModule::loop() 
-{
-
-}
 
 
 void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod )
@@ -316,9 +337,10 @@ static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String 
 _Error _RestApiModule::restApiMethodSetup() 
 {
   // Basic handlers  
-  this->webServer->on("/api/restart", HTTP_GET, [](AsyncWebServerRequest *request){
+  this->webServer->on("/api/restart", HTTP_GET, [this](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String("Restarting ESP.."));
-    ESP.restart();
+    //ESP.restart();
+    this->theApp->restart();
   });
 
   this->webServer->on("/api/plain/heap", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -357,3 +379,12 @@ _Error _RestApiModule::restApiMethodSetup()
   // this->addRestApiMethod();
   return _NoError;
 }
+
+
+ void _RestApiModule::beforeModuleAdded(_Application* app)
+ {
+    this->theApp=app;
+
+    //remove core rest api if exists   
+    this->theApp->removeModule(  this->theApp->getModule("_CoreRestApiModule") );
+ }

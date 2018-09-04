@@ -34,60 +34,99 @@ public:
 };
 
 extern _Error _NoError;
+extern _Error _Disable;
 
 class _BaseModule {
     friend _Application;
 public:    
-    _BaseModule(String _title, String _descr): title(_title), descr(_descr) {}
+    _BaseModule(String _title, String _descr, bool _executeInMainLoop=true): title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop) {}
     virtual ~_BaseModule() {}
 
     virtual _Error setup()=0;
     virtual void shutdown()=0;
-    virtual void loop() =0;
     
     inline String getTitle() {return this->title; }
     inline String getDescr() {return this->descr; }
     
     inline virtual String info() {return title + "\n" + descr;}
-    inline void setEnabled(bool _enabled) {this->enabled = _enabled;}
+    inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() {return this->enabled;}
 
-protected:   
-    const _Application* theApp = NULL;
+protected:       
+    virtual void loop() =0;    
+    inline virtual void beforeModuleAdded(_Application* app){this->theApp=app;}
+    inline virtual void afterModuleRemoved(){}
+
+    _Application* theApp = NULL;
     bool enabled = false;
 
     String title;
     String descr;
-};
-
-class _Module : public _BaseModule {
-public:    
-    inline _Module(String _title, String _descr) : _BaseModule(_title, _descr) {}
-    virtual ~_Module() {}
-
-protected:
-    virtual _Error setup()  { this->setEnabled(true); return _NoError;}
-    virtual void shutdown() { this->setEnabled(false);}
-    virtual void loop() {}
     
+private:
+    const bool executeInMainLoop;
 };
 
-class AsyncWebServer;
-class _RestApiModule : public _Module 
+
+class _WifiConnectionModule final : public _BaseModule 
 {
-public:
-    typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
-    
-    inline _RestApiModule(): _Module(("_RestApiModule"), ("Rest Api module")) {}
-    virtual ~_RestApiModule() {}
+public:    
+    inline _WifiConnectionModule() : _BaseModule(("_CoreWifiConnectionModule"), ("Core Wifi Connection Api module")) {} ;
+    inline virtual ~_WifiConnectionModule() {}
 
 protected:
     virtual _Error setup() ;
     virtual void shutdown() ;
-    virtual void loop() ;
+    virtual void loop() ; 
+    virtual void beforeModuleAdded(_Application* app) override ;
 
-    void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
+
+    _Error wifiManagerOpenConnection();
+};
+
+
+class _TaskModule : public _BaseModule 
+{
+public:    
+    _TaskModule(String _title, String _descr, unsigned int _taskLoopTimeMs=10) ;
+    virtual ~_TaskModule();
+
+    virtual void setEnabled(bool _enabled) override ;
+
+protected:    
+    virtual void shutdown();
+    
+    inline virtual void loop() { } //task loop    
+    
+    unsigned int taskLoopTimeMs;
+    Task loopTask;
+};
+
+class AsyncWebServer;
+/*
+- This is fully asynchronous server and as such does not run on the loop thread.
+- You can not use yield or delay or any function that uses them inside the callbacks
+- The server is smart enough to know when to close the connection and free resources
+- You can not send more than one response to a single request
+*/
+class _RestApiModule : public _BaseModule
+{
+public:
+    typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
+    
+    inline _RestApiModule(): _BaseModule(("_CoreRestApiModule"), ("Core Rest Api module")) {}
+    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr) {}
+    inline virtual ~_RestApiModule() { this->shutdown(); }
+
+protected:
+    virtual _Error setup() ;
+    virtual void shutdown() ;    
+    inline virtual void loop() {} //nothing, unused for ASYNC server
+    virtual void beforeModuleAdded(_Application* app) override ;
+
     virtual _Error restApiMethodSetup();
+    void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
+
 
     AsyncWebServer * webServer = NULL;
     unsigned int _server_port = 0;    
@@ -105,6 +144,7 @@ public:
 
     void printf(const char *fmt, ...) const;
     void printf(const __FlashStringHelper *fmt, ...) const;
+    inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
     inline Stream* getStream()const {return this->dbgstream; }
 private:
@@ -118,8 +158,8 @@ public:
     _ApplicationConfig();
     virtual ~_ApplicationConfig();
 
-    JsonObject* getJsonObject(const char* node=NULL);
-    void printConfigFileTo(Stream* stream)const ;
+    const JsonObject& getJsonObject(const char* node=NULL)const;
+    void printConfigTo(Stream* stream)const ;
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
@@ -127,15 +167,45 @@ public:
 private:
     _Error load(_ApplicationLogger& logger, bool formatSPIFFSOnFails=false);
 
-    JsonObject* jsonObject=NULL;
-    String configJsonString;
+    const JsonObject* jsonObject=NULL;
+    // String configJsonString;
 };
 
+///////////////////////////////////////////////////////
+class _NetServices {
+    friend _Application;
+public:
+    static String getHostname();
+    static void printDiagWifi(Stream * dbgstream);
+
+    //
+
+    //MDNS
+    struct MdnsQueryResult {    
+        uint16_t port;
+        String host;
+        IPAddress ip;
+    };
+    struct MdnsAttribute {
+        String name;
+        String value;
+    };
+
+    MdnsQueryResult mdnsQuery(String service, String proto);
+    bool announceTheDevice(unsigned int server_port=80, etl::list<MdnsAttribute, 1000> attributes = etl::list<MdnsAttribute, 1000>());
+
+private:
+    inline _NetServices(_Application& _theApp) : theApp(_theApp) {}
+
+    _Application& theApp;
+};
 ///////////////////////////////////////////////////////
 
 class _Application {
 
 public:
+    typedef std::function<void ()> IdleLoopCallback;
+
     // Explicitly disable copy constructor and assignment
     _Application(const _Application& that) = delete;
     _Application& operator=(const _Application& that) = delete;
@@ -143,34 +213,45 @@ public:
     _Application();
     ~_Application();
     
+    void restart();
+
     _Error setup();
     void addModule(_BaseModule* module);
-    void removeModule(_BaseModule* module);
+    void removeModule(_BaseModule* module);    
     _BaseModule* getModule(String title);
 
     void loop();
 
+    inline bool isDebug() {return this->debug;}
+
     inline unsigned long millisSinceStartup() const {return millis() - this->startupTimeMillis;} 
     inline const _ApplicationLogger& getLogger() const {return this->logger;}
+    inline const _ApplicationConfig& getConfig() const {return this->config;}
 
-    inline void addTask(Task& task) { this->runner.addTask(task); }
     inline Scheduler& getScheduler() {return this->runner;}
+    inline _NetServices& getNetServices() {return this->netSvc;}
+
+    inline void setIdleLoopCallback(IdleLoopCallback _idleLoopCallback_fn) {this->idleLoopCallback_fn=_idleLoopCallback_fn;}
 
 private:    
     void addCoreModules();
-
-    _Error webServerSetup();
+    void idleLoop();
+    
     void shutdown();
 
     unsigned long startupTimeMillis=0;
+
+    _NetServices netSvc;    
     _ApplicationConfig config;
     etl::list<_BaseModule*, 100> modules;
     Scheduler runner;
     _ApplicationLogger logger;
 
     bool debug=false;
+
+    IdleLoopCallback idleLoopCallback_fn=NULL;
 };
 
 
-
 #endif // _coreapi_h
+

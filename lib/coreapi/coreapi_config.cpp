@@ -46,18 +46,17 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger, bool formatSPIFFSOnF
         logger.printf(F("SPIFFS filesystem open\r\n"));
 #endif  
         logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
-        
-        this->configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
-        // JsonObject jsonObject = this->jsonBuffer.parseObject(configJsonString);
+        const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
     
         SPIFFS.end();   
 
+        this->jsonObject = NULL;
         jsonBuffer.clear();
-        JsonObject& jsonObject_parsed = jsonBuffer.parseObject(this->configJsonString);    
+        JsonObject& jsonObject_parsed = jsonBuffer.parseObject(configJsonString);    // the input is read-only, the parser copies the input
         if(jsonObject_parsed.success())
         {
             this->jsonObject = &jsonObject_parsed;
-            this->printConfigFileTo(logger.getStream());
+            this->printConfigTo(logger.getStream());
 
             return _NoError; 
         }
@@ -70,7 +69,7 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger, bool formatSPIFFSOnF
     
 }
 
-void _ApplicationConfig::printConfigFileTo(Stream* stream) const
+void _ApplicationConfig::printConfigTo(Stream* stream) const
 {
     if(stream)
     {
@@ -91,23 +90,24 @@ void _ApplicationConfig::printConfigFileTo(Stream* stream) const
 
 
 
-JsonObject* _ApplicationConfig::getJsonObject(const char* node)
+const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
 {   
     if(this->jsonObject)
     {
         if(node) 
         {
             JsonObject& jsonNode = ((*this->jsonObject)[node]);
-            return &jsonNode;
+            return jsonNode;
         }
-        return this->jsonObject;
+        return * this->jsonObject;
     }
     else
     {
         //DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
         // throw error TODO        
     } 
-    return NULL;
+    
+    return JsonObject::invalid();
 }
 
 
