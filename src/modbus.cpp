@@ -8,33 +8,31 @@
 // ---------------------------------------
 
 static ModbusMaster node;
-static Rs485* gp_rs485 =NULL;
-// static std::function<void()> pfn_idle=NULL;
-// static std::function<void()> pfn_pre=NULL;
-// static std::function<void()> pfn_post=NULL;
+// static Rs485* gp_rs485 =NULL;
+static std::function<void()> pfn_idle=NULL;
+static std::function<void()> pfn_pre=NULL;
+static std::function<void()> pfn_post=NULL;
 
+static void idle() {
+    if(pfn_idle)
+    {
+        pfn_idle();
+    }
+}
 
+static void preTransmit() {
+    if(pfn_pre)
+    {
+        pfn_pre();
+    }
+}
 
-// static void idle() {
-//     if(pfn_idle)
-//     {
-//         pfn_idle();
-//     }
-// }
-
-// static void preTransmit() {
-//     if(pfn_pre)
-//     {
-//         pfn_pre();
-//     }
-// }
-
-// static void postTransmit() {
-//     if(pfn_post)
-//     {
-//         pfn_post();
-//     }
-// }
+static void postTransmit() {
+    if(pfn_post)
+    {
+        pfn_post();
+    }
+}
 // ---------------------------------------
 
 #define COIL_ADDR(n)   (0x0000 + n) ///< returns  discrete coil address
@@ -71,15 +69,13 @@ int Modbus::setup(Stream &dbgstream) {
 
     node.begin(MODBUS_NODE_SLAVE_ID, *this->rs485.getSerialAsStream());
 
-    // std::function<void()> 
-    ModbusMaster::service_fn_t pfn_idle = std::bind(&Rs485::idle, &this->rs485);
-    ModbusMaster::service_fn_t pfn_pre = std::bind(&Rs485::preTransmit, &this->rs485);
-    ModbusMaster::service_fn_t pfn_post = std::bind(&Rs485::postTransmit, &this->rs485);
+    ::pfn_idle = std::bind(&Rs485::idle, &this->rs485);    
+    ::pfn_pre = std::bind(&Rs485::preTransmit, &this->rs485);
+    ::pfn_post = std::bind(&Rs485::postTransmit, &this->rs485);
 
-    // pfn.target();
-    node.idle(pfn_idle);
-    node.preTransmission(pfn_pre);
-    node.postTransmission(pfn_post);
+    node.idle( ::idle );
+    node.preTransmission( ::preTransmit );
+    node.postTransmission( ::postTransmit );
 
 
     DPRINTLN(">Modbus setup done");
