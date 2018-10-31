@@ -1,15 +1,15 @@
 #pragma once
 
-#include <coreapi.h>
+#include "coreapi.h"
 
 #include <ESP8266FtpServer.h>
 
 
-class WifiFtpServer: public _TaskModule
+class WifiFtpServerModule: public _TaskModule
 {
 public:
-    WifiFtpServer();
-    virtual ~WifiFtpServer();
+    WifiFtpServerModule();
+    virtual ~WifiFtpServerModule();
     
     // void setup(Stream &serial); 
     // inline void process() { ftpServer.handleFTP(); }

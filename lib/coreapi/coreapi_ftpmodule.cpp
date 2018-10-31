@@ -1,24 +1,21 @@
-
-#include "config.h"
-
-#include "wifiFtpServer.h"
+#include "coreapi_ftpmodule.h"
 
 #define FTP_LISTEN_TASK_INTERVAL_DEFAULT    10 //ms
 
 extern Scheduler runner;
 
-WifiFtpServer::WifiFtpServer()
+WifiFtpServerModule::WifiFtpServerModule()
 : _TaskModule("FTPServer", "FTP server to access SPIFFS filesystem content")
 {
 
 }
 
-WifiFtpServer::~WifiFtpServer()
+WifiFtpServerModule::~WifiFtpServerModule()
 {
 
 }
 
-_Error WifiFtpServer::setup()  
+_Error WifiFtpServerModule::setup()  
 {
     bool on = true; 
     const char* _server_auth_username = NULL;
@@ -62,7 +59,7 @@ _Error WifiFtpServer::setup()
     }    
 }
 /*
-void WifiFtpServer::setup(Stream &serial)
+void WifiFtpServerModule::setup(Stream &serial)
 {
     
     JsonObject & root = config.getJsonRoot();    

@@ -50,7 +50,7 @@ void _WifiConnectionModule::beforeModuleAdded(_Application* app)
 {
     this->theApp=app;
 
-    //remove core rest api if exists   
+    //remove core WiFi module if exists   
     this->theApp->removeModule(  this->theApp->getModule("_CoreWifiConnectionModule") );
 }
 

@@ -15,7 +15,7 @@
 struct QueryResult;
 
 //Wifi connection STA
-class WiFiConnection{
+class WiFiConnection {
 
 public:
     static String getHostname();

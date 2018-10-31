@@ -8,7 +8,7 @@
 // #include <SPIFFSEditor.h>
 // #include <AsyncJson.h>
 
-#include "wifiRestServer.h"
+#include "wifiRestServerModule.h"
 
 // #include "asynccallbackjsonwebhandler.h"
 
@@ -32,19 +32,19 @@
 // static void _onFwUpdate2(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) ;
 
   
-WifiRestServer::WifiRestServer() 
+WifiRestServerModule::WifiRestServerModule() 
 : _RestApiModule("WifiRestApiModule", "rest api")//, enable(true)//, webServer(NULL)
 {  
   // this->dbgstream=NULL;
   // this->_server_port = RESTSERVER_PORT_DEFAULT;
 }
-WifiRestServer::~WifiRestServer()
+WifiRestServerModule::~WifiRestServerModule()
 {
   // this->dbgstream=NULL;
   // if(this->webServer) delete this->webServer;
 }
 
-_Error WifiRestServer::restApiMethodSetup() 
+_Error WifiRestServerModule::restApiMethodSetup() 
 {
   // base API handlers
   _Error ret =_RestApiModule::restApiMethodSetup();

@@ -110,6 +110,7 @@ void MqttClient::setup(Stream &dbgstream)
 
     if(this->enable)
     {
+        // TODO use async mqtt client lib
         /*
         mqttClient.onConnect(onMqttConnect);
         mqttClient.onDisconnect(onMqttDisconnect);

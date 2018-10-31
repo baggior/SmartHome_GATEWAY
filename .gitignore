@@ -4,4 +4,4 @@
 .vscode/launch.json
 my.spiffs.bin
 .vscode/*.db
-.vscode/.browse.c_cpp.db*
+.vscode/.browse.c_cpp*

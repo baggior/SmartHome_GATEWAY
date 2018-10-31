@@ -66,7 +66,8 @@ bool _NetServices::announceTheDevice(unsigned int server_port, etl::list<MdnsAtt
 
 _NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String proto)
 {
-    _NetServices::MdnsQueryResult ret( {.port=0} );
+    _NetServices::MdnsQueryResult ret;
+    ret.port=0;
     
     this->theApp.getLogger().printf( F("MDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
 

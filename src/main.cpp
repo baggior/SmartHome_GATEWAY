@@ -2,8 +2,8 @@
 #include "config.h"
 
 #include "wifiConnection.h"
-#include "wifiRestServer.h"
-#include "wifiFtpServer.h"
+
+
 #include "wifiTelnetServer.h"
 // #include "rs485.h"
 #include "webSocketRs485Gateway.h"
@@ -12,6 +12,9 @@
 #include "modbus.h"
 
 #include "coreapi.h"
+#include "coreapi_ftpmodule.h"
+
+#include "wifiRestServerModule.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
@@ -27,9 +30,9 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
 Config config;
 // WiFiConnection connection;
 
-WifiFtpServer wifiFtpServer;
+WifiFtpServerModule wifiFtpServer;
 WifiTelnetServer wifiTelnetServer;
-WifiRestServer restServer;
+WifiRestServerModule restServer;
 WebSocketRs485Gateway webSocketRs485Gateway;
 
 // Rs485 rs485;

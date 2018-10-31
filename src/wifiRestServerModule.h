@@ -4,14 +4,14 @@
 
 #include <coreapi.h>
 
-class WifiRestServer : public _RestApiModule 
+class WifiRestServerModule : public _RestApiModule 
 {
 public:
 
   // typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
 
-  WifiRestServer();
-  virtual ~WifiRestServer();
+  WifiRestServerModule();
+  virtual ~WifiRestServerModule();
 
   
   // void setup(Stream &serial);
