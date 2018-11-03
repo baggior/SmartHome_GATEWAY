@@ -17,7 +17,9 @@
 #include <dbgutils.h>
 #include <baseutils.h>
 
-#include "../../.piolibdeps/Embedded Template Library_ID930/src/list.h"
+#include <list.h>
+
+// #include "../../.piolibdeps/Embedded Template Library_ID930/src/list.h"
 
 
 class _Application;
@@ -48,7 +50,7 @@ public:
     inline String getTitle() {return this->title; }
     inline String getDescr() {return this->descr; }
     
-    inline virtual String info() {return title + "\n" + descr;}
+    inline virtual String info() {return title + " (" + descr + ")";}
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() {return this->enabled;}
 

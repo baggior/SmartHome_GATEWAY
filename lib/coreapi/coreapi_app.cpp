@@ -55,27 +55,38 @@ _Error _Application::setup()
 
     //setup main configuration
     this->logger.printf(F("_Application config load start\n"));
-    _Error ret = this->config.load(this->logger);
-    if(ret!=_NoError) 
+    _Error err = this->config.load(this->logger);
+    if(err!=_NoError) 
     {
         this->logger.printf(F("ERROR in _Application config: %s (%d)\n"), 
-            ret.message, ret.errorCode);
-        return ret;
+            err.message, err.errorCode);
+        return err;
     }
     this->logger.printf(F("_Application config load done.\n"));
 
     //setup all modules in order
     this->logger.printf(F("_Application modules setup start\n"));
+
+    if(this->isDebug()) {
+        DPRINTF(F("\t (%d) Moduli: ["), this->modules.size());
+        for(_BaseModule* module : this->modules) {
+            DPRINTF(F("%s, "), module->info().c_str());
+        }
+        DPRINTF(F("]\n"));
+    }
+
     for(_BaseModule* module : this->modules) 
     {
-        this->logger.printf(F(">[%s] module: setup start\n"), module->getTitle().c_str());        
-        const _Error& err = module->setup();
-        if(ret==_NoError) 
+        this->logger.printf(F(">[%s] module: setup start\n"), module->getTitle().c_str());      
+        DPRINTLN(F("pippo"));
+        
+        err = module->setup();
+        if(err==_NoError) 
         {
             module->setEnabled(true);
             this->logger.printf(F(">[%s] module: setup done (ENABLED)\n"), module->getTitle().c_str());
         }
-        else if (ret==_Disable) 
+        else if (err==_Disable) 
         {
             module->setEnabled(false);
             this->logger.printf(F(">[%s] module: setup done (DISABLED)\n"), module->getTitle().c_str());
@@ -84,8 +95,8 @@ _Error _Application::setup()
         {        
             module->setEnabled(false);
             this->logger.printf(F(">ERROR in [%s] module setup: %s (%d)\n"), 
-                module->getTitle().c_str(), ret.message, ret.errorCode);                
-            return ret;
+                module->getTitle().c_str(), err.message, err.errorCode);                
+            return err;
         }
         
     }
@@ -175,7 +186,7 @@ void _Application::loop()
         this->logger.printf(F("idleLoop(), ") );
         this->idleLoop();
     }
-    this->logger.printf(F("_Application::loop()end. ") );
+    this->logger.printf(F("_Application::loop()end.\n") );
 }
 
 

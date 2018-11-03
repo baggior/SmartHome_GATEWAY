@@ -11,8 +11,8 @@
 #include <coreapi.h>
 #include <TaskScheduler.h>
 
-#include "wifiRestServer.h"
-#include "wifiFtpServer.h"
+#include "wifiRestServerModule.h"
+#include "coreapi_ftpmodule.h"
 
 
 #include <unity.h>
@@ -20,8 +20,8 @@
 #define RS485_REDE_CONTROL 25
 
 #ifdef UNIT_TEST
-#include "../../src/wifiRestServer.cpp"
-#include "../../src/wifiFtpServer.cpp"
+#include "../../src/wifiRestServerModule.cpp"
+// #include "../../lib/coreapi/coreapi_ftpmodule.cpp"
 
 // void setUp(void) {
 // // set stuff up here
@@ -32,12 +32,12 @@
 // }
 
 _Application app;
-WifiRestServer restServerModule;
-WifiFtpServer wifiFtpServer;
+WifiRestServerModule restServerModule;
+WifiFtpServerModule wifiFtpServerModule;
 
 void test_setup_config(void) {
    
-    app.addModule(&wifiFtpServer);
+    app.addModule(&wifiFtpServerModule);
     app.addModule(&restServerModule);
 
     app.setIdleLoopCallback( []() -> void  {app.getLogger().printf(".");});

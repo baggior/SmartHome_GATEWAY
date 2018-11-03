@@ -33,7 +33,7 @@
 
   
 WifiRestServerModule::WifiRestServerModule() 
-: _RestApiModule("WifiRestApiModule", "rest api")//, enable(true)//, webServer(NULL)
+: _RestApiModule("WifiRestApiModule", "custom rest api")//, enable(true)//, webServer(NULL)
 {  
   // this->dbgstream=NULL;
   // this->_server_port = RESTSERVER_PORT_DEFAULT;
