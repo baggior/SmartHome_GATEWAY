@@ -19,20 +19,19 @@ _Error _WifiConnectionModule::setup()
     DPRINTLN(F("_WifiConnectionModule::setup()"));
 
     _Error err = this->wifiManagerOpenConnection();
-    // if(err==_NoError)
-    // {
-    //     bool ret = this->theApp->getNetServices().announceTheDevice();        
-    //     if(!ret) {
-    //         err = _Error(-12,"MDNS announce error") ;
-    //     }
+    if(err==_NoError)
+    {
+        bool ret = this->theApp->getNetServices().announceTheDevice();        
+        // if(!ret) {
+        //     err = _Error(-12,"MDNS announce error") ;
+        // }
 
-    //     if(this->theApp->isDebug())
-    //     {
-    //         this->theApp->getNetServices().printDiagWifi(this->theApp->getLogger().getStream());        
-    //     }
-    // }
+        if(this->theApp->isDebug())
+        {
+            this->theApp->getNetServices().printDiagWifi(this->theApp->getLogger().getStream());        
+        }
+    }
 
-    DPRINTF(F("ERROR code:%d, message: '%s'\n"), err.errorCode, err.message.c_str());
     return err;   
 }
 
@@ -228,17 +227,16 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     }
 
     String connectedSSID = WiFi.SSID();
-    this->theApp->getLogger().printf( F("WiFi connected to SSID: %s"), connectedSSID.c_str());
+    this->theApp->getLogger().printf( F("WiFi connected to SSID: %s "), connectedSSID.c_str());
     this->theApp->getLogger().printf( F(" HOSTNAME: %s"),  this->theApp->getNetServices().getHostname().c_str());
 
     IPAddress connectedIPAddress = WiFi.localIP();  
     this->theApp->getLogger().printf( F(" IP address: %s"), connectedIPAddress.toString().c_str());
-    this->theApp->getLogger().printf( F("ESP Mac Address: %s"), WiFi.macAddress().c_str());
-    this->theApp->getLogger().printf( F("Subnet Mask: %s"), WiFi.subnetMask().toString().c_str());
-    this->theApp->getLogger().printf( F("Gateway IP: %s"), WiFi.gatewayIP().toString().c_str());
-    this->theApp->getLogger().printf( F("DNS: %s"), WiFi.dnsIP().toString().c_str());
-
-
+    this->theApp->getLogger().printf( F(" ESP Mac Address: %s"), WiFi.macAddress().c_str());
+    this->theApp->getLogger().printf( F(" Subnet Mask: %s"), WiFi.subnetMask().toString().c_str());
+    this->theApp->getLogger().printf( F(" Gateway IP: %s"), WiFi.gatewayIP().toString().c_str());
+    this->theApp->getLogger().printf( F(" DNS: %s .\n"), WiFi.dnsIP().toString().c_str());
+    
     return _NoError; 
 }
 

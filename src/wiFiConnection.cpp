@@ -180,18 +180,19 @@ void WiFiConnection::wifiManagerOpenConnection()
 
     IPAddress connectedIPAddress = WiFi.localIP();  
     dbgstream->print(F(" IP address: "));    dbgstream->println(connectedIPAddress.toString());
-    dbgstream->print(F("ESP Mac Address: ")); dbgstream->println(WiFi.macAddress());
-    dbgstream->print(F("Subnet Mask: ")); dbgstream->println(WiFi.subnetMask());
-    dbgstream->print(F("Gateway IP: "));  dbgstream->println(WiFi.gatewayIP());
-    dbgstream->print(F("DNS: ")); dbgstream->println(WiFi.dnsIP());
+    dbgstream->print(F(" ESP Mac Address: ")); dbgstream->println(WiFi.macAddress());
+    dbgstream->print(F(" Subnet Mask: ")); dbgstream->println(WiFi.subnetMask());
+    dbgstream->print(F(" Gateway IP: "));  dbgstream->println(WiFi.gatewayIP());
+    dbgstream->print(F(" DNS: ")); dbgstream->println(WiFi.dnsIP());
 }
 
 
 void WiFiConnection::DEBUG_printDiagWiFI()
 {
     #ifdef MY_DEBUG
-    dbgstream->println(F("WiFI printDiag:"));
+    dbgstream->println(F("---- WiFI Diag ----"));
     WiFi.printDiag(DEBUG_OUTPUT);
+    dbgstream->println(F("-------------------"));
     #endif
 }
 

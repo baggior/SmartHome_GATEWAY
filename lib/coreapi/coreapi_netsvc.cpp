@@ -20,38 +20,44 @@ String _NetServices::getHostname() {
     #ifdef ESP8266
     return WiFi.hostname();
     #elif defined ESP32
-    return WiFi.getHostname();
+    return String(WiFi.getHostname());
     #endif
 }
 
 
+bool _NetServices::announceTheDevice(unsigned int server_port)
+{    
+    MdnsAttributeList attributes;    
+    return this->announceTheDevice(server_port, attributes);
+} 
 
-bool _NetServices::announceTheDevice(unsigned int server_port, etl::list<MdnsAttribute, 1000> attributes)
+bool _NetServices::announceTheDevice(unsigned int server_port, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
 {
     if(server_port)
-    {
+    { 
         String hostname = _NetServices::getHostname();   
+        hostname.toLowerCase();
+
         IPAddress ip = WiFi.localIP();
 
-        hostname.toLowerCase();
         if (!MDNS.begin(hostname.c_str())) {
             this->theApp.getLogger().printf(F("Error setting up MDNS responder! \n"));
             return false;
         }
-        this->theApp.getLogger().printf(F("MDNS responder started. hostname: %s (ip: %s) \n"),
+        this->theApp.getLogger().printf(F("\tMDNS responder started. hostname: %s (ip: %s) \n"),
             hostname.c_str(), ip.toString().c_str());
     
         String proto("_"), service("_");    
-        // proto.concat("_"); 
         proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
-        // service.concat("_"); 
         service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
 
         // Announce esp tcp service on port 80
         MDNS.addService(service, proto, server_port);      
 
+        // Add service attributes
         for(MdnsAttribute attr: attributes)
         {            
+            this->theApp.getLogger().printf(F("\tMDNS attribute: %s -> %s\n"), attr.name, attr.value);
             MDNS.addServiceTxt(service, proto, attr.name, attr.value);
         }
   
@@ -59,6 +65,9 @@ bool _NetServices::announceTheDevice(unsigned int server_port, etl::list<MdnsAtt
             THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
 
         return true;
+    }
+    else {
+        DPRINTF(F("MDNS announce: server_port undefined: %d\n"), server_port);
     }
 
     return false;
@@ -98,7 +107,8 @@ void _NetServices::printDiagWifi(Stream* dbgstream)
 {    
     if(dbgstream)
     {
-        dbgstream->println(F("WiFI printDiag:"));
-        WiFi.printDiag(*dbgstream);
+        dbgstream->println(F("---- WiFI Diag ----"));
+        WiFi.printDiag(*dbgstream);        
+        dbgstream->println(F("-------------------"));
     }
 }

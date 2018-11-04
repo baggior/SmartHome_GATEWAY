@@ -1,6 +1,7 @@
 #ifndef _coreapi_h
 #define _coreapi_h
 
+#include "coreapi_config.h"
 
 #include <Arduino.h>
 #include <stdint.h>
@@ -177,10 +178,9 @@ private:
 class _NetServices {
     friend _Application;
 public:
+
     static String getHostname();
     static void printDiagWifi(Stream * dbgstream);
-
-    //
 
     //MDNS
     struct MdnsQueryResult {    
@@ -192,9 +192,11 @@ public:
         String name;
         String value;
     };
-
+    typedef etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES> MdnsAttributeList;
+    
     MdnsQueryResult mdnsQuery(String service, String proto);
-    bool announceTheDevice(unsigned int server_port=80, etl::list<MdnsAttribute, 1000> attributes = etl::list<MdnsAttribute, 1000>());
+    bool announceTheDevice(unsigned int server_port=80);
+    bool announceTheDevice(unsigned int server_port, const MdnsAttributeList & attributes);
 
 private:
     inline _NetServices(_Application& _theApp) : theApp(_theApp) {}
@@ -243,9 +245,11 @@ private:
 
     unsigned long startupTimeMillis=0;
 
+    typedef etl::list<_BaseModule*, MAX_MODULES> ModuleListType;
+
     _NetServices netSvc;    
     _ApplicationConfig config;
-    etl::list<_BaseModule*, 100> modules;
+    ModuleListType modules;
     Scheduler runner;
     _ApplicationLogger logger;
 

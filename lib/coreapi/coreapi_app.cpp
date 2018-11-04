@@ -78,8 +78,7 @@ _Error _Application::setup()
     for(_BaseModule* module : this->modules) 
     {
         this->logger.printf(F(">[%s] module: setup start\n"), module->getTitle().c_str());      
-        DPRINTLN(F("pippo"));
-        
+
         err = module->setup();
         if(err==_NoError) 
         {
