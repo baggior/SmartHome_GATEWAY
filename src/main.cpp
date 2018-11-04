@@ -1,7 +1,7 @@
 
 #include "config.h"
 
-#include "wifiConnection.h"
+// #include "wifiConnection.h"
 
 
 #include "wifiTelnetServer.h"

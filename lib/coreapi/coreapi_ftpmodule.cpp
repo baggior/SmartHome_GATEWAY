@@ -1,6 +1,7 @@
 #include "coreapi_ftpmodule.h"
 
 #define FTP_LISTEN_TASK_INTERVAL_DEFAULT    10 //ms
+#define FORMAT_SPIFFS_ON_FAIL true  //ESP32
 
 extern Scheduler runner;
 
@@ -44,7 +45,12 @@ _Error WifiFtpServerModule::setup()
 
     if(on)
     {
-        if(!SPIFFS.begin())
+#ifdef ESP32
+        bool b = SPIFFS.begin(FORMAT_SPIFFS_ON_FAIL);
+#elif defined ESP8266
+        bool b = SPIFFS.begin();
+#endif
+        if(!b)
         {
             DPRINTF("Error opening SPIFFS filesystem\n");   
         }

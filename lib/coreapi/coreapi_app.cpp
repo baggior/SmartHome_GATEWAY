@@ -7,7 +7,7 @@
 
 
 _Application::_Application()
-:   netSvc(*this)
+:   netSvc(*this), config(*this)
 {
 #ifdef DEBUG_OUTPUT
     this->debug=true;

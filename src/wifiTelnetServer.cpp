@@ -8,7 +8,7 @@
 
 #include "wifiTelnetServer.h"
 #include "rs485.h"
-#include "wifiConnection.h"
+// #include "wifiConnection.h"
 
 #define MAX_TIME_INACTIVE_DEFAULT 10*60*1000 //10 minuti (in millis)
 #define TELNET_LISTEN_PORT_DEFAULT 23
@@ -17,7 +17,7 @@
 
 extern Scheduler runner;
 //extern Rs485 rs485;
-extern WiFiConnection connection;
+// extern WiFiConnection connection;
 
 WifiTelnetServer::WifiTelnetServer()
     : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),

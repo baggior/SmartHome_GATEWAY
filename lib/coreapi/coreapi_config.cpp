@@ -14,8 +14,9 @@
 
 static DynamicJsonBuffer jsonBuffer(JSON_BUFFER_SIZE);
 
-_ApplicationConfig::_ApplicationConfig() 
-: jsonObject(NULL)
+_ApplicationConfig::_ApplicationConfig(_Application& _theApp) : 
+    theApp(_theApp), 
+    jsonObject(NULL)
 {    
 }
 _ApplicationConfig::~_ApplicationConfig()
@@ -111,6 +112,57 @@ const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
 }
 
 
+
+_Error _ApplicationConfig::persist()
+{
+   
+#ifdef ESP32
+    bool b = SPIFFS.begin(true);
+#elif defined ESP8266
+    bool b = SPIFFS.begin();
+#endif
+
+    if(!b)
+    {
+        DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
+        return _ConfigPersistError;
+    }
+
+    //ArduinoUtil au;    
+    //TODO
+    // String configJsonString= "";
+    // bool ret = au.writeTextFile(CONFIG_FILE_PATH, configJsonString); 
+    
+    SPIFFS.remove(CONFIG_FILE_PATH);
+
+    File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
+    if (!configFile) 
+    {
+        DPRINTF(F("ERROR Preparing to write config file: %s \r\n"),CONFIG_FILE_PATH);      
+        SPIFFS.end();
+        return _ConfigPersistError;     
+    }
+    else
+    {
+        DPRINTF(F("Prepared to write config file: %s \r\n"),CONFIG_FILE_PATH);   
+        
+        if(this->jsonObject==NULL)
+        {
+            this->jsonObject->prettyPrintTo(configFile);        
+        }
+        else 
+        {
+            configFile.write((const uint8_t*)("{}"), 2);
+        }
+   
+        configFile.close();
+        SPIFFS.end();   
+    }   
+
+    this->theApp.getLogger().printf(F("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);
+
+    return _NoError;
+}
 
 
 
