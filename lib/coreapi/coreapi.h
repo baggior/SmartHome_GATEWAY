@@ -256,6 +256,7 @@ private:
     bool debug=false;
 
     IdleLoopCallback idleLoopCallback_fn=NULL;
+    long loopcnt = 0;
 };
 
 

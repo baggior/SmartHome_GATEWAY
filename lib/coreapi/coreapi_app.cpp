@@ -7,12 +7,14 @@
 
 
 _Application::_Application()
-:   startupTimeMillis(millis()), 
-    netSvc(*this)
+:   netSvc(*this)
 {
 #ifdef DEBUG_OUTPUT
     this->debug=true;
 #endif
+
+    this->loopcnt = 0 ;
+    this->startupTimeMillis = 0;
 
     //create core modules
     addCoreModules();
@@ -50,6 +52,9 @@ _Error _Application::setup()
     }
 
 #endif 
+
+    this->loopcnt = 0;
+    this->startupTimeMillis = millis();
 
     this->logger.printf(F("_Application setup start\n"));
 
@@ -163,7 +168,10 @@ void _Application::idleLoop()
 
 void _Application::loop()
 {
-    this->logger.printf(F("_Application::loop()begin, ") );
+    static long logmillis = 0 ;
+    bool tolog = ( this->isDebug() && ( (millis() - logmillis) > 1000) ); 
+    if(tolog) this->logger.printf(F("_Application::loop(%d)BEGIN, "), loopcnt );
+
     for(_BaseModule* module : this->modules) 
     {
         if(module->executeInMainLoop)
@@ -171,7 +179,7 @@ void _Application::loop()
             if(module->isEnabled())
             {
                 //module main loop
-                this->logger.printf(F("[%s]loop(), "), module->getTitle().c_str() );
+                if(tolog) this->logger.printf(F("[%s]loop, "), module->getTitle().c_str() );
                 module->loop();
             }
         }
@@ -182,10 +190,14 @@ void _Application::loop()
     if(idle)
     {
         //app idle loop
-        this->logger.printf(F("idleLoop(), ") );
+        if(tolog) this->logger.printf(F("[IDLE]loop, ") );
         this->idleLoop();
     }
-    this->logger.printf(F("_Application::loop()end.\n") );
+
+    if(tolog) this->logger.printf(F("_Application::loop END.\n") );
+
+    this->loopcnt++;
+    if(tolog) logmillis = millis(); 
 }
 
 
