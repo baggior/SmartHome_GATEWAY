@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <coreapi.h>
+
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #elif defined ESP32
@@ -15,7 +17,7 @@
 #define TELNET_LISTEN_TASK_INTERVAL_DEFAULT 100 //ms
 
 
-extern Scheduler runner;
+extern _Application app;
 //extern Rs485 rs485;
 // extern WiFiConnection connection;
 
@@ -62,7 +64,7 @@ void WifiTelnetServer::setup(Stream &serial)
         , TASK_FOREVER
         , funct
         );
-    runner.addTask(taskReceiveCmd);
+    app.getScheduler().addTask(taskReceiveCmd);
     taskReceiveCmd.enable();
 }
 
