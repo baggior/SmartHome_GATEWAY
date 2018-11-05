@@ -1,11 +1,12 @@
-#include "config.h"
+// #include "config.h"
 
 #include "ota.h"
 
 
 #define OTA_LISTEN_TASK_INTERVAL_DEFAULT 1000 //ms
 
-extern Scheduler runner;
+// TODO migrate
+// extern Scheduler runner;
 
 void Ota::begin(Stream &stream)
 {

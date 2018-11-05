@@ -1,5 +1,9 @@
 #include "coreapi.h"
 
+#include <TaskScheduler.h>
+
+////////////////////////////////////////////
+
 #define STARTUP_DELAY_MS                2000
 #define STARTUP_LOG_SERIAL_BAUDRATE     115200
 

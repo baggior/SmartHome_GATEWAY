@@ -1,7 +1,11 @@
 #ifndef MQTT_CLIENT_H
 #define MQTT_CLIENT_H
 
+#include <coreapi.h>
+
 #include <functional>
+
+// TODO migrate mqtt
 
 class MqttClient 
 {

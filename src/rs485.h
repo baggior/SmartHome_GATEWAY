@@ -1,6 +1,7 @@
 #ifndef rs485_h
 #define rs485_h
 
+#include <coreapi.h>
 
 #include <vector.h>
 
@@ -14,8 +15,10 @@ public:
     virtual ~Rs485();
 
     //mode text
-    int setup(Stream &dbgstream);
-    int setup(Stream &dbgstream, JsonObject &root);
+    _Error setup(const _ApplicationLogger& _theLogger, const JsonObject &root);
+
+    // int setup(Stream &dbgstream);
+    // int setup(Stream &dbgstream, const JsonObject &root);
     String sendMasterCommand(String& CMD, int maxReponseWaitTime );    //  maxReponseWaitTime<=0 ==> broadcast  
     String sendMasterCommand(String& CMD);   
     inline void broadcastMasterCommand(String& CMD) {sendMasterCommand(CMD,0);}
@@ -35,7 +38,8 @@ public:
 private:
     void fixSerialFlush();
     
-    Stream * p_dbgstream;
+    const _ApplicationLogger * p_logger;
+    // Stream * p_dbgstream;
     Stream * p_ser;
 
     bool appendLRC=false;

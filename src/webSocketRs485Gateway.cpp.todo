@@ -1,4 +1,6 @@
-#include "config.h"
+//TODO migrate file
+
+// #include "config.h"
 
 #include "webSocketRs485Gateway.h"
 #include "Rs485.h"
@@ -79,12 +81,13 @@ WebSocketRs485Gateway::WebSocketRs485Gateway()
 
 int WebSocketRs485Gateway::setup(Stream &dbgstream)
 {
-    //TODO rs485
-    int ret = rs485.setup(dbgstream);
-    if ( ret < 0) {
-        return ret;
-    }
+// TODO rs485
+    // int ret = rs485.setup(dbgstream);
+    // if ( ret < 0) {
+    //     return ret;
+    // }
 
+// TODO migrate config
     JsonObject & root = config.getJsonRoot();   
 
     this->enable = root["websocket"]["enable"];

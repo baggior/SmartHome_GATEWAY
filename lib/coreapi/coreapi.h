@@ -1,10 +1,12 @@
 #ifndef _coreapi_h
 #define _coreapi_h
 
-#include "coreapi_def.h"
 
 #include <Arduino.h>
 #include <stdint.h>
+
+#include "coreapi_def.h"
+#include "coreapi_errors.h"
 
 #include <pragmautils.h>
 #include <dbgutils.h>
@@ -26,23 +28,9 @@
 
 class _Application;
 
-class _Error {
-public:
-    inline _Error() {}
-    inline _Error(int _errorCode, String _message): errorCode(_errorCode), message(_message) {}
-    int errorCode=0;
-    String message;
-
-    inline bool operator==(const _Error& that)const {return that.errorCode==this->errorCode;}
-    inline bool operator!=(const _Error& that)const {return !(that==*this);}
-};
-
-extern _Error _NoError;
-extern _Error _Disable;
-extern _Error _ConfigPersistError;
 
 class _BaseModule {
-    friend _Application;
+    
 public:    
     _BaseModule(String _title, String _descr, bool _executeInMainLoop=true): title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop) {}
     virtual ~_BaseModule() {}
@@ -69,6 +57,8 @@ protected:
     String descr;
     
 private:
+    friend _Application;
+
     const bool executeInMainLoop;
 };
 
@@ -141,7 +131,7 @@ protected:
 
 ///////////////////////////////////////////////////////
 class _ApplicationLogger {
-    friend _Application;
+    
 public:
     void setup(HardwareSerial& hwserial);
     void setup(Stream* dbgstream);
@@ -152,13 +142,16 @@ public:
     inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
     inline Stream* getStream()const {return this->dbgstream; }
+
 private:
+    friend _Application;
+
     Stream * dbgstream = NULL;
 };
 
 ///////////////////////////////////////////////////////
 class _ApplicationConfig {
-    friend _Application;
+    
 public:
     _ApplicationConfig(_Application& _theApp);
     virtual ~_ApplicationConfig();
@@ -170,6 +163,8 @@ public:
     static String getDeviceInfoString(const char* crlf="\n");
 
 private:
+    friend _Application;
+
     _Error load(_ApplicationLogger& logger, bool formatSPIFFSOnFails=false);
 
     _Error persist();
@@ -181,7 +176,7 @@ private:
 
 ///////////////////////////////////////////////////////
 class _NetServices {
-    friend _Application;
+
 public:
 
     static String getHostname();
@@ -204,6 +199,8 @@ public:
     bool announceTheDevice(unsigned int server_port, const MdnsAttributeList & attributes);
 
 private:
+    friend _Application;
+
     inline _NetServices(_Application& _theApp) : theApp(_theApp) {}
 
     _Application& theApp;
@@ -254,9 +251,10 @@ private:
 
     _NetServices netSvc;    
     _ApplicationConfig config;
+    _ApplicationLogger logger;
+    
     ModuleListType modules;
     Scheduler runner;
-    _ApplicationLogger logger;
 
     bool debug=false;
 

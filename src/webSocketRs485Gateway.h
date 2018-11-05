@@ -2,11 +2,13 @@
 #ifndef websocket_h
 #define websocket_h
 
-#include "objectModel.h"
-#include <WebSocketsServer.h>
 #include "rs485.h"
 
+#include "objectModel.h"
 
+#include <WebSocketsServer.h>
+
+// TODO migrate
 class WebSocketRs485Gateway
 {
     Rs485 rs485;

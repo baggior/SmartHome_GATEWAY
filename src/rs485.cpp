@@ -1,4 +1,5 @@
-#include "config.h"
+// #include "config.h"
+
 
 #include "rs485.h"
 //#include "ExponentialBackoffTimer.h"
@@ -28,7 +29,7 @@
 
 // -----------------------------------------------
 
-#define RS485_DEBUG_FN(...)  { if(p_dbgstream) {Stream_printf(*p_dbgstream, __VA_ARGS__);} }
+#define RS485_DEBUG_FN(...)  { if(p_logger) {p_logger->printf(__VA_ARGS__);} }
 
 // -----------------------------------------------
 
@@ -123,7 +124,7 @@ static void endSerial() {
 
 
 
-static String calculateLRC(String CMD, Stream* p_dbgstream)
+static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
 {
   unsigned char TOT = 0x00;
 
@@ -146,7 +147,7 @@ static String calculateLRC(String CMD, Stream* p_dbgstream)
   unsigned char TOT_c = ((~TOT + 1) & 0xFF);
   if ((TOT + TOT_c) & 0xFF)
   {
-    if(p_dbgstream) Stream_printf(*p_dbgstream, F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
+    if(p_logger) p_logger->printf( F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
   }
 
   String LRC_String(TOT_c, 16);
@@ -156,7 +157,7 @@ static String calculateLRC(String CMD, Stream* p_dbgstream)
 // -----------------------------------------------
 
 Rs485::Rs485()
-: m_bitTime_us(0),p_dbgstream(NULL), p_ser(NULL),
+: m_bitTime_us(0), p_ser(NULL), p_logger(NULL), //p_dbgstream(NULL),
   defaultCommandTimeout(DEFAULT_COMMAND_TIMEOUT)
 {
 }
@@ -169,19 +170,13 @@ Rs485::~Rs485() {
     p_ser = NULL;
   }
 }
-
-int Rs485::setup(Stream& dbgstream)
+_Error Rs485::setup(const _ApplicationLogger& _theLogger, const JsonObject &root)
 {
-  JsonObject &root = config.getJsonRoot()["rs485"];
+  this->p_logger = & _theLogger;
 
-  return this->setup(dbgstream, root);
-}
-
-int Rs485::setup(Stream& dbgstream, JsonObject &root)
-{
   if(! root.success()) {
-    DPRINTLN(F(">Rs485 Error initializing configuration. Json file error"));
-    return SETUP_FAIL_CONFIG_ERROR;
+    _theLogger.printf(F(">Rs485 Error initializing configuration. Json file error\n"));
+    return _ConfigLoadError;
   }
   int _uart_num = root["uart"];
   this->appendLRC = root["appendLRC"];
@@ -192,10 +187,10 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   const char * _parity = root["parity"];
   this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  Stream_printf(dbgstream, F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+  _theLogger.printf(F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
-  this->p_dbgstream = &dbgstream;
+  // this->p_dbgstream = &dbgstream;
   if (_prefix)
     this->prefix = prefix;
   
@@ -214,8 +209,8 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
 
   if(!p_ser) {
-    DPRINTLN(F(">Rs485 Error initializing Serial. Config out of range"));
-    return SETUP_FAIL_CONFIG_ERROR;
+    _theLogger.printf(F(">Rs485 Error initializing Serial. Config out of range\n"));
+    return _Error(2, "Rs485 Error: impossibile inizializzare la seriale");
   }
   
   p_ser->flush();
@@ -226,10 +221,71 @@ int Rs485::setup(Stream& dbgstream, JsonObject &root)
   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
 
-  Stream_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
+ _theLogger.printf( F(">Rs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
 
-  return SUCCESS_OK;
+  return _NoError;
 }
+
+// int Rs485::setup(Stream& dbgstream)
+// {
+//   JsonObject &root = config.getJsonRoot()["rs485"];
+
+//   return this->setup(dbgstream, root);
+// }
+
+// int Rs485::setup(Stream& dbgstream, const JsonObject &root)
+// {
+//   if(! root.success()) {
+//     DPRINTLN(F(">Rs485 Error initializing configuration. Json file error"));
+//     return SETUP_FAIL_CONFIG_ERROR;
+//   }
+//   int _uart_num = root["uart"];
+//   this->appendLRC = root["appendLRC"];
+//   const char * _prefix = root["prefix"];
+//   int _baud = root["baud"];
+//   int _databits = root["databits"];
+//   int _stopbits = root["stopbits"];
+//   const char * _parity = root["parity"];
+//   this->defaultCommandTimeout = root["defaultCommandTimeout"];
+  
+//   Stream_printf(dbgstream, F(">Rs485 SETUP: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+//           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
+
+//   this->p_dbgstream = &dbgstream;
+//   if (_prefix)
+//     this->prefix = prefix;
+  
+//   if(!this->defaultCommandTimeout)
+//     this->defaultCommandTimeout = DEFAULT_COMMAND_TIMEOUT;
+
+//   if (!_baud)
+//     _baud = UART_BAUD;
+//   if (!_databits)
+//     _databits = UART_DATA_BITS;
+//   if (!_stopbits)
+//     _stopbits = UART_STOP_BITS;
+//   if (!_parity)
+//     _parity = UART_PARITY;
+
+//   this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
+
+//   if(!p_ser) {
+//     DPRINTLN(F(">Rs485 Error initializing Serial. Config out of range"));
+//     return SETUP_FAIL_CONFIG_ERROR;
+//   }
+  
+//   p_ser->flush();
+
+//   pinMode(RS485_REDE_CONTROL, OUTPUT);
+//   digitalWrite(RS485_REDE_CONTROL, LOW);
+
+//   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
+//   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
+
+//   Stream_printf(dbgstream, F(">Rs485 setup done: bitTime=%d us\n"),this->m_bitTime_us);
+
+//   return SUCCESS_OK;
+// }
 
 
 String Rs485::sendMasterCommand(String &CMD)
@@ -288,7 +344,7 @@ String Rs485::sendMasterCommand(String &CMD, int maxReponseWaitTime)
     
     if (appendLRC)
     {
-      String LRC = calculateLRC(CMD, p_dbgstream);
+      String LRC = calculateLRC(CMD, this->p_logger);
       packet += LRC;
     }
     

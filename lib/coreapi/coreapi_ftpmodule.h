@@ -5,7 +5,7 @@
 #include <ESP8266FtpServer.h>
 
 
-class WifiFtpServerModule: public _TaskModule
+class WifiFtpServerModule final : public _TaskModule
 {
 public:
     WifiFtpServerModule();

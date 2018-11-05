@@ -1,20 +1,21 @@
 
-#include "config.h"
+// #include "config.h"
 
 // #include "wifiConnection.h"
 
 
-#include "wifiTelnetServer.h"
+// #include "wifiTelnetServer.h"
 // #include "rs485.h"
 // #include "webSocketRs485Gateway.h"
-#include "ota.h"
-#include "mqttclient.h"
-#include "modbus.h"
+// #include "ota.h"
+// #include "mqttclient.h"
+// #include "modbus.h"
 
 #include "coreapi.h"
 #include "coreapi_ftpmodule.h"
 
 #include "wifiRestServerModule.h"
+#include "modbusPollingModule.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
@@ -26,20 +27,23 @@ PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_OUTPUT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_PORT))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(DEBUG_ESP_WIFI))
 
-//TODO delete
-Config config;
+
+// Config config;
 // WiFiConnection connection;
 
 WifiFtpServerModule wifiFtpServer;
-WifiTelnetServer wifiTelnetServer;
+// WifiTelnetServer wifiTelnetServer;
 WifiRestServerModule restServer;
+
+ModbusPollingModule modbusPollingModule;
 // WebSocketRs485Gateway webSocketRs485Gateway;
 
 // Rs485 rs485;
 
-Ota ota;
+// TODO migrate
+// Ota ota;
 
-Modbus modbus;
+// Modbus modbus;
 //MqttClient mqtt;
 
 
@@ -79,28 +83,28 @@ void setup() {
     }
 #endif */
 
-config.getBlinker().start(0.1);//100 msec.
+// config.getBlinker().start(0.1);//100 msec.
     //
-    config.load();   
+    // config.load();   
 
     //digitalWrite(BUILTIN_LED, LOW); //LED ON
     // connection.setup(Serial); //open wifi connection    
     //digitalWrite(BUILTIN_LED, HIGH); //LED OFF           
 
-config.getBlinker().start(1);//1sec.
+// config.getBlinker().start(1);//1sec.
 
     // wifiFtpServer.setup(Serial);
-    wifiTelnetServer.setup(Serial);    
+    // wifiTelnetServer.setup(Serial);    
     // restServer.setup(Serial);
     //webSocketRs485Gateway.setup(Serial);
     // rs485.setup(Serial);
     //mqtt.setup(Serial);
-    modbus.setup(Serial);
+    // modbus.setup(Serial);
     
       
     // connection.announceTheDevice();
     
-config.getBlinker().start(3);//3sec.
+// config.getBlinker().start(3);//3sec.
     // DPRINTLN("Initialized the Scheduler");
 
     DPRINTLN("\n-----OLD Main setup done-----\n");
@@ -110,6 +114,7 @@ config.getBlinker().start(3);//3sec.
     DPRINTLN("\n-----NEW MAIN setup start-----\n");
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
+    app.addModule(&modbusPollingModule);
     app.setup();
 
     DPRINTLN("\n-----NEW MAIN setup done-----\n");
