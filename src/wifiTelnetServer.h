@@ -4,6 +4,7 @@
 #include <WifiServer.h>
 #include <WifiClient.h>
 
+// TODO migrate to coreapi module
 class WifiTelnetServer
 {
     WiFiServer server;

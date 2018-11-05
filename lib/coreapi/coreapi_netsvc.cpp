@@ -20,7 +20,7 @@ String _NetServices::getHostname() {
     #ifdef ESP8266
     return WiFi.hostname();
     #elif defined ESP32
-    return String(WiFi.getHostname());
+    return WiFi.getHostname();
     #endif
 }
 

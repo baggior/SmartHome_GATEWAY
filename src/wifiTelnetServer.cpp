@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <coreapi.h>
+
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #elif defined ESP32
@@ -8,16 +10,16 @@
 
 #include "wifiTelnetServer.h"
 #include "rs485.h"
-#include "wifiConnection.h"
+// #include "wifiConnection.h"
 
 #define MAX_TIME_INACTIVE_DEFAULT 10*60*1000 //10 minuti (in millis)
 #define TELNET_LISTEN_PORT_DEFAULT 23
 #define TELNET_LISTEN_TASK_INTERVAL_DEFAULT 100 //ms
 
 
-extern Scheduler runner;
+extern _Application app;
 //extern Rs485 rs485;
-extern WiFiConnection connection;
+// extern WiFiConnection connection;
 
 WifiTelnetServer::WifiTelnetServer()
     : port(TELNET_LISTEN_PORT_DEFAULT), MAX_TIME_INACTIVE(MAX_TIME_INACTIVE_DEFAULT), enable(true),
@@ -62,7 +64,7 @@ void WifiTelnetServer::setup(Stream &serial)
         , TASK_FOREVER
         , funct
         );
-    runner.addTask(taskReceiveCmd);
+    app.getScheduler().addTask(taskReceiveCmd);
     taskReceiveCmd.enable();
 }
 

@@ -1,18 +1,10 @@
 #ifndef _coreapi_h
 #define _coreapi_h
 
-#include "coreapi_config.h"
+#include "coreapi_def.h"
 
 #include <Arduino.h>
 #include <stdint.h>
-#include <ArduinoJson.h>
-
-#define     _TASK_STD_FUNCTION
-//#define     _TASK_SLEEP_ON_IDLE_RUN
-//#define     _TASK_STATUS_REQUEST
-#define     _TASK_WDT_IDS
-//#define     _TASK_LTS_POINTER
-#include <TaskSchedulerDeclarations.h>
 
 #include <pragmautils.h>
 #include <dbgutils.h>
@@ -20,7 +12,16 @@
 
 #include <list.h>
 
-// #include "../../.piolibdeps/Embedded Template Library_ID930/src/list.h"
+//3rd party libs
+#include <ArduinoJson.h>
+#include <ESPAsyncWiFiManager.h>
+
+#define     _TASK_STD_FUNCTION
+//#define     _TASK_SLEEP_ON_IDLE_RUN
+//#define     _TASK_STATUS_REQUEST
+#define     _TASK_WDT_IDS
+//#define     _TASK_LTS_POINTER
+#include <TaskSchedulerDeclarations.h>
 
 
 class _Application;
@@ -38,6 +39,7 @@ public:
 
 extern _Error _NoError;
 extern _Error _Disable;
+extern _Error _ConfigPersistError;
 
 class _BaseModule {
     friend _Application;
@@ -158,7 +160,7 @@ private:
 class _ApplicationConfig {
     friend _Application;
 public:
-    _ApplicationConfig();
+    _ApplicationConfig(_Application& _theApp);
     virtual ~_ApplicationConfig();
 
     const JsonObject& getJsonObject(const char* node=NULL)const;
@@ -170,8 +172,11 @@ public:
 private:
     _Error load(_ApplicationLogger& logger, bool formatSPIFFSOnFails=false);
 
+    _Error persist();
+
     const JsonObject* jsonObject=NULL;
-    // String configJsonString;
+
+    _Application& theApp;
 };
 
 ///////////////////////////////////////////////////////

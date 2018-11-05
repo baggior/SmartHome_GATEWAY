@@ -22,9 +22,9 @@ _Error _WifiConnectionModule::setup()
     if(err==_NoError)
     {
         bool ret = this->theApp->getNetServices().announceTheDevice();        
-        // if(!ret) {
-        //     err = _Error(-12,"MDNS announce error") ;
-        // }
+        if(!ret) {
+            err = _Error(-12,"MDNS announce error") ;
+        }
 
         if(this->theApp->isDebug())
         {

@@ -6,7 +6,7 @@
 
 _Error _NoError;
 _Error _Disable(1000, "Disable module request");
-
+_Error _ConfigPersistError(1, "Cannot write json config file");
 ////////////////////////////
 
 

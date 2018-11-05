@@ -12,6 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
+
             "executable": "e:/PROGETTI/GIT/SH/sketch_GATEWAY/.pioenvs/esp32dev/firmware.elf",
             "toolchainBinDir": "C:/Users/Marco/.platformio/packages/toolchain-xtensa32/bin",
             "preLaunchTask": {
