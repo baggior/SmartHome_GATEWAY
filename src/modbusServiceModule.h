@@ -58,22 +58,24 @@ public:
     ModbusServiceModule();
     virtual ~ModbusServiceModule();
 
-    void process();
+    // void process();
 
     inline const ModbusDataMemory& getModbusDataMemory() const 
     {
         return this->modbusDataMemory;
     }
 
+    void updateDataMemoryValues();
+    
 protected:
     virtual _Error setup() final override;
+    virtual _Error setup(const JsonObject &root) final override;
     virtual void shutdown() final override;
 
 private:   
 
-    void buildDataMemory();
-    
-    void updateDataMemoryValues();
+    // TODO remove 
+    void buildDataMemory();    
     
     ModbusDataMemory modbusDataMemory;
 

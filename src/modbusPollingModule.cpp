@@ -16,17 +16,33 @@ _Error ModbusPollingModule::setup()
     if(root.success()) 
     {
         on = root["enable"];   
-        const String text = "modbus";
-        p_modbus = (ModbusServiceModule*)this->theApp->getServiceModule<ModbusServiceModule>(text);
+        //TODO
     }
-    //TODO
 
-    if(on)
+    this->theApp->getLogger().printf( F("\t%s config: enable: %u,...\n"),
+        this->getTitle().c_str(), on);
+    
+    if(on) 
     {
-        return _NoError;   
+        p_modbus = this->theApp->getServiceModule<ModbusServiceModule>("ModbusServiceModule");
+        if(!p_modbus)
+        {
+            this->theApp->getLogger().printf(F(">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
+            return _Error(2, "ModbusPollingModule Error: servizio ModbusServiceModule non esistente");            
+        }
+
+        return _NoError;    
     }
     else
     {
         return _Disable;
     }   
+}
+
+
+void ModbusPollingModule::loop()
+{
+    // TODO 
+    if(this->p_modbus)
+        this->p_modbus->updateDataMemoryValues();
 }

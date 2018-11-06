@@ -230,6 +230,28 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   return _NoError;
 }
 
+
+_Error Rs485ServiceModule::setup() 
+{  
+  const JsonObject& root = this->theApp->getConfig().getJsonObject("rs485");  
+  if(root.success()) 
+  {
+    return this->setup(root);
+  }
+
+  return _Disable;
+}
+
+void Rs485ServiceModule::shutdown()
+{
+  if(p_ser!=NULL) {
+    endSerial();
+    
+    delete(p_ser);
+    p_ser = NULL;
+  }
+}
+
 String Rs485ServiceModule::sendMasterCommand(String &CMD)
 {
   return sendMasterCommand(CMD, this->defaultCommandTimeout);
@@ -408,23 +430,3 @@ void Rs485ServiceModule::idle() {
 }
 
 
-
-_Error Rs485ServiceModule::setup() 
-{  
-  const JsonObject& root = this->theApp->getConfig().getJsonObject("rs485");  
-  if(root.success()) 
-  {
-    return this->setup(root);
-  }
-
-  return _Disable;
-}
-void Rs485ServiceModule::shutdown()
-{
-  if(p_ser!=NULL) {
-    endSerial();
-    
-    delete(p_ser);
-    p_ser = NULL;
-  }
-}

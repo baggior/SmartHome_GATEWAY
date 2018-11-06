@@ -50,7 +50,7 @@ public:
         return (this->moduleType==ServiceTypeEnum && other.moduleType!=ServiceTypeEnum);
     }
 protected:       
-    virtual _Error setup()=0;
+    virtual _Error setup()=0;    
     virtual void shutdown()=0;
     virtual void loop() =0;    
 
@@ -78,6 +78,8 @@ public:
 protected:
     inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, ServiceTypeEnum) {}
     
+    virtual _Error setup(const JsonObject &root)=0;
+
 private:    
     inline virtual void loop() final { } //task loop not used for a service module  
 };

@@ -50,10 +50,19 @@ ModbusServiceModule::ModbusServiceModule()
 }
 
 _Error ModbusServiceModule::setup() {
-
     const JsonObject &root = this->theApp->getConfig().getJsonObject("modbus");
-    if(!root.success()) {
-        DPRINTLN(F(">Modbus Error initializing configuration. Json file error"));
+    if(root.success()) 
+    {
+        return this->setup(root);
+    }
+    return _Disable;
+}
+
+_Error ModbusServiceModule::setup(const JsonObject &root) {
+
+    if(!root.success()) 
+    {
+        this->theApp->getLogger().printf(F(">Modbus Error initializing configuration. Json file error"));
         return _ConfigLoadError;
     }
 
@@ -61,12 +70,12 @@ _Error ModbusServiceModule::setup() {
     const int MODBUS_NODE_SLAVE_ID= 16;
 
     const JsonObject &config_rs485 = root["rs485"];
-    _Error err = Rs485ServiceModule::setup(config_rs485);
+    _Error err = this->Rs485ServiceModule::setup(config_rs485);
     if ( err.errorCode != _NoError.errorCode) {
         return err;
     }
 
-    node.begin(MODBUS_NODE_SLAVE_ID, *Rs485ServiceModule::getSerialAsStream());
+    node.begin(MODBUS_NODE_SLAVE_ID, * this->Rs485ServiceModule::getSerialAsStream());
 
     ::pfn_idle = std::bind(&Rs485ServiceModule::idle, this);    
     ::pfn_pre = std::bind(&Rs485ServiceModule::preTransmit, this);
@@ -90,17 +99,18 @@ ModbusServiceModule::~ModbusServiceModule()
 
 void ModbusServiceModule::shutdown()
 {
-
+    node.clearTransmitBuffer();    
+    node.clearResponseBuffer();
 }
 
-void ModbusServiceModule::process() {
+// void ModbusServiceModule::process() {
 
-//    if(timeelapsed) 
-   this->updateDataMemoryValues();
+// //    if(timeelapsed) 
+//    this->updateDataMemoryValues();
 
-//    this->publishItemValues();
+// //    this->publishItemValues();
 
-}
+// }
 
 // void Modbus::publishItemValues() 
 // {
@@ -239,11 +249,10 @@ void ModbusDataMemory::clean() {
 
 void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_address, String name) {
 
-    Item _item ({
-        .modbus_address = modbus_address,
-        .name = name,
-        .value = 0
-    });
+    Item _item;
+    _item.modbus_address = modbus_address;
+    _item.name = name;
+    _item.value = 0;
 
     if(type==ItemType::coil)
     {

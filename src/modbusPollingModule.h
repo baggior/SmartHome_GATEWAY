@@ -14,7 +14,7 @@ public:
 
 protected:
     virtual _Error setup() override;
-    // inline virtual void loop() override { }
+    virtual void loop() override;
 
     ModbusServiceModule* p_modbus = NULL;
 };
