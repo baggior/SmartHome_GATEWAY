@@ -38,15 +38,15 @@ public:
 private:
     void fixSerialFlush();
     
-    const _ApplicationLogger * p_logger;
     // Stream * p_dbgstream;
+    uint32_t m_bitTime_us=0;
     Stream * p_ser;
 
     bool appendLRC=false;
     String prefix;
+    const _ApplicationLogger * p_logger;
     int defaultCommandTimeout;
 
-    uint32_t m_bitTime_us=0;
 };
 
 #endif

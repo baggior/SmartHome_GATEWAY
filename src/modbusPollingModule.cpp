@@ -16,6 +16,8 @@ _Error ModbusPollingModule::setup()
     if(root.success()) 
     {
         on = root["enable"];   
+        const String text = "modbus";
+        p_modbus = (ModbusServiceModule*)this->theApp->getServiceModule<ModbusServiceModule>(text);
     }
     //TODO
 

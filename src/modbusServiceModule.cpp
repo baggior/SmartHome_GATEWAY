@@ -44,6 +44,7 @@ ModbusDataMemory::ModbusDataMemory()
 
 
 ModbusServiceModule::ModbusServiceModule()
+: Rs485ServiceModule("ModbusServiceModule", "seriale usata per protocollo modbus")
 {
 
 }

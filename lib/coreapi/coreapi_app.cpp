@@ -132,6 +132,7 @@ void _Application::addModule(_BaseModule* module)
         module->beforeModuleAdded();
 
         this->modules.push_back(module);
+        this->modules.sort();        
         this->logger.printf(F("_Application module added : [%s].\n"), module->getTitle().c_str() );
     }
 }
@@ -148,15 +149,18 @@ void _Application::removeModule(_BaseModule* module)
         module->afterModuleRemoved();
     }
 }
-_BaseModule* _Application::getModule(String title)
+_BaseModule* _Application::getModule(const String title, const CoreModuleTypeEnum moduleType) const
 {
     if(title.length()>0) 
     {
         for(_BaseModule* module : this->modules) 
         {
-            if (title.equalsIgnoreCase(module->getTitle()) )
+            if(moduleType == AnyModuleType || moduleType == module->getType())
             {
-                return module;
+                if (title.equalsIgnoreCase(module->getTitle()) )
+                {
+                    return module;
+                }
             }
         }
     }

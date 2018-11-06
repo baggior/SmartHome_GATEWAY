@@ -32,16 +32,23 @@ class _Application;
 class _BaseModule {
     
 public:    
-    inline _BaseModule(String _title, String _descr, bool _executeInMainLoop=true): title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop) {}
+    inline _BaseModule(String _title, String _descr, bool _executeInMainLoop=true, CoreModuleTypeEnum _moduleType=OtherTypeEnum)
+    : title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop), moduleType(_moduleType)  {}
     inline virtual ~_BaseModule() {}
     
-    inline String getTitle() {return this->title; }
-    inline String getDescr() {return this->descr; }
+    inline String getTitle() const {return this->title; }
+    inline String getDescr() const {return this->descr; }
     
-    inline String info() {return title + " (" + descr + ")";}
+    inline String info() const {return title + " (" + descr + ")";}
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
-    inline bool isEnabled() {return this->enabled;}
+    inline bool isEnabled() const {return this->enabled;}
+    inline CoreModuleTypeEnum getType() const {return this->moduleType;}
 
+    //sort list of modules for initialization purpose
+    bool operator< (const _BaseModule& other) const {
+        //ordina prima i service
+        return (this->moduleType==ServiceTypeEnum && other.moduleType!=ServiceTypeEnum);
+    }
 protected:       
     virtual _Error setup()=0;
     virtual void shutdown()=0;
@@ -60,6 +67,8 @@ private:
     friend _Application;
 
     const bool executeInMainLoop;
+    uint8_t priority = 1; //TODO
+    const CoreModuleTypeEnum moduleType;
 };
 
 class _ServiceModule : public _BaseModule
@@ -67,7 +76,7 @@ class _ServiceModule : public _BaseModule
 public:  
 
 protected:
-    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false) {}
+    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, ServiceTypeEnum) {}
     
 private:    
     inline virtual void loop() final { } //task loop not used for a service module  
@@ -124,11 +133,11 @@ class _RestApiModule : public _BaseModule
 public:
     typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
     
-    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModuleEnum), ("Core Rest Api module"), false) {}
+    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModuleEnum), ("Core Rest Api module"), false, ApiTypeEnum) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
 
 protected:
-    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr, false) {}
+    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr, false, ApiTypeEnum) {}
 
     virtual _Error setup() override;
     virtual void shutdown() override;    
@@ -241,7 +250,22 @@ public:
     _Error setup();
     void addModule(_BaseModule* module);
     void removeModule(_BaseModule* module);    
-    _BaseModule* getModule(String title);
+
+    _BaseModule* getModule(const String title, const CoreModuleTypeEnum moduleType=AnyModuleType) const;
+
+    template<typename T, typename std::enable_if<std::is_base_of<_BaseModule, T>::value>::type* = nullptr> 
+    inline T* getModule(const String title) const
+    {
+        return (T*) this->getModule(title, CoreModuleTypeEnum::AnyModuleType);
+    }
+
+    template<typename T, typename std::enable_if<std::is_base_of<_ServiceModule, T>::value>::type* = nullptr> 
+    inline T* getServiceModule(const String title) const
+    {    
+        return (T*) this->getModule(title, CoreModuleTypeEnum::ServiceTypeEnum);
+    }
+
+    
 
     void loop();
 
@@ -278,6 +302,9 @@ private:
     IdleLoopCallback idleLoopCallback_fn=NULL;
     long loopcnt = 0;
 };
+
+
+
 
 
 #endif // _coreapi_h
