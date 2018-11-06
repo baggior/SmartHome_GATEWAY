@@ -10,8 +10,7 @@ public:
 
   // typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
 
-  WifiRestServerModule();
-  virtual ~WifiRestServerModule();
+  WifiRestServerModule();  
 
   
   // void setup(Stream &serial);
@@ -33,7 +32,7 @@ private:
   // void _onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
 
-  virtual _Error restApiMethodSetup() ;
+  virtual _Error additionalRestApiMethodSetup() final override;
 };
 
 #endif

@@ -32,23 +32,23 @@ class _Application;
 class _BaseModule {
     
 public:    
-    _BaseModule(String _title, String _descr, bool _executeInMainLoop=true): title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop) {}
-    virtual ~_BaseModule() {}
-
-    virtual _Error setup()=0;
-    virtual void shutdown()=0;
+    inline _BaseModule(String _title, String _descr, bool _executeInMainLoop=true): title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop) {}
+    inline virtual ~_BaseModule() {}
     
     inline String getTitle() {return this->title; }
     inline String getDescr() {return this->descr; }
     
-    inline virtual String info() {return title + " (" + descr + ")";}
+    inline String info() {return title + " (" + descr + ")";}
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() {return this->enabled;}
 
 protected:       
+    virtual _Error setup()=0;
+    virtual void shutdown()=0;
     virtual void loop() =0;    
-    inline virtual void beforeModuleAdded(_Application* app){this->theApp=app;}
-    inline virtual void afterModuleRemoved(){}
+
+    inline virtual void beforeModuleAdded() {}
+    inline virtual void afterModuleRemoved() {}
 
     _Application* theApp = NULL;
     bool enabled = false;
@@ -62,19 +62,35 @@ private:
     const bool executeInMainLoop;
 };
 
+class _ServiceModule : public _BaseModule
+{
+public:  
+
+protected:
+    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false) {}
+    
+private:    
+    inline virtual void loop() final { } //task loop not used for a service module  
+};
+
 
 class _WifiConnectionModule final : public _BaseModule 
 {
 public:    
-    inline _WifiConnectionModule() : _BaseModule(("_CoreWifiConnectionModule"), ("Core Wifi Connection Api module")) {} ;
-    inline virtual ~_WifiConnectionModule() {}
+    inline _WifiConnectionModule()  
+#ifndef ESP32
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum), ("Core Wifi Connection Api module"), true) {}
+#else
+    // mDNS happens asynchronously on ESP32
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum), ("Core Wifi Connection Api module"), false) {}    
+#endif
+    
 
 protected:
-    virtual _Error setup() ;
-    virtual void shutdown() ;
-    virtual void loop() ; 
-    virtual void beforeModuleAdded(_Application* app) override ;
-
+    virtual _Error setup() override;
+    virtual void shutdown() override;
+    virtual void loop() override ; 
+    virtual void beforeModuleAdded() override ;
 
     _Error wifiManagerOpenConnection();
 };
@@ -84,14 +100,13 @@ class _TaskModule : public _BaseModule
 {
 public:    
     _TaskModule(String _title, String _descr, unsigned int _taskLoopTimeMs=10) ;
-    virtual ~_TaskModule();
+    inline virtual ~_TaskModule() { _TaskModule::shutdown(); }
 
     virtual void setEnabled(bool _enabled) override ;
 
 protected:    
-    virtual void shutdown();
-    
-    inline virtual void loop() { } //task loop    
+    virtual void shutdown() override;    
+    inline virtual void loop() override { }  //task loop    
     
     unsigned int taskLoopTimeMs;
     Task loopTask;
@@ -109,19 +124,22 @@ class _RestApiModule : public _BaseModule
 public:
     typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
     
-    inline _RestApiModule(): _BaseModule(("_CoreRestApiModule"), ("Core Rest Api module")) {}
-    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr) {}
+    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModuleEnum), ("Core Rest Api module"), false) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
 
 protected:
-    virtual _Error setup() ;
-    virtual void shutdown() ;    
-    inline virtual void loop() {} //nothing, unused for ASYNC server
-    virtual void beforeModuleAdded(_Application* app) override ;
+    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr, false) {}
 
-    virtual _Error restApiMethodSetup();
+    virtual _Error setup() override;
+    virtual void shutdown() override;    
+    inline virtual void loop() override final{} //nothing, unused for ASYNC server
+    virtual void beforeModuleAdded() override ;
+
+    virtual _Error additionalRestApiMethodSetup();
     void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
 
+private:
+    _Error restApiMethodSetup();
 
     AsyncWebServer * webServer = NULL;
     unsigned int _server_port = 0;    
@@ -169,9 +187,8 @@ private:
 
     _Error persist();
 
-    const JsonObject* jsonObject=NULL;
-
     _Application& theApp;
+    const JsonObject* jsonObject=NULL;
 };
 
 ///////////////////////////////////////////////////////
@@ -207,7 +224,7 @@ private:
 };
 ///////////////////////////////////////////////////////
 
-class _Application {
+class _Application final {
 
 public:
     typedef std::function<void ()> IdleLoopCallback;

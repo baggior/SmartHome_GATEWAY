@@ -32,6 +32,7 @@ _Application::~_Application()
 
 static _WifiConnectionModule Core_WifiConnectionModule;
 static _RestApiModule Core_RestApiModule;
+
 void _Application::addCoreModules() 
 {
     //TODO add core modules in order
@@ -126,8 +127,9 @@ void _Application::shutdown()
 void _Application::addModule(_BaseModule* module) 
 {
     if(module) {
-        // module->theApp = this;
-        module->beforeModuleAdded(this);
+        module->theApp = this;
+        
+        module->beforeModuleAdded();
 
         this->modules.push_back(module);
         this->logger.printf(F("_Application module added : [%s].\n"), module->getTitle().c_str() );

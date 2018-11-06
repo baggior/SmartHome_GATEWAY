@@ -49,12 +49,10 @@ void _WifiConnectionModule::loop()
 #endif
 }
 
-void _WifiConnectionModule::beforeModuleAdded(_Application* app)
+void _WifiConnectionModule::beforeModuleAdded()
 {
-    this->theApp=app;
-
     //remove core WiFi module if exists   
-    this->theApp->removeModule(  this->theApp->getModule("_CoreWifiConnectionModule") );
+    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum) ) );
 }
 
 

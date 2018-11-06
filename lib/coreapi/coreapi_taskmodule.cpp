@@ -8,11 +8,6 @@ _TaskModule::_TaskModule(String _title, String _descr, unsigned int _taskLoopTim
 }
 
 
-_TaskModule::~_TaskModule() 
-{
-
-}
-
 void _TaskModule::setEnabled(bool _enabled)  
 {   
     if(_enabled &&  !isEnabled())

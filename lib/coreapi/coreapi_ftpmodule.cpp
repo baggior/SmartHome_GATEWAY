@@ -13,12 +13,12 @@ WifiFtpServerModule::WifiFtpServerModule()
 
 WifiFtpServerModule::~WifiFtpServerModule()
 {
-
+    this->shutdown();
 }
 
 _Error WifiFtpServerModule::setup()  
 {
-    bool on = true; 
+    bool on = false; 
     const char* _server_auth_username = NULL;
     const char* _server_auth_password = NULL;
     int task_listen_interval = 0;

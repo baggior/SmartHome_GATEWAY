@@ -3,7 +3,7 @@
 
 #include <coreapi.h>
 
-#include "modbusService.h"
+#include "modbusServiceModule.h"
 
 class ModbusPollingModule :  public _TaskModule
 {
@@ -16,7 +16,7 @@ protected:
     virtual _Error setup() override;
     // inline virtual void loop() override { }
 
-    ModbusService modbus;
+    ModbusServiceModule* p_modbus = NULL;
 };
 
 

@@ -7,6 +7,10 @@
 #define MAX_MODULES         20
 #define MAX_MDNS_ATTRIBUTES 10 
 
+enum CoreModuleNamesEnum {
+    _CoreWifiConnectionModuleEnum,
+    _CoreRestApiModuleEnum
+};
 
 #endif
 

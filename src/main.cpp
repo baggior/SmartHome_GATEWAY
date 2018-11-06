@@ -4,18 +4,20 @@
 // #include "wifiConnection.h"
 
 
-// #include "wifiTelnetServer.h"
-// #include "rs485.h"
-// #include "webSocketRs485Gateway.h"
-// #include "ota.h"
-// #include "mqttclient.h"
-// #include "modbus.h"
 
 #include "coreapi.h"
 #include "coreapi_ftpmodule.h"
 
 #include "wifiRestServerModule.h"
 #include "modbusPollingModule.h"
+
+// #include "wifiTelnetServer.h"
+#include "rs485ServiceModule.h"
+// #include "webSocketRs485Gateway.h"
+// #include "ota.h"
+// #include "mqttclient.h"
+// #include "modbus.h"
+#include "modbusServiceModule.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
@@ -39,6 +41,8 @@ ModbusPollingModule modbusPollingModule;
 // WebSocketRs485Gateway webSocketRs485Gateway;
 
 // Rs485 rs485;
+Rs485ServiceModule rs485;
+ModbusServiceModule modbus;
 
 // TODO migrate
 // Ota ota;
@@ -115,6 +119,8 @@ void setup() {
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
+    app.addModule(&rs485);
+    app.addModule(&modbus);
     app.setup();
 
     DPRINTLN("\n-----NEW MAIN setup done-----\n");

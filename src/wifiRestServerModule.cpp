@@ -38,17 +38,10 @@ WifiRestServerModule::WifiRestServerModule()
   // this->dbgstream=NULL;
   // this->_server_port = RESTSERVER_PORT_DEFAULT;
 }
-WifiRestServerModule::~WifiRestServerModule()
-{
-  // this->dbgstream=NULL;
-  // if(this->webServer) delete this->webServer;
-}
 
-_Error WifiRestServerModule::restApiMethodSetup() 
+
+_Error WifiRestServerModule::additionalRestApiMethodSetup() 
 {
-  // base API handlers
-  _Error ret =_RestApiModule::restApiMethodSetup();
-  if(ret!=_NoError) return ret;
 
   // TODO additional module API handlers
   return _NoError;

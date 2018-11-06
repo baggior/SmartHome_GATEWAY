@@ -16,7 +16,7 @@
 
 _Error _RestApiModule::setup() 
 {
-  bool on = true;
+  bool on = false;
   const char* _server_auth_username= NULL;
   const char* _server_auth_password= NULL;
 
@@ -34,8 +34,8 @@ _Error _RestApiModule::setup()
   }
 
   this->theApp->getLogger().printf( F("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
-    this->getTitle().c_str(),
-    on, this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
+    this->getTitle().c_str(), on, 
+    this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
 
   if(on)
   {
@@ -50,6 +50,7 @@ _Error _RestApiModule::setup()
     if(err!=_NoError) {
       return err;
     }
+
 
     // Start the server
     this->webServer->begin();   
@@ -332,6 +333,10 @@ static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String 
   }
 }
 
+_Error _RestApiModule::additionalRestApiMethodSetup() 
+{
+  return _NoError;
+}
 
 _Error _RestApiModule::restApiMethodSetup() 
 {
@@ -375,15 +380,13 @@ _Error _RestApiModule::restApiMethodSetup()
   this->webServer->onFileUpload( std::bind(_onUpload, this->theApp->getLogger().getStream(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
   this->webServer->onRequestBody( std::bind(_onBody, this->theApp->getLogger().getStream(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
-  // this->addRestApiMethod();
-  return _NoError;
+  return this->additionalRestApiMethodSetup();
+  //return _NoError;
 }
 
 
- void _RestApiModule::beforeModuleAdded(_Application* app)
+ void _RestApiModule::beforeModuleAdded()
  {
-    this->theApp=app;
-
-    //remove core rest api if exists   
-    this->theApp->removeModule(  this->theApp->getModule("_CoreRestApiModule") );
+    //remove core rest api if exists
+    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreRestApiModuleEnum) ) );
  }
