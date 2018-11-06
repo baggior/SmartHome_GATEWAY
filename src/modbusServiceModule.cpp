@@ -85,9 +85,9 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     node.preTransmission( ::preTransmit );
     node.postTransmission( ::postTransmit );
 
-
     DPRINTLN(">Modbus setup done");
-    this->buildDataMemory();
+    this->modbusDataMemory.clean();
+    // this->buildDataMemory();
 
     return _NoError;
 }
@@ -212,7 +212,9 @@ void ModbusServiceModule::updateDataMemoryValues()
     node.clearResponseBuffer();
 }
 
-void ModbusServiceModule::buildDataMemory() {
+void ModbusServiceModule::buildDataMemory(const JsonObject &modbusMemoryConfig) {
+    //TODO 
+
     this->modbusDataMemory.clean();
 
     //TODO build from config file
