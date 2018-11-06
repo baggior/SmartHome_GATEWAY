@@ -24,12 +24,29 @@ _Error ModbusPollingModule::setup()
     
     if(on) 
     {
-        p_modbus = this->theApp->getServiceModule<ModbusServiceModule>("ModbusServiceModule");
-        if(!p_modbus)
+        this->p_modbus = this->theApp->getServiceModule<ModbusServiceModule>("ModbusServiceModule");
+        if(!this->p_modbus)
         {
             this->theApp->getLogger().printf(F(">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
             return _Error(2, "ModbusPollingModule Error: servizio ModbusServiceModule non esistente");            
         }
+
+        const JsonObject& memoryConfig = root["memoryConfig"];  
+        if(memoryConfig.success())  
+        {            
+            this->p_modbus->buildDataMemory(memoryConfig);
+            size_t coils = this->p_modbus->getModbusDataMemory().getCoils().size();
+            size_t regs = this->p_modbus->getModbusDataMemory().getRegisters().size();
+
+            this->theApp->getLogger().printf(F(">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
+                , coils, regs );
+        }
+        else
+        {
+            this->theApp->getLogger().printf(F(">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
+        }
+
+
 
         return _NoError;    
     }
@@ -42,7 +59,9 @@ _Error ModbusPollingModule::setup()
 
 void ModbusPollingModule::loop()
 {
-    // TODO 
-    if(this->p_modbus)
+    if(this->p_modbus) {
         this->p_modbus->updateDataMemoryValues();
+    }
+
+    // TODO publish
 }

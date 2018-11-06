@@ -66,7 +66,8 @@ public:
     }
 
     void updateDataMemoryValues();
-    
+    void buildDataMemory(const JsonObject &modbusMemoryConfig);    
+
 protected:
     virtual _Error setup() final override;
     virtual _Error setup(const JsonObject &root) final override;
@@ -74,13 +75,9 @@ protected:
 
 private:   
 
-    // TODO remove 
-    void buildDataMemory();    
     
     ModbusDataMemory modbusDataMemory;
 
-    // Rs485 rs485;
-    
 };
 
 
