@@ -6,7 +6,7 @@
 extern Scheduler runner;
 
 WifiFtpServerModule::WifiFtpServerModule()
-: _TaskModule("FTPServer", "FTP server to access SPIFFS filesystem content")
+: _TaskModule( ENUM_TO_STR(_CoreFTPServerModule), "FTP server to access SPIFFS filesystem content")
 {
 
 }

@@ -43,12 +43,7 @@ public:
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() const {return this->enabled;}
     inline CoreModuleTypeEnum getType() const {return this->moduleType;}
-
-    //sort list of modules for initialization purpose
-    bool operator< (const _BaseModule& other) const {
-        //ordina prima i service
-        return (this->moduleType==ServiceTypeEnum && other.moduleType!=ServiceTypeEnum);
-    }
+    
 protected:       
     virtual _Error setup()=0;    
     virtual void shutdown()=0;
@@ -90,10 +85,10 @@ class _WifiConnectionModule final : public _BaseModule
 public:    
     inline _WifiConnectionModule()  
 #ifndef ESP32
-    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum), ("Core Wifi Connection Api module"), true) {}
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), true, ServiceTypeEnum) {}
 #else
     // mDNS happens asynchronously on ESP32
-    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum), ("Core Wifi Connection Api module"), false) {}    
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), false, ServiceTypeEnum) {}    
 #endif
     
 
@@ -135,7 +130,7 @@ class _RestApiModule : public _BaseModule
 public:
     typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
     
-    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModuleEnum), ("Core Rest Api module"), false, ApiTypeEnum) {}
+    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, ApiTypeEnum) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
 
 protected:

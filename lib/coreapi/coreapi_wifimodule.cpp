@@ -52,7 +52,7 @@ void _WifiConnectionModule::loop()
 void _WifiConnectionModule::beforeModuleAdded()
 {
     //remove core WiFi module if exists   
-    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreWifiConnectionModuleEnum) ) );
+    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreWifiConnectionModule) ) );
 }
 
 

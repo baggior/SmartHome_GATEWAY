@@ -69,6 +69,11 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     //TODO config  
     const int MODBUS_NODE_SLAVE_ID= 16;
 
+    
+    this->theApp->getLogger().printf(F("\t%s Modbus config: slave: %d, ..TODO\n"), 
+        this->getTitle().c_str(),
+        MODBUS_NODE_SLAVE_ID );
+
     const JsonObject &config_rs485 = root["rs485"];
     _Error err = this->Rs485ServiceModule::setup(config_rs485);
     if ( err.errorCode != _NoError.errorCode) {
@@ -85,7 +90,8 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     node.preTransmission( ::preTransmit );
     node.postTransmission( ::postTransmit );
 
-    DPRINTLN(">Modbus setup done");
+    this->theApp->getLogger().printf(F("\t%s Modbus setup done\n"), 
+        this->getTitle().c_str());
     this->modbusDataMemory.clean();
     // this->buildDataMemory();
 

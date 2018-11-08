@@ -16,8 +16,9 @@ enum CoreModuleTypeEnum {
 
 
 enum CoreModuleNamesEnum {
-    _CoreWifiConnectionModuleEnum,
-    _CoreRestApiModuleEnum
+    _CoreWifiConnectionModule,
+    _CoreFTPServerModule,
+    _CoreRestApiModule
 };
 
 #endif

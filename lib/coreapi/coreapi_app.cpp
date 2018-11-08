@@ -20,8 +20,6 @@ _Application::_Application()
     this->loopcnt = 0 ;
     this->startupTimeMillis = 0;
 
-    //create core modules
-    addCoreModules();
 }
 
 
@@ -63,6 +61,9 @@ _Error _Application::setup()
 
     this->logger.printf(F("_Application setup start\n"));
 
+    //create core modules
+    addCoreModules();
+    
     //setup main configuration
     this->logger.printf(F("_Application config load start\n"));
     _Error err = this->config.load(this->logger);
@@ -124,6 +125,12 @@ void _Application::shutdown()
     this->logger.printf(F("_Application shutdown completed.\n"));
 }
 
+static bool modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) 
+{
+    //ordina prima i service
+    return (modulea->getType()==ServiceTypeEnum && moduleb->getType()!=ServiceTypeEnum);
+}
+
 void _Application::addModule(_BaseModule* module) 
 {
     if(module) {
@@ -132,7 +139,7 @@ void _Application::addModule(_BaseModule* module)
         module->beforeModuleAdded();
 
         this->modules.push_back(module);
-        this->modules.sort();        
+        this->modules.sort(modules_comparator);        
         this->logger.printf(F("_Application module added : [%s].\n"), module->getTitle().c_str() );
     }
 }

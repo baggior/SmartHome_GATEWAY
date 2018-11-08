@@ -99,7 +99,7 @@ static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits,
     c.bit_num = (_databits==5)?0:(_databits==6)?1:(_databits==7)?2:(_databits==8)?3 : 3;// error
     c.stop_bit_num = (_stopbits==1)?1:(_stopbits==2)?3 : 1; //error 
   
-    DPRINTF(F("serial config %X \n"), c.val);
+    DPRINTF(F("\tserial config %X \n"), c.val);
 
     p_hWser = new HardwareSerial( _uart_nr );
     p_hWser->begin(_baud, c.val, RS485_RO_RX, RS485_DI_TX);
@@ -190,7 +190,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   const char * _parity = root["parity"];
   this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  this->p_logger->printf(F("\t%s config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+  this->p_logger->printf(F("\t%s Rs485 config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
           this->getTitle().c_str(),
           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
@@ -225,7 +225,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
 
-  this->p_logger->printf( F(">Rs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
+  this->p_logger->printf( F("\tRs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
 
   return _NoError;
 }
