@@ -157,7 +157,7 @@ static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
 // -----------------------------------------------
 
 Rs485ServiceModule::Rs485ServiceModule()
-: _ServiceModule( "_Rs485Service", "servizio per la comunicazioen seriale RS485"),
+: _ServiceModule( "_Rs485Service", "servizio per la comunicazione seriale RS485"),
   p_logger(NULL), 
   m_bitTime_us(0), p_ser(NULL), 
   defaultCommandTimeout(DEFAULT_COMMAND_TIMEOUT)

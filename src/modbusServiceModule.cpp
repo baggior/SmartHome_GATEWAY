@@ -146,7 +146,7 @@ void ModbusServiceModule::updateDataMemoryValues()
             else 
             {
                 // TODO FAIL
-                DPRINTF("ERROR> updateCoilsDataMemoryValues: %d", ret);
+                DPRINTF("ERROR> updateCoilsDataMemoryValues: %d \n", ret);
             }
         }
     }
@@ -174,7 +174,7 @@ void ModbusServiceModule::updateDataMemoryValues()
             else 
             {
                 // TODO FAIL
-                DPRINTF("ERROR> updateRegistersDataMemoryValues: %d", ret);
+                DPRINTF("ERROR> updateRegistersDataMemoryValues: %d \n", ret);
             }
         }
     }
@@ -202,7 +202,7 @@ void ModbusServiceModule::updateDataMemoryValues()
             else 
             {
                 // TODO FAIL
-                DPRINTF("ERROR> updateRegisters2DataMemoryValues: %d", ret);
+                DPRINTF("ERROR> updateRegisters2DataMemoryValues: %d \n", ret);
             }
         }
     }
@@ -230,11 +230,12 @@ void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
             }
             else if( String(type).equalsIgnoreCase("register") )
             {
-                itemType = ModbusDataMemory::ItemType::coil;
+                itemType = ModbusDataMemory::ItemType::holding_register;
             }
             else
             {
-                //TODO log 
+                // log 
+                DPRINTF(F("ModbusMemory config Error: unknown type: %s \n"), type);
                 continue;
             }
 
