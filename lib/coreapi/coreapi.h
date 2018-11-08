@@ -109,7 +109,7 @@ protected:
 class _TaskModule : public _BaseModule 
 {
 public:    
-    _TaskModule(String _title, String _descr, unsigned int _taskLoopTimeMs=10) ;
+    _TaskModule(String _title, String _descr, unsigned int _taskLoopTimeMs=DEFAULT_TASK_LOOP_TIME_MS) ;
     inline virtual ~_TaskModule() { _TaskModule::shutdown(); }
 
     virtual void setEnabled(bool _enabled) override ;

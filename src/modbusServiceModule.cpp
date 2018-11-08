@@ -60,34 +60,26 @@ _Error ModbusServiceModule::setup() {
 
 _Error ModbusServiceModule::setup(const JsonObject &root) {
 
-    if(!root.success()) 
-    {
-        this->theApp->getLogger().printf(F(">Modbus Error initializing configuration. Json file error"));
-        return _ConfigLoadError;
-    }
-
-    //TODO config  
-    const int MODBUS_NODE_SLAVE_ID= 16;
-
-    
-    this->theApp->getLogger().printf(F("\t%s Modbus config: slave: %d, ..TODO\n"), 
-        this->getTitle().c_str(),
-        MODBUS_NODE_SLAVE_ID );
-
-    const JsonObject &config_rs485 = root["rs485"];
-    _Error err = this->Rs485ServiceModule::setup(config_rs485);
+    _Error err = this->Rs485ServiceModule::setup(root);
     if ( err.errorCode != _NoError.errorCode) {
         return err;
     }
-
-    node.begin(MODBUS_NODE_SLAVE_ID, * this->Rs485ServiceModule::getSerialAsStream());
+    
+    //TODO config  
+    const char * _protocolo = root["protocol"];
+    const int _slave_id= root["slave_id"]; //16
+    
+    this->theApp->getLogger().printf(F("\t%s Modbus config: protocol: '%s', slave: %d,\n"), 
+        this->getTitle().c_str(),
+        REPLACE_NULL_STR(_protocolo), _slave_id );
+    
+    node.begin(_slave_id, * this->Rs485ServiceModule::getSerialAsStream());
 
     ::pfn_idle = std::bind(&Rs485ServiceModule::idle, this);    
-    ::pfn_pre = std::bind(&Rs485ServiceModule::preTransmit, this);
-    ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
-
     node.idle( ::idle );
+    ::pfn_pre = std::bind(&Rs485ServiceModule::preTransmit, this);
     node.preTransmission( ::preTransmit );
+    ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
     node.postTransmission( ::postTransmit );
 
     this->theApp->getLogger().printf(F("\t%s Modbus setup done\n"), 
@@ -218,32 +210,62 @@ void ModbusServiceModule::updateDataMemoryValues()
     node.clearResponseBuffer();
 }
 
-void ModbusServiceModule::buildDataMemory(const JsonObject &modbusMemoryConfig) {
-    //TODO 
-
+// build from config file
+void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
     this->modbusDataMemory.clean();
+    size_t size = modbusMemoryConfig.size();
 
-    //TODO build from config file
-    {
-        for (int i=1; i<79; ++i) 
+    // Walk the JsonArray efficiently
+    for (JsonObject& item : modbusMemoryConfig) {
+        const char* type = item["type"];
+        int address = item["address"];
+        int count = item["count"];
+        if(type && count>0)
         {
-            this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::coil, i, "coil-"+String(i));
+            ModbusDataMemory::ItemType itemType = ModbusDataMemory::ItemType::UNKNOWN;
+            
+            if( String(type).equalsIgnoreCase("coil") )
+            {
+                itemType = ModbusDataMemory::ItemType::coil;
+            }
+            else if( String(type).equalsIgnoreCase("register") )
+            {
+                itemType = ModbusDataMemory::ItemType::coil;
+            }
+            else
+            {
+                //TODO log 
+                continue;
+            }
+
+            int endaddress=address+count;
+            for (int i=address; i<endaddress; ++i) 
+            {
+                this->modbusDataMemory.addItem(itemType, i, String(type) + "-" + String(i));
+            }
         }
     }
 
-    {
-        for (int i=1; i<90; ++i) 
-        {
-            this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register, i, "register-"+String(i));
-        }
-    }
+    // {
+    //     for (int i=1; i<79; ++i) 
+    //     {
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::coil, i, "coil-"+String(i));
+    //     }
+    // }
 
-    {
-        for (int i=209; i<244; ++i) 
-        {
-            this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register2, i, "register2-"+String(i));
-        }
-    }
+    // {
+    //     for (int i=1; i<90; ++i) 
+    //     {
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register, i, "register-"+String(i));
+    //     }
+    // }
+
+    // {
+    //     for (int i=209; i<244; ++i) 
+    //     {
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register2, i, "register2-"+String(i));
+    //     }
+    // }
 }
 
 void ModbusDataMemory::clean() {

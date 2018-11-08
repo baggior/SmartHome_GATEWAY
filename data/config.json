@@ -7,23 +7,45 @@
     "static_gw": "192.168.1.1",
     "static_sn": "255.255.255.0"
   },  
+
   "modbus": {
-    "enable": false,    
-    "rs485": {
-      "uart": 1,
-      "baud": 9600,
-      "databits": 8,
-      "stopbits": 1,
-      "parity": "N"
-    },         
+    "uart": 1,
+    "baud": 9600,
+    "databits": 8,
+    "stopbits": 1,
+    "parity": "N",
+
     "protocol": "RTU",    
-    "slave_id": 16,
-    "polling_interval": 10000,
+    "slave_id": 16    
+  },
+  "modbusPolling": {
+    "enable": true,
+    "task_listen_interval": 10000,
+    "dataMemoryConfig": [
+      {
+        "type": "coil",
+        "address": 1,
+        "count": 78
+      },
+      {
+        "type": "register",
+        "address": 1,
+        "count": 89
+      },
+      {
+        "type": "register",
+        "address": 209,
+        "count": 35
+      }
+
+    ],
+
     "mapping_files": [
       "modbus_analogics.json",
       "modbus_coils.json"
     ]
   },
+
   "telnet": {
     "enable": true,
     "port": 23,

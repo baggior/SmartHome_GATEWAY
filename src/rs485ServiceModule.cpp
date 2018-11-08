@@ -181,6 +181,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
     this->p_logger->printf(F(">Rs485 Error initializing configuration. Json file error\n"));
     return _ConfigLoadError;
   }
+  
   int _uart_num = root["uart"];
   this->appendLRC = root["appendLRC"];
   const char * _prefix = root["prefix"];

@@ -1,7 +1,9 @@
 #include "modbusPollingModule.h"
 
+#define DEFAULT_MODBUS_TASK_LOOP_TIME_MS 60000 //each 60 seconds
+
 ModbusPollingModule::ModbusPollingModule() 
-:   _TaskModule("ModbusPollingModule", "Scan configured registers values and forwards them to MQTT"),
+:   _TaskModule("ModbusPollingModule", "Scan configured registers values and forwards them to MQTT", DEFAULT_MODBUS_TASK_LOOP_TIME_MS),
     p_modbus(NULL)
 {
 
@@ -11,16 +13,22 @@ ModbusPollingModule::ModbusPollingModule()
 _Error ModbusPollingModule::setup()  
 {
     bool on = false;
+    int task_listen_interval = 0;
 
     const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");  
     if(root.success()) 
     {
         on = root["enable"];   
+        task_listen_interval = root["task_listen_interval"];   
         //TODO
     }
 
-    this->theApp->getLogger().printf( F("\t%s config: enable: %u,...\n"),
-        this->getTitle().c_str(), on);
+    if(!task_listen_interval) task_listen_interval=DEFAULT_MODBUS_TASK_LOOP_TIME_MS;
+    this->taskLoopTimeMs = task_listen_interval;
+
+    this->theApp->getLogger().printf( F("\t%s config: enable: %u,.. , taskLoopTimeMs: %d \n"),
+        this->getTitle().c_str(), on
+        , this->taskLoopTimeMs);
     
     if(on) 
     {
@@ -31,10 +39,10 @@ _Error ModbusPollingModule::setup()
             return _Error(2, "ModbusPollingModule Error: servizio ModbusServiceModule non esistente");            
         }
 
-        const JsonObject& memoryConfig = root["memoryConfig"];  
-        if(memoryConfig.success())  
+        const JsonArray& memoryConfigArray = root["dataMemoryConfig"];  
+        if(memoryConfigArray.success())  
         {            
-            this->p_modbus->buildDataMemory(memoryConfig);
+            this->p_modbus->buildDataMemory(memoryConfigArray);
             size_t coils = this->p_modbus->getModbusDataMemory().getCoils().size();
             size_t regs = this->p_modbus->getModbusDataMemory().getRegisters().size();
 
@@ -45,8 +53,6 @@ _Error ModbusPollingModule::setup()
         {
             this->theApp->getLogger().printf(F(">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
         }
-
-
 
         return _NoError;    
     }

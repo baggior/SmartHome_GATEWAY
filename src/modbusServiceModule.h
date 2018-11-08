@@ -66,7 +66,7 @@ public:
     }
 
     void updateDataMemoryValues();
-    void buildDataMemory(const JsonObject &modbusMemoryConfig);    
+    void buildDataMemory(const JsonArray &modbusMemoryConfig);    
 
 protected:
     virtual _Error setup() final override;

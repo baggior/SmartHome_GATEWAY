@@ -40,8 +40,8 @@ _Error WifiFtpServerModule::setup()
     this->taskLoopTimeMs = task_listen_interval;
 
     this->theApp->getLogger().printf( F("\t%s config: enable: %d, server_auth_username: %s, server_auth_password: %s, taskLoopTimeMs: %d \n"), 
-        this->getTitle().c_str(),
-        on, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), this->taskLoopTimeMs);
+        this->getTitle().c_str(), on
+        , REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), this->taskLoopTimeMs);
 
     if(on)
     {
