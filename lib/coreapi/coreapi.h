@@ -30,10 +30,16 @@ class _Application;
 
 
 class _BaseModule {
-    
+
+protected:           
+    enum CoreModuleOrderEnum {
+        Order_First, Order_BeforeNormal, Order_Normal, Order_AfterNormal, Order_Last
+    };
+
 public:    
-    inline _BaseModule(String _title, String _descr, bool _executeInMainLoop=true, CoreModuleTypeEnum _moduleType=OtherTypeEnum)
-    : title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop), moduleType(_moduleType)  {}
+    inline _BaseModule(String _title, String _descr, 
+        bool _executeInMainLoop=true, CoreModuleOrderEnum _order=Order_Normal)
+        : title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop), order(_order) {}
     inline virtual ~_BaseModule() {}
     
     inline String getTitle() const {return this->title; }
@@ -42,9 +48,9 @@ public:
     inline String info() const {return title + " (" + descr + ")";}
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() const {return this->enabled;}
-    inline CoreModuleTypeEnum getType() const {return this->moduleType;}
-    
+       
 protected:       
+    
     virtual _Error setup()=0;    
     virtual void shutdown()=0;
     virtual void loop() =0;    
@@ -62,8 +68,7 @@ private:
     friend _Application;
 
     const bool executeInMainLoop;
-    uint8_t priority = 1; //TODO
-    const CoreModuleTypeEnum moduleType;
+    const CoreModuleOrderEnum order;
 };
 
 class _ServiceModule : public _BaseModule
@@ -71,7 +76,7 @@ class _ServiceModule : public _BaseModule
 public:  
 
 protected:
-    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, ServiceTypeEnum) {}
+    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, Order_First) {}
     
     virtual _Error setup(const JsonObject &root)=0;
 
@@ -85,12 +90,11 @@ class _WifiConnectionModule final : public _BaseModule
 public:    
     inline _WifiConnectionModule()  
 #ifndef ESP32
-    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), true, ServiceTypeEnum) {}
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), true, Order_First) {}
 #else
     // mDNS happens asynchronously on ESP32
-    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), false, ServiceTypeEnum) {}    
-#endif
-    
+    : _BaseModule( ENUM_TO_STR(_CoreWifiConnectionModule), ("Core Wifi Connection Api module"), false, Order_First) {}    
+#endif    
 
 protected:
     virtual _Error setup() override;
@@ -128,13 +132,14 @@ class AsyncWebServer;
 class _RestApiModule : public _BaseModule
 {
 public:
+    
     typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
     
-    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, ApiTypeEnum) {}
+    inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, Order_AfterNormal) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
 
 protected:
-    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr, false, ApiTypeEnum) {}
+    inline _RestApiModule(String _title, String _descr) : _BaseModule(_title, _descr, false) {}
 
     virtual _Error setup() override;
     virtual void shutdown() override;    
@@ -248,21 +253,19 @@ public:
     void addModule(_BaseModule* module);
     void removeModule(_BaseModule* module);    
 
-    _BaseModule* getModule(const String title, const CoreModuleTypeEnum moduleType=AnyModuleType) const;
+    _BaseModule* getModule(const String title) const;
 
     template<typename T, typename std::enable_if<std::is_base_of<_BaseModule, T>::value>::type* = nullptr> 
     inline T* getModule(const String title) const
     {
-        return (T*) this->getModule(title, CoreModuleTypeEnum::AnyModuleType);
+        return (T*) this->getModule(title);
     }
 
-    template<typename T, typename std::enable_if<std::is_base_of<_ServiceModule, T>::value>::type* = nullptr> 
-    inline T* getServiceModule(const String title) const
-    {    
-        return (T*) this->getModule(title, CoreModuleTypeEnum::ServiceTypeEnum);
-    }
-
-    
+    // template<typename T, typename std::enable_if<std::is_base_of<_ServiceModule, T>::value>::type* = nullptr> 
+    // inline T* getServiceModule(const String title) const
+    // {    
+    //     return (T*) this->getModule(title, CoreModuleTypeEnum::ServiceTypeEnum);
+    // }
 
     void loop();
 
@@ -283,9 +286,11 @@ private:
     
     void shutdown();
 
-    unsigned long startupTimeMillis=0;
+    bool modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) const;
 
     typedef etl::list<_BaseModule*, MAX_MODULES> ModuleListType;
+
+    unsigned long startupTimeMillis=0;
 
     _NetServices netSvc;    
     _ApplicationConfig config;

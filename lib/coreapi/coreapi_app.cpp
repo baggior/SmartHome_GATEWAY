@@ -2,6 +2,8 @@
 
 #include <TaskScheduler.h>
 
+#include <functional>
+
 ////////////////////////////////////////////
 
 #define STARTUP_DELAY_MS                2000
@@ -125,10 +127,10 @@ void _Application::shutdown()
     this->logger.printf(F("_Application shutdown completed.\n"));
 }
 
-static bool modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) 
+bool _Application::modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) const
 {
     //ordina prima i service
-    return (modulea->getType()==ServiceTypeEnum && moduleb->getType()!=ServiceTypeEnum);
+    return (modulea->order < moduleb->order);
 }
 
 void _Application::addModule(_BaseModule* module) 
@@ -139,7 +141,10 @@ void _Application::addModule(_BaseModule* module)
         module->beforeModuleAdded();
 
         this->modules.push_back(module);
-        this->modules.sort(modules_comparator);        
+
+        auto comparator = std::bind(&_Application::modules_comparator, this, std::placeholders::_1, std::placeholders::_2);
+        this->modules.sort(comparator);        
+
         this->logger.printf(F("_Application module added : [%s].\n"), module->getTitle().c_str() );
     }
 }
@@ -156,18 +161,15 @@ void _Application::removeModule(_BaseModule* module)
         module->afterModuleRemoved();
     }
 }
-_BaseModule* _Application::getModule(const String title, const CoreModuleTypeEnum moduleType) const
+_BaseModule* _Application::getModule(const String title) const
 {
     if(title.length()>0) 
     {
         for(_BaseModule* module : this->modules) 
         {
-            if(moduleType == AnyModuleType || moduleType == module->getType())
+            if (title.equalsIgnoreCase(module->getTitle()) )
             {
-                if (title.equalsIgnoreCase(module->getTitle()) )
-                {
-                    return module;
-                }
+                return module;
             }
         }
     }

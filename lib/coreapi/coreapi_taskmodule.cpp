@@ -2,7 +2,7 @@
 
 
 _TaskModule::_TaskModule(String _title, String _descr, unsigned int _taskLoopTimeMs) 
-: _BaseModule(_title, _descr, false, TaskTypeEnum), taskLoopTimeMs(_taskLoopTimeMs) 
+: _BaseModule(_title, _descr, false, Order_Last), taskLoopTimeMs(_taskLoopTimeMs) 
 {
 
 }

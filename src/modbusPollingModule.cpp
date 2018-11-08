@@ -24,7 +24,7 @@ _Error ModbusPollingModule::setup()
     
     if(on) 
     {
-        this->p_modbus = this->theApp->getServiceModule<ModbusServiceModule>("ModbusServiceModule");
+        this->p_modbus = this->theApp->getModule<ModbusServiceModule>("ModbusServiceModule");
         if(!this->p_modbus)
         {
             this->theApp->getLogger().printf(F(">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
