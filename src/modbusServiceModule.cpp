@@ -4,6 +4,9 @@
 
 #include "modbusServiceModule.h"
 
+
+#define min(a,b) ((a)<(b)?(a):(b))
+
 // ---------------------------------------
 
 static ModbusMaster node;
@@ -37,7 +40,7 @@ static void postTransmit() {
 #define COIL_ADDR(n)   (0x0000 + n) ///< returns  discrete coil address
 
 ModbusDataMemory::ModbusDataMemory()
-: coils_buffer(), registers_buffer(), registers2_buffer()    
+: coils_buffer(), registers_buffer()
 {
     this->clean();
 }
@@ -128,6 +131,13 @@ void ModbusServiceModule::updateDataMemoryValues()
         DPRINTF("updateCoilsDataMemoryValues: min_address: %d, count: %d \n", min_coil_address, coil_count);
         if(coil_count>0 && min_coil_address>=0) 
         {
+            //max coil_count=min(255,2000)
+            if(coil_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
+            {
+                coil_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
+                DPRINTF(F(">Warning: Coils count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
+            }
+
             uint8_t ret = node.readCoils(min_coil_address, coil_count);
             if(ModbusMaster::ku8MBSuccess==ret)
             {            
@@ -158,54 +168,88 @@ void ModbusServiceModule::updateDataMemoryValues()
         DPRINTF("updateRegistersDataMemoryValues: min_address: %d, count: %d \n", min_reg_address, regs_count);
         if(regs_count>0 && min_reg_address>=0) 
         {
-            uint8_t ret = node.readHoldingRegisters(min_reg_address, regs_count);
-            if(ModbusMaster::ku8MBSuccess==ret)
-            {            
-                uint8_t buffNum=0;
-                
-                for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers_buffer) 
-                {
-                    uint16_t buffer = node.getResponseBuffer(buffNum);
-                    item.value = buffer ;
-                    
-                    buffNum++;               
-                }
-            }
-            else 
+            //max regs_count=min(255,125)
+            if(regs_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
             {
-                // TODO FAIL
-                DPRINTF("ERROR> updateRegistersDataMemoryValues: %d \n", ret);
+                regs_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
+                DPRINTF(F(">Warning: Register count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
             }
+
+            uint16_t _current_min_reg_address = min_reg_address;
+            uint16_t _current_regs_count = regs_count;
+            while (_current_regs_count > 0)
+            {                
+                uint8_t ret = node.readHoldingRegisters(_current_min_reg_address, min(125, _current_regs_count) );   
+                if(ModbusMaster::ku8MBSuccess==ret)
+                {            
+                    uint8_t buffNum=0;
+                    
+                    for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers_buffer) 
+                    {
+                        uint16_t buffer = node.getResponseBuffer(buffNum);
+                        item.value = buffer ;
+                        
+                        buffNum++;               
+                    }
+                }
+                else 
+                {
+                    // TODO FAIL
+                    DPRINTF("ERROR> updateRegistersDataMemoryValues: %d \n", ret);
+                }
+                
+                _current_min_reg_address = _current_min_reg_address + 125;
+                _current_regs_count = _current_regs_count - 125;             
+            }
+
+            // uint8_t ret = node.readHoldingRegisters(min_reg_address, regs_count);
+            // if(ModbusMaster::ku8MBSuccess==ret)
+            // {            
+            //     uint8_t buffNum=0;
+                
+            //     for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers_buffer) 
+            //     {
+            //         uint16_t buffer = node.getResponseBuffer(buffNum);
+            //         item.value = buffer ;
+                    
+            //         buffNum++;               
+            //     }
+            // }
+            // else 
+            // {
+            //     // TODO FAIL
+            //     DPRINTF("ERROR> updateRegistersDataMemoryValues: %d \n", ret);
+            // }
         }
     }
 
     // REGS2
-    {
-        uint16_t min_reg2_address = this->modbusDataMemory.min_reg2_address;
-        uint16_t regs2_count = this->modbusDataMemory.registers2_buffer.size();
-        DPRINTF("updateRegisters2DataMemoryValues: min_address: %d, count: %d \n", min_reg2_address, regs2_count);
-        if(regs2_count>0 && min_reg2_address>=0) 
-        {
-            uint8_t ret = node.readHoldingRegisters(min_reg2_address, regs2_count);
-            if(ModbusMaster::ku8MBSuccess==ret)
-            {            
-                uint8_t buffNum=0;
+    // {
+    //     uint16_t min_reg2_address = this->modbusDataMemory.min_reg2_address;
+    //     uint16_t regs2_count = this->modbusDataMemory.registers2_buffer.size();
+    //     DPRINTF("updateRegisters2DataMemoryValues: min_address: %d, count: %d \n", min_reg2_address, regs2_count);
+    //     if(regs2_count>0 && min_reg2_address>=0) 
+    //     {
+    //         uint8_t ret = node.readHoldingRegisters(min_reg2_address, regs2_count);
+    //         if(ModbusMaster::ku8MBSuccess==ret)
+    //         {            
+    //             uint8_t buffNum=0;
                 
-                for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers2_buffer) 
-                {
-                    uint16_t buffer = node.getResponseBuffer(buffNum);
-                    item.value = buffer ;
+    //             for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers2_buffer) 
+    //             {
+    //                 uint16_t buffer = node.getResponseBuffer(buffNum);
+    //                 item.value = buffer ;
                     
-                    buffNum++;               
-                }
-            }
-            else 
-            {
-                // TODO FAIL
-                DPRINTF("ERROR> updateRegisters2DataMemoryValues: %d \n", ret);
-            }
-        }
-    }
+    //                 buffNum++;               
+    //             }
+    //         }
+    //         else 
+    //         {
+    //             // TODO FAIL
+    //             DPRINTF("ERROR> updateRegisters2DataMemoryValues: %d \n", ret);
+    //         }
+    //     }
+    // }
 
     node.clearResponseBuffer();
 }
@@ -220,7 +264,7 @@ void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
         const char* type = item["type"];
         int address = item["address"];
         int count = item["count"];
-        if(type && count>0)
+        if(type && count>0 && address>=0)
         {
             ModbusDataMemory::ItemType itemType = ModbusDataMemory::ItemType::UNKNOWN;
             
@@ -239,7 +283,7 @@ void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
                 continue;
             }
 
-            int endaddress=address+count;
+            int endaddress = address+count;
             for (int i=address; i<endaddress; ++i) 
             {
                 this->modbusDataMemory.addItem(itemType, i, String(type) + "-" + String(i));
@@ -274,8 +318,8 @@ void ModbusDataMemory::clean() {
     this->coils_buffer.clear();
     this->min_reg_address = -1 ;
     this->registers_buffer.clear();
-    this->min_reg2_address = -1 ;
-    this->registers2_buffer.clear();
+    // this->min_reg2_address = -1 ;
+    // this->registers2_buffer.clear();
 }
 
 void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_address, String name) {
@@ -301,13 +345,13 @@ void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_
             min_reg_address = _item.modbus_address;
         }    
     }
-    else if(type==ItemType::holding_register2)
-    {        
-        registers2_buffer.push_back(_item);    
-        if (min_reg2_address==-1 || min_reg2_address > _item.modbus_address)
-        {
-            min_reg2_address = _item.modbus_address;
-        }    
-    }
+    // else if(type==ItemType::holding_register2)
+    // {        
+    //     registers2_buffer.push_back(_item);    
+    //     if (min_reg2_address==-1 || min_reg2_address > _item.modbus_address)
+    //     {
+    //         min_reg2_address = _item.modbus_address;
+    //     }    
+    // }
 }
 

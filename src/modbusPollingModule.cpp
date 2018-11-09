@@ -20,7 +20,7 @@ _Error ModbusPollingModule::setup()
     {
         on = root["enable"];   
         task_listen_interval = root["task_listen_interval"];   
-        //TODO
+        //TODO..
     }
 
     if(!task_listen_interval) task_listen_interval=DEFAULT_MODBUS_TASK_LOOP_TIME_MS;
