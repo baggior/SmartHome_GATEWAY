@@ -123,9 +123,14 @@ void setup() {
     app.addModule(&modbusPollingModule);
     app.addModule(&mqtt);
     app.addModule(&modbus);
-    app.setup();
-
-    DPRINTLN("\n-----NEW MAIN setup done-----\n");
+    _Error ret = app.setup();
+    if(ret!=_NoError) {
+        DPRINTF("\n-----NEW MAIN setup done ERROR-----\n%d: %s", ret.errorCode, ret.message.c_str());
+        
+    }
+    else {
+        DPRINTLN("\n-----NEW MAIN setup done OK-----\n");
+    }
 }
 
 

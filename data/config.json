@@ -79,10 +79,18 @@
     "task_listen_interval": 20
   },
   "mqtt": {
+    "mqtt_server_host": "iot.eclipse.org",
+    "mqtt_server_port": 1883,
+    "client_id": "baggior",
+
+
+
+
     "enable": false,
     "task_listen_interval": 50,
 
-    "cayenne" : {      
+    "cayenne" : {    
+
       "enable": true,
       "username_token": "36cc5bb0-266e-11e7-a4a6-237007b7399c",
       "mqttpassword_token": "cd82e8f61ca283c10209db705d6c10582d619693",

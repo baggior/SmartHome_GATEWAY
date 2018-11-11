@@ -22,6 +22,8 @@ _Application::_Application()
     this->loopcnt = 0 ;
     this->startupTimeMillis = 0;
 
+    //create core modules
+    addCoreModules();
 }
 
 
@@ -39,8 +41,6 @@ void _Application::addCoreModules()
     this->addModule(&Core_WifiConnectionModule);
     this->addModule(&Core_RestApiModule);
 
-    //create core modules
-    addCoreModules();
 }
 
 _Error _Application::setup()
@@ -107,7 +107,7 @@ _Error _Application::setup()
         {        
             module->setEnabled(false);
             this->logger.printf(F(">ERROR in [%s] module setup: %s (%d)\n"), 
-                module->getTitle().c_str(), err.message, err.errorCode);                
+                module->getTitle().c_str(), err.message.c_str(), err.errorCode);                
             return err;
         }
         
