@@ -48,6 +48,8 @@ public:
     inline String info() const {return title + " (" + descr + ")";}
     inline virtual void setEnabled(bool _enabled) { this->enabled = _enabled; }
     inline bool isEnabled() const {return this->enabled;}
+
+    inline virtual bool operator==(const _BaseModule& other) const { return this->getTitle().equals(other.getTitle()); }
        
 protected:       
     

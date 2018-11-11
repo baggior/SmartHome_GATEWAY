@@ -6,7 +6,7 @@ public:
     inline _Error() {}
     inline _Error(int _errorCode, String _message): errorCode(_errorCode), message(_message) {}
     int errorCode=0;
-    String message;
+    String message="";
 
     inline bool operator==(const _Error& that)const {return that.errorCode==this->errorCode;}
     inline bool operator!=(const _Error& that)const {return !(that==*this);}

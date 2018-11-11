@@ -4,6 +4,7 @@
 #include <coreapi.h>
 
 #include "modbusServiceModule.h"
+#include "mqttServiceModule.h"
 
 class ModbusPollingModule :  public _TaskModule
 {
@@ -17,6 +18,8 @@ protected:
     virtual void loop() override;
 
     ModbusServiceModule* p_modbus = NULL;
+
+    MqttServiceModule* p_mqtt = NULL;
 };
 
 

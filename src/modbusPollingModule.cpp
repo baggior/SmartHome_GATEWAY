@@ -32,6 +32,7 @@ _Error ModbusPollingModule::setup()
     
     if(on) 
     {
+        //MODBUS
         this->p_modbus = this->theApp->getModule<ModbusServiceModule>("ModbusServiceModule");
         if(!this->p_modbus)
         {
@@ -54,6 +55,14 @@ _Error ModbusPollingModule::setup()
             this->theApp->getLogger().printf(F(">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
         }
 
+        //MQTT
+        this->p_mqtt = this->theApp->getModule<MqttServiceModule>("MqttServiceModule");
+        if(!this->p_mqtt)
+        {
+            this->theApp->getLogger().printf(F(">MqttServiceModule Error servizio MqttServiceModule non esistente\n"));
+            return _Error(2, "MqttServiceModule Error: servizio MqttServiceModule non esistente");            
+        }
+        //TODO
         return _NoError;    
     }
     else
@@ -70,4 +79,7 @@ void ModbusPollingModule::loop()
     }
 
     // TODO publish
+    if(this->p_mqtt) {
+
+    }
 }

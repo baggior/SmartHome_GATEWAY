@@ -38,6 +38,9 @@ void _Application::addCoreModules()
     //TODO add core modules in order
     this->addModule(&Core_WifiConnectionModule);
     this->addModule(&Core_RestApiModule);
+
+    //create core modules
+    addCoreModules();
 }
 
 _Error _Application::setup()
@@ -62,10 +65,7 @@ _Error _Application::setup()
     this->startupTimeMillis = millis();
 
     this->logger.printf(F("_Application setup start\n"));
-
-    //create core modules
-    addCoreModules();
-    
+   
     //setup main configuration
     this->logger.printf(F("_Application config load start\n"));
     _Error err = this->config.load(this->logger);

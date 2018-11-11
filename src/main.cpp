@@ -12,12 +12,13 @@
 #include "modbusPollingModule.h"
 
 // #include "wifiTelnetServer.h"
-#include "rs485ServiceModule.h"
+// #include "rs485ServiceModule.h"
 // #include "webSocketRs485Gateway.h"
 // #include "ota.h"
 // #include "mqttclient.h"
 // #include "modbus.h"
 #include "modbusServiceModule.h"
+#include "mqttServiceModule.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO_VARIANT))
@@ -41,8 +42,9 @@ ModbusPollingModule modbusPollingModule;
 // WebSocketRs485Gateway webSocketRs485Gateway;
 
 // Rs485 rs485;
-Rs485ServiceModule rs485;
+// Rs485ServiceModule rs485;
 ModbusServiceModule modbus;
+MqttServiceModule mqtt;
 
 // TODO migrate
 // Ota ota;
@@ -119,7 +121,7 @@ void setup() {
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
-    app.addModule(&rs485);
+    app.addModule(&mqtt);
     app.addModule(&modbus);
     app.setup();
 

@@ -156,7 +156,7 @@ void ModbusServiceModule::updateDataMemoryValues()
             else 
             {
                 // TODO FAIL
-                DPRINTF("ERROR> updateCoilsDataMemoryValues: %d \n", ret);
+                DPRINTF("ERROR> updateCoilsDataMemoryValues: ModbusMaster::Error %d \n", ret);
             }
         }
     }
@@ -195,11 +195,12 @@ void ModbusServiceModule::updateDataMemoryValues()
                 else 
                 {
                     // TODO FAIL
-                    DPRINTF("ERROR> updateRegistersDataMemoryValues: %d \n", ret);
+                    DPRINTF("ERROR> updateRegistersDataMemoryValues: ModbusMaster::Error %d \n", ret);
+                    break; //exit while loop
                 }
                 
-                _current_min_reg_address = _current_min_reg_address + 125;
-                _current_regs_count = _current_regs_count - 125;             
+                _current_min_reg_address += 125;
+                _current_regs_count -= 125;             
             }
 
             // uint8_t ret = node.readHoldingRegisters(min_reg_address, regs_count);
