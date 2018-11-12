@@ -43,9 +43,10 @@ _Error ModbusPollingModule::setup()
         const JsonArray& memoryConfigArray = root["dataMemoryConfig"];  
         if(memoryConfigArray.success())  
         {            
-            this->p_modbus->buildDataMemory(memoryConfigArray);
-            size_t coils = this->p_modbus->getModbusDataMemory().getCoils().size();
-            size_t regs = this->p_modbus->getModbusDataMemory().getRegisters().size();
+            this->modbusDataMemory = this->p_modbus->buildDataMemory(memoryConfigArray);
+
+            size_t coils = this->modbusDataMemory.getCoils().size();
+            size_t regs = this->modbusDataMemory.getRegisters().size();
 
             this->theApp->getLogger().printf(F(">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
                 , coils, regs );
@@ -71,15 +72,29 @@ _Error ModbusPollingModule::setup()
     }   
 }
 
+void ModbusPollingModule::publish(const ModbusDataMemory& modbusDataMemory)
+{
+    if(!this->p_mqtt) return;
+    const etl::ivector<ModbusDataMemory::Item> & coils = modbusDataMemory.getCoils();
+    for (const ModbusDataMemory::Item & item : coils) 
+    {
+        this->p_mqtt->publish(item.name, item.value);
+    }
+    
+    const etl::ivector<ModbusDataMemory::Item> & registers = modbusDataMemory.getRegisters();
+    for (const ModbusDataMemory::Item & item : registers) 
+    {
+        this->p_mqtt->publish(item.name, item.value);
+    }
+
+}
 
 void ModbusPollingModule::loop()
 {
     if(this->p_modbus) {
-        this->p_modbus->updateDataMemoryValues();
-    }
-
-    // TODO publish
-    if(this->p_mqtt) {
-
+        this->p_modbus->updateDataMemoryValues(this->modbusDataMemory);
+        if(this->p_mqtt) {                       
+            this->publish(this->modbusDataMemory);
+        }
     }
 }

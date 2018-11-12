@@ -16,10 +16,10 @@ static PubSubClient mqttPubsubClient(espClient);
 //----------------------------------------------------
 
 
-void connectToMqtt() {
-  Serial.println("Connecting to MQTT...");
+// void connectToMqtt() {
+//   Serial.println("Connecting to MQTT...");
 //   mqttClient.connect();
-}
+// }
 
 
 // void onMqttConnect(bool sessionPresent) {
@@ -107,15 +107,16 @@ _Error MqttServiceModule::setup(const JsonObject &root)
     return _NoError;
 }
 
-void MqttServiceModule::publish(String topic, String value) const
+void MqttServiceModule::publish(String topicEnd, String value) const
 {
     //TODO
+
 }
 
-void MqttServiceModule::publish(String topic, int value) const
+void MqttServiceModule::publish(String topicEnd, int value) const
 {
     String value_str = String(value);
-    this->publish(topic, value_str);
+    this->publish(topicEnd, value_str);
 }
 
 void MqttServiceModule::shutdown()

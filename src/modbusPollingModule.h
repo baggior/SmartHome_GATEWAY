@@ -17,9 +17,12 @@ protected:
     virtual _Error setup() override;
     virtual void loop() override;
 
-    ModbusServiceModule* p_modbus = NULL;
+    void publish(const ModbusDataMemory& modbusDataMemory);
 
+    ModbusServiceModule* p_modbus = NULL;
     MqttServiceModule* p_mqtt = NULL;
+
+    ModbusDataMemory modbusDataMemory;
 };
 
 

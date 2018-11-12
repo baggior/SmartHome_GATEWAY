@@ -87,9 +87,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
 
     this->theApp->getLogger().printf(F("\t%s Modbus setup done\n"), 
         this->getTitle().c_str());
-    this->modbusDataMemory.clean();
-    // this->buildDataMemory();
-
+    
     return _NoError;
 }
 
@@ -122,16 +120,16 @@ void ModbusServiceModule::shutdown()
 //     }
 // }
 
-void ModbusServiceModule::updateDataMemoryValues() 
+void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMemory) const
 {
     //COILS
     {
-        uint16_t min_coil_address = this->modbusDataMemory.min_coil_address;
-        uint16_t coil_count = this->modbusDataMemory.coils_buffer.size();
+        uint16_t min_coil_address = modbusDataMemory.min_coil_address;
+        uint16_t coil_count = modbusDataMemory.coils_buffer.size();
         DPRINTF("updateCoilsDataMemoryValues: min_address: %d, count: %d \n", min_coil_address, coil_count);
         if(coil_count>0 && min_coil_address>=0) 
         {
-            //max coil_count=min(255,2000)
+            //max coil_count=min(ModbusDataMemory_MAX_MEMORY_ITEM_COUNT, 2000)
             if(coil_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
             {
                 coil_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
@@ -143,7 +141,7 @@ void ModbusServiceModule::updateDataMemoryValues()
             {            
                 uint8_t bitNum=0, buffNum=0, coilNum=0;
                 // etl::vector<Item, 100>::iterator it = this->coils_buffer.begin();
-                for(ModbusDataMemory::Item& item : this->modbusDataMemory.coils_buffer) 
+                for(ModbusDataMemory::Item& item : modbusDataMemory.coils_buffer) 
                 {
                     uint16_t buffer = node.getResponseBuffer(buffNum);
                     item.value = (buffer >> bitNum) & 0x0001 ;
@@ -163,12 +161,12 @@ void ModbusServiceModule::updateDataMemoryValues()
 
     // REGS
     {
-        uint16_t min_reg_address = this->modbusDataMemory.min_reg_address;
-        uint16_t regs_count = this->modbusDataMemory.registers_buffer.size();
+        uint16_t min_reg_address = modbusDataMemory.min_reg_address;
+        uint16_t regs_count = modbusDataMemory.registers_buffer.size();
         DPRINTF("updateRegistersDataMemoryValues: min_address: %d, count: %d \n", min_reg_address, regs_count);
         if(regs_count>0 && min_reg_address>=0) 
         {
-            //max regs_count=min(255,125)
+            //max regs_count=min(ModbusDataMemory_MAX_MEMORY_ITEM_COUNT, 125)
             if(regs_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
             {
                 regs_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
@@ -184,7 +182,7 @@ void ModbusServiceModule::updateDataMemoryValues()
                 {            
                     uint8_t buffNum=0;
                     
-                    for(ModbusDataMemory::Item& item : this->modbusDataMemory.registers_buffer) 
+                    for(ModbusDataMemory::Item& item : modbusDataMemory.registers_buffer) 
                     {
                         uint16_t buffer = node.getResponseBuffer(buffNum);
                         item.value = buffer ;
@@ -256,8 +254,8 @@ void ModbusServiceModule::updateDataMemoryValues()
 }
 
 // build from config file
-void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
-    this->modbusDataMemory.clean();
+ModbusDataMemory ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) const {
+    ModbusDataMemory modbusDataMemory;
     size_t size = modbusMemoryConfig.size();
 
     // Walk the JsonArray efficiently
@@ -287,7 +285,7 @@ void ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) {
             int endaddress = address+count;
             for (int i=address; i<endaddress; ++i) 
             {
-                this->modbusDataMemory.addItem(itemType, i, String(type) + "-" + String(i));
+                modbusDataMemory.addItem(itemType, i, String(type) + "-" + String(i));
             }
         }
     }

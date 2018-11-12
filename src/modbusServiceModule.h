@@ -11,6 +11,8 @@
 
 class ModbusDataMemory
 {
+    friend class ModbusServiceModule;
+
 public:
     struct Item {
         uint16_t modbus_address;
@@ -26,16 +28,17 @@ public:
         UNKNOWN
     };
     
+    ModbusDataMemory();
+    virtual inline ~ModbusDataMemory() { this->clean(); }
+
     inline const etl::ivector<Item>& getCoils() const     { return this->coils_buffer; }
     inline const etl::ivector<Item>& getRegisters() const     { return this->registers_buffer; }
     // inline const etl::ivector<Item>& getRegisters2() const     { return this->registers2_buffer; }
 
-private:
-    friend class ModbusServiceModule;
-
-    ModbusDataMemory();
     void clean();
     void addItem(ItemType type, uint16_t modbus_address, String name);
+    
+private:
 
     etl::vector<Item, ModbusDataMemory_MAX_MEMORY_ITEM_COUNT> coils_buffer;
     uint16_t min_coil_address=-1;
@@ -60,13 +63,13 @@ public:
 
     // void process();
 
-    inline const ModbusDataMemory& getModbusDataMemory() const 
-    {
-        return this->modbusDataMemory;
-    }
+    // inline const ModbusDataMemory& getModbusDataMemory() const 
+    // {
+    //     return this->modbusDataMemory;
+    // }
 
-    void updateDataMemoryValues();
-    void buildDataMemory(const JsonArray &modbusMemoryConfig);    
+    void updateDataMemoryValues(ModbusDataMemory& modbusDataMemory) const;
+    ModbusDataMemory buildDataMemory(const JsonArray &modbusMemoryConfig) const;    
 
 protected:
     virtual _Error setup() final override;
@@ -76,7 +79,7 @@ protected:
 private:   
 
     
-    ModbusDataMemory modbusDataMemory;
+    // ModbusDataMemory modbusDataMemory;
 
 };
 
