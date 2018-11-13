@@ -68,8 +68,8 @@ public:
     //     return this->modbusDataMemory;
     // }
 
-    void updateDataMemoryValues(ModbusDataMemory& modbusDataMemory) const;
-    ModbusDataMemory buildDataMemory(const JsonArray &modbusMemoryConfig) const;    
+    void updateDataMemoryValues(ModbusDataMemory & modbusDataMemory) const;
+    void buildDataMemory(const JsonArray & modbusMemoryConfig, ModbusDataMemory & modbusDataMemory) const;    
 
 protected:
     virtual _Error setup() final override;

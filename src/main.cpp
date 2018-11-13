@@ -72,7 +72,7 @@ void setup() {
     #endif
     
     Serial.println();
-    DPRINTLN("\n-----OLD Main setup start-----\n");
+    // DPRINTLN("\n-----OLD Main setup start-----\n");
 /* 
 #ifdef MY_DEBUG
     if(SaveCrash.count()>10)
@@ -113,23 +113,25 @@ void setup() {
 // config.getBlinker().start(3);//3sec.
     // DPRINTLN("Initialized the Scheduler");
 
-    DPRINTLN("\n-----OLD Main setup done-----\n");
+    // DPRINTLN("\n-----OLD Main setup done-----\n");
 
     //////////////////
 
-    DPRINTLN("\n-----NEW MAIN setup start-----\n");
+    DPRINTLN("\n-----MAIN setup start-----\n");
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
-    app.addModule(&mqtt);
     app.addModule(&modbus);
+    app.addModule(&mqtt);
     _Error ret = app.setup();
     if(ret!=_NoError) {
-        DPRINTF("\n-----NEW MAIN setup done ERROR-----\n%d: %s", ret.errorCode, ret.message.c_str());
-        
+        DPRINTF("\n-----MAIN setup done ERROR-----\n%d: %s", ret.errorCode, ret.message.c_str());
+        delay(3000);
+        // DPRINTLN("\n-----RESTARTING...-----\n...\n..\n.\n");
+        // app.restart();
     }
     else {
-        DPRINTLN("\n-----NEW MAIN setup done OK-----\n");
+        DPRINTLN("\n-----MAIN setup done OK-----\n");
     }
 }
 

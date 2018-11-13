@@ -388,5 +388,5 @@ _Error _RestApiModule::restApiMethodSetup()
  void _RestApiModule::beforeModuleAdded()
  {
     //remove core rest api if exists
-    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreRestApiModule) ) );
+    this->theApp->removeModule(  this->theApp->getBaseModule( ENUM_TO_STR(_CoreRestApiModule) ) );
  }

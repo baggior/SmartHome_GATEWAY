@@ -52,7 +52,7 @@ void _WifiConnectionModule::loop()
 void _WifiConnectionModule::beforeModuleAdded()
 {
     //remove core WiFi module if exists   
-    this->theApp->removeModule(  this->theApp->getModule( ENUM_TO_STR(_CoreWifiConnectionModule) ) );
+    this->theApp->removeModule(  this->theApp->getBaseModule( ENUM_TO_STR(_CoreWifiConnectionModule) ) );
 }
 
 
@@ -123,9 +123,9 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     //     connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
 
     // Connect to WiFi    
-    DPRINT("<WiFi.begin()");
+    
     uint8_t status = WiFi.begin();
-    DPRINTF("> status %d", status); //    WL_CONNECTED        = 3,    WL_CONNECT_FAILED   = 4,
+    DPRINTF("\t>WiFi.begin(): status %d\n", status); //    WL_CONNECTED        = 3,    WL_CONNECT_FAILED   = 4,
     if(status!= WL_CONNECTED)
     {               
         if (!SSID)  
@@ -206,7 +206,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     }
 
     //CONNECTED OK
-    DPRINTLN("CONNECTED OK");
+    // DPRINTLN("CONNECTED OK");
 
     //set device host name
     if(hostname) 

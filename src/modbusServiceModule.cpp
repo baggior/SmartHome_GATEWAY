@@ -254,8 +254,8 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
 }
 
 // build from config file
-ModbusDataMemory ModbusServiceModule::buildDataMemory(const JsonArray &modbusMemoryConfig) const {
-    ModbusDataMemory modbusDataMemory;
+void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, ModbusDataMemory & modbusDataMemory) const 
+{
     size_t size = modbusMemoryConfig.size();
 
     // Walk the JsonArray efficiently

@@ -22,5 +22,7 @@ protected:
     virtual _Error setup(const JsonObject &root) final override;
     virtual void shutdown() final override;
 
+    _Error reconnect() const;
+
     String topicPrefix = "";
 };

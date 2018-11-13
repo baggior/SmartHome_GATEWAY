@@ -43,7 +43,7 @@ _Error ModbusPollingModule::setup()
         const JsonArray& memoryConfigArray = root["dataMemoryConfig"];  
         if(memoryConfigArray.success())  
         {            
-            this->modbusDataMemory = this->p_modbus->buildDataMemory(memoryConfigArray);
+            this->p_modbus->buildDataMemory(memoryConfigArray, this->modbusDataMemory);
 
             size_t coils = this->modbusDataMemory.getCoils().size();
             size_t regs = this->modbusDataMemory.getRegisters().size();

@@ -255,12 +255,12 @@ public:
     void addModule(_BaseModule* module);
     void removeModule(_BaseModule* module);    
 
-    _BaseModule* getModule(const String title) const;
+    _BaseModule* getBaseModule(const String title) const;
 
     template<typename T, typename std::enable_if<std::is_base_of<_BaseModule, T>::value>::type* = nullptr> 
     inline T* getModule(const String title) const
     {
-        return (T*) this->getModule(title);
+        return (T*) this->getBaseModule(title);
     }
 
     // template<typename T, typename std::enable_if<std::is_base_of<_ServiceModule, T>::value>::type* = nullptr> 

@@ -161,7 +161,7 @@ void _Application::removeModule(_BaseModule* module)
         module->afterModuleRemoved();
     }
 }
-_BaseModule* _Application::getModule(const String title) const
+_BaseModule* _Application::getBaseModule(const String title) const
 {
     if(title.length()>0) 
     {

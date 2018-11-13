@@ -74,7 +74,7 @@
     "task_listen_interval": 20
   },
   "mqtt": {
-    "mqtt_server_host": "iot.eclipse.org",
+    "mqtt_server_host": "198.41.30.241",
     "mqtt_server_port": 1883,
     "client_id": "baggior",
     "topic_prefix": "YEPPA/kid",
