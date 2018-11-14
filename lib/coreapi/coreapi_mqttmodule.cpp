@@ -74,17 +74,17 @@ _Error MqttModule::setup(const JsonObject &root)
     const char * _server_host = root["mqtt_server_host"];
     const int _server_port= root["mqtt_server_port"] | 1883;
     
-    String _client_id= String(root["client_id"] | "");    
-    if(_client_id.length()==0)
-    {
-        this->clientId = _client_id;
-    }
-    else
-    {
-        // Create a random client ID
-        this->clientId = this->getTitle();
-        this->clientId += "_" + String(random(0xffff), HEX);
-    }
+    this->clientId = String(root["client_id"] | "shgw_*");    
+    // if(_client_id.length()==0)
+    // {
+    //     this->clientId = _client_id;
+    // }
+    // else
+    // {
+    //     // Create a random client ID
+    //     this->clientId = this->getTitle();
+    //     this->clientId += "_" + String(random(0xffff), HEX);
+    // }
 
     const char* _server_auth_username= root["server_auth"]["username"];
     const char* _server_auth_password= root["server_auth"]["password"];    
@@ -114,6 +114,11 @@ _Error MqttModule::setup(const JsonObject &root)
         // {
         //     return _Error(2, "impossibile connettersi al MQTT BROKER");
         // }
+
+        // build client_id
+        String chipId = baseutils::getChipId();
+        this->clientId.replace("*", chipId);
+        this->clientId.toLowerCase();
     }
     else 
     {
@@ -137,7 +142,7 @@ void MqttModule::loop()
             _Error ret = this->reconnect();
             if (ret == _NoError) {
                 lastReconnectAttempt = 0;
-                DPRINTF(F(">\t%s CONNECTED: reconnect() return-> OK\n"), this->getTitle().c_str());
+                // DPRINTF(F(">\t%s CONNECTED: reconnect() return-> OK\n"), this->getTitle().c_str());
             } else {
                 DPRINTF(F(">\t%s ERROR: reconnect(): %s (%d)\n"),
                     this->getTitle().c_str(), ret.message.c_str(), ret.errorCode );
@@ -183,9 +188,9 @@ _Error MqttModule::reconnect() const {
         
         // Attempt to connect
         if (mqttClient.connect(this->clientId.c_str())) {
-            DPRINTLN(F("MQTT: connected"));            
+            DPRINTF(F("MQTT: connected -> client_id: %s\n"), this->clientId.c_str());            
         } else {
-            DPRINTF(F("failed, state: %d \n"), 
+            DPRINTF(F("MQTT: connection failed, state: %d \n"), 
                 mqttClient.state());            
 
             return _Error(2, "impossibile connettersi al MQTT BROKER");

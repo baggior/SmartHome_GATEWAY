@@ -77,7 +77,7 @@
   "mqtt": {
     "mqtt_server_host": "iot.eclipse.org",
     "mqtt_server_port": 1883,
-    "client_id": "baggior",
+    "client_id": "shgw_*",
     "topic_prefix": "YEPPA/kid",
 
 

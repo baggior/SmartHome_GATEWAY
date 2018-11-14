@@ -215,7 +215,6 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     if(hostname) 
     {
         String str_hostname(hostname);
-        str_hostname.toLowerCase();        
         String chipId = baseutils::getChipId();
         str_hostname.replace("*", chipId);
         str_hostname.toLowerCase();
