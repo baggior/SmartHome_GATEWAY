@@ -73,18 +73,18 @@ private:
     const CoreModuleOrderEnum order;
 };
 
-class _ServiceModule : public _BaseModule
-{
-public:  
+// class _ServiceModule : public _BaseModule
+// {
+// public:  
 
-protected:
-    inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, Order_First) {}
+// protected:
+//     inline _ServiceModule(String _title, String _descr) : _BaseModule(_title,_descr, false, Order_First) {}
     
-    virtual _Error setup(const JsonObject &root)=0;
+//     virtual _Error setup(const JsonObject &root)=0;
 
-private:    
-    inline virtual void loop() final { } //task loop not used for a service module  
-};
+// private:    
+//     inline virtual void loop() final { } //task loop not used for a service module  
+// };
 
 
 class _WifiConnectionModule final : public _BaseModule 
@@ -263,12 +263,7 @@ public:
         return (T*) this->getBaseModule(title);
     }
 
-    // template<typename T, typename std::enable_if<std::is_base_of<_ServiceModule, T>::value>::type* = nullptr> 
-    // inline T* getServiceModule(const String title) const
-    // {    
-    //     return (T*) this->getModule(title, CoreModuleTypeEnum::ServiceTypeEnum);
-    // }
-
+    
     void loop();
 
     inline bool isDebug() {return this->debug;}

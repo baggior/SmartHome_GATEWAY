@@ -57,7 +57,7 @@ _Error ModbusPollingModule::setup()
         }
 
         //MQTT
-        this->p_mqtt = this->theApp->getModule<MqttModule>("MqttModule");
+        this->p_mqtt = this->theApp->getModule<MqttModule>(ENUM_TO_STR(_CoreMqttModule));
         if(!this->p_mqtt)
         {
             this->theApp->getLogger().printf(F(">MqttModule Error servizio MqttModule non esistente\n"));

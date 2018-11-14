@@ -5,7 +5,7 @@
 
 #include <vector.h>
 
-class Rs485ServiceModule : public _ServiceModule
+class Rs485ServiceModule : public _BaseModule
 {
     
 public:
@@ -34,13 +34,15 @@ public:
     void idle();
 
 protected:
-    inline Rs485ServiceModule(String _title, String _descr) : _ServiceModule(_title,_descr) {}
+    Rs485ServiceModule(String _title, String _descr);
 
-    virtual _Error setup(const JsonObject &root) override;
+    virtual _Error setup(const JsonObject &root) ;//override;
     virtual _Error setup() override;
     virtual void shutdown() override;
 
 private:
+    inline virtual void loop() final override { } //task loop not used for a service module  
+
     void fixSerialFlush();
     
     // Stream * p_dbgstream;
