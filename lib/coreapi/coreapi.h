@@ -118,10 +118,12 @@ public:
 
 protected:    
     virtual void shutdown() override;    
-    inline virtual void loop() override { }  //task loop    
-    
+    // inline virtual void loop() override { }  //task loop    
+    void taskloop();
+
     unsigned int taskLoopTimeMs;
     Task loopTask;
+    long loopcnt = 0;
 };
 
 class AsyncWebServer;

@@ -192,7 +192,7 @@ void _Application::loop()
 {
     static long logmillis = 0 ;
     bool tolog = ( this->isDebug() && ( (millis() - logmillis) > 1000) ); 
-    if(tolog) this->logger.printf(F("_Application::loop(%d)BEGIN, "), loopcnt );
+    if(tolog) this->logger.printf(F("_Application::loop(%d) BEGIN, "), loopcnt );
 
     for(_BaseModule* module : this->modules) 
     {
@@ -215,11 +215,13 @@ void _Application::loop()
         if(tolog) this->logger.printf(F("[IDLE]loop, ") );
         this->idleLoop();
     }
-
-    if(tolog) this->logger.printf(F("_Application::loop END.\n") );
-
     this->loopcnt++;
-    if(tolog) logmillis = millis(); 
+
+
+    if(tolog) {
+        this->logger.printf(F("_Application::loop END.\n") );
+        logmillis = millis(); 
+    }
 }
 
 
