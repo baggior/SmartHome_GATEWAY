@@ -10,7 +10,8 @@
 enum CoreModuleNamesEnum {
     _CoreWifiConnectionModule,
     _CoreFTPServerModule,
-    _CoreRestApiModule
+    _CoreRestApiModule,
+    _CoreMqttModule
 };
 
 #endif

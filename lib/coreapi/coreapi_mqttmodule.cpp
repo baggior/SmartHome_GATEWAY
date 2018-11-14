@@ -1,4 +1,4 @@
-#include "mqttServiceModule.h"
+#include "coreapi_mqttmodule.h"
 
 
 
@@ -8,9 +8,12 @@
 // #include <AsyncMqttClient.h>
 #include <PubSubClient.h>
 
+//----------------------------------------------------
+#define LOOP_RECONNECT_ATTEMPT_MS 3000
+
 // AsyncMqttClient mqttClient;
 static WiFiClient espClient;
-static PubSubClient mqttPubsubClient(espClient);
+static PubSubClient mqttClient(espClient);
 
 
 //----------------------------------------------------
@@ -39,19 +42,19 @@ static PubSubClient mqttPubsubClient(espClient);
 
 //----------------------------------------------------
 
-MqttServiceModule::MqttServiceModule() 
-: _ServiceModule("MqttServiceModule", "")
+MqttModule::MqttModule()
+: _BaseModule(ENUM_TO_STR(_CoreMqttModule), "Core Mqtt service module", true, Order_BeforeNormal )
 {
 
 }
 
-MqttServiceModule::~MqttServiceModule()
+MqttModule::~MqttModule()
 {
     this->shutdown();
 }
 
 
-_Error MqttServiceModule::setup() 
+_Error MqttModule::setup() 
 {  
   const JsonObject& root = this->theApp->getConfig().getJsonObject("mqtt");  
   if(root.success()) 
@@ -63,7 +66,7 @@ _Error MqttServiceModule::setup()
 }
 
 
-_Error MqttServiceModule::setup(const JsonObject &root) 
+_Error MqttModule::setup(const JsonObject &root) 
 {
     bool on = false;
         
@@ -71,7 +74,17 @@ _Error MqttServiceModule::setup(const JsonObject &root)
     const char * _server_host = root["mqtt_server_host"];
     const int _server_port= root["mqtt_server_port"] | 1883;
     
-    const char* _client_id= root["client_id"];    
+    String _client_id= root["client_id"] | "";    
+    if(_client_id.length()==0)
+    {
+        this->clientId = String(_client_id);
+    }
+    else
+    {
+        // Create a random client ID
+        this->clientId = this->getTitle();
+        this->clientId += String(random(0xffff), HEX);
+    }
 
     const char* _server_auth_username= root["server_auth"]["username"];
     const char* _server_auth_password= root["server_auth"]["password"];    
@@ -79,16 +92,18 @@ _Error MqttServiceModule::setup(const JsonObject &root)
     this->theApp->getLogger().printf(F("\t%s Mqtt config: server_host:%s, port: %d, client_id: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_server_host), _server_port,
-        REPLACE_NULL_STR(_client_id),
+        this->clientId.c_str(),
         REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password)
     );
     
-    if(_server_host && _client_id) on = true;
+    if(_server_host && _client_id) {
+        on = true;
+    }
 
     if(on)
     {
-        IPAddress ipadd ( 198,41,30,214 );
-        mqttPubsubClient.setServer(ipadd, _server_port);      
+        IPAddress ipadd ( 198,41,30,241 ); //iot.eclipse.org
+        mqttClient.setServer(ipadd, _server_port);      
 
         // bool ret = mqttPubsubClient.connect(_client_id, _server_auth_username, _server_auth_password);  
         // bool ret = mqttPubsubClient.connect(_client_id);  
@@ -108,7 +123,33 @@ _Error MqttServiceModule::setup(const JsonObject &root)
     return _NoError;
 }
 
-void MqttServiceModule::publish(String topicEnd, String value) const
+void MqttModule::loop()
+{
+    static long lastReconnectAttempt = 0;
+    if (!mqttClient.connected()) 
+    {
+        long now = millis();
+        if (now - lastReconnectAttempt > LOOP_RECONNECT_ATTEMPT_MS) {
+            lastReconnectAttempt = now;
+            // Attempt to reconnect
+            _Error ret = this->reconnect();
+            if (ret == this->reconnect()) {
+                lastReconnectAttempt = 0;
+            } else {
+                DPRINTF(F(">\t%s ERROR: reconnect(): %s (%d)"),
+                    this->getTitle(), ret.message.c_str(), ret.errorCode );
+            }
+        }
+    } 
+    else 
+    {
+        // Client connected
+        bool b = mqttClient.loop();
+    }
+
+}
+
+void MqttModule::publish(String topicEnd, String value) const
 {
     if(_NoError == this->reconnect())
     {
@@ -117,36 +158,32 @@ void MqttServiceModule::publish(String topicEnd, String value) const
     }
 }
 
-void MqttServiceModule::publish(String topicEnd, int value) const
+void MqttModule::publish(String topicEnd, int value) const
 {
     String value_str = String(value);
     this->publish(topicEnd, value_str);
 }
 
-void MqttServiceModule::shutdown()
+void MqttModule::shutdown()
 {   
-    if(mqttPubsubClient.connected())
-        mqttPubsubClient.disconnect();
+    if(mqttClient.connected())
+        mqttClient.disconnect();
 }
 
 
-_Error MqttServiceModule::reconnect() const {
+_Error MqttModule::reconnect() const {
     // Loop until we're reconnected
-    if (!mqttPubsubClient.connected()) 
+    if (!mqttClient.connected()) 
     {
         DPRINT(F("Attempting MQTT connection... "));
-        // Create a random client ID
-        String clientId = "ESP32Client-";
-        clientId += String(random(0xffff), HEX);
-
+        
         // Attempt to connect
-        if (mqttPubsubClient.connect(clientId.c_str())) {
+        if (mqttClient.connect(this->clientId.c_str())) {
             DPRINTLN(F("MQTT: connected"));            
         } else {
             DPRINTF(F("failed, state: %d \n"), 
-            mqttPubsubClient.state());            
-        //   // Wait 3 seconds before retrying
-        //   delay(3000);
+                mqttClient.state());            
+
             return _Error(2, "impossibile connettersi al MQTT BROKER");
         }
     }

@@ -1,4 +1,5 @@
 #include "coreapi.h"
+#include "coreapi_mqttmodule.h"
 
 #include <TaskScheduler.h>
 
@@ -34,12 +35,14 @@ _Application::~_Application()
 
 static _WifiConnectionModule Core_WifiConnectionModule;
 static _RestApiModule Core_RestApiModule;
+static MqttModule Core_MqttModule;
 
 void _Application::addCoreModules() 
 {
     //TODO add core modules in order
     this->addModule(&Core_WifiConnectionModule);
     this->addModule(&Core_RestApiModule);
+    this->addModule(&Core_MqttModule);
 
 }
 

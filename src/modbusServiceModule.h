@@ -77,7 +77,6 @@ protected:
     virtual void shutdown() final override;
 
 private:   
-
     
     // ModbusDataMemory modbusDataMemory;
 

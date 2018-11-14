@@ -2,9 +2,9 @@
 #define modbuspollingmodule_h
 
 #include <coreapi.h>
+#include <coreapi_mqttmodule.h>
 
 #include "modbusServiceModule.h"
-#include "mqttServiceModule.h"
 
 class ModbusPollingModule :  public _TaskModule
 {
@@ -20,7 +20,7 @@ protected:
     void publish(const ModbusDataMemory& modbusDataMemory);
 
     ModbusServiceModule* p_modbus = NULL;
-    MqttServiceModule* p_mqtt = NULL;
+    MqttModule* p_mqtt = NULL;
 
     ModbusDataMemory modbusDataMemory;
 };

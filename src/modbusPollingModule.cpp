@@ -57,11 +57,11 @@ _Error ModbusPollingModule::setup()
         }
 
         //MQTT
-        this->p_mqtt = this->theApp->getModule<MqttServiceModule>("MqttServiceModule");
+        this->p_mqtt = this->theApp->getModule<MqttModule>("MqttModule");
         if(!this->p_mqtt)
         {
-            this->theApp->getLogger().printf(F(">MqttServiceModule Error servizio MqttServiceModule non esistente\n"));
-            return _Error(2, "MqttServiceModule Error: servizio MqttServiceModule non esistente");            
+            this->theApp->getLogger().printf(F(">MqttModule Error servizio MqttModule non esistente\n"));
+            return _Error(2, "MqttModule Error: servizio MqttModule non esistente");            
         }
         //TODO
         return _NoError;    

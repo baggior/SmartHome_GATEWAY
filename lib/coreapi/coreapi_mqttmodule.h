@@ -5,12 +5,12 @@
 #include <coreapi.h>
 
 
-class MqttServiceModule final : public _ServiceModule  {
+class MqttModule final : public _BaseModule  {
 
 public:
     
-    MqttServiceModule();
-    virtual ~MqttServiceModule();
+    MqttModule();
+    virtual ~MqttModule();
 
     inline void setTopicPrefix(String topicPrefix) { this->topicPrefix = topicPrefix; }
 
@@ -19,10 +19,12 @@ public:
 
 protected:
     virtual _Error setup() final override;
-    virtual _Error setup(const JsonObject &root) final override;
+    _Error setup(const JsonObject &root);
+    virtual void loop() override ; 
     virtual void shutdown() final override;
 
     _Error reconnect() const;
 
     String topicPrefix = "";
+    String clientId;
 };
