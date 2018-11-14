@@ -101,6 +101,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     const char* static_ip = root["static_ip"];
     const char* static_gw = root["static_gw"];
     const char* static_sn = root["static_sn"];
+    const char* static_dns1 = root["static_dns1"];
 
     const char* _phy_mode = root["phy_mode"];
     
@@ -110,9 +111,10 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     float outputPower = root["outputPower"];
     char buff[20];
 
-    this->theApp->getLogger().printf( F(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
+    this->theApp->getLogger().printf( F(">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, static_dns1: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
         REPLACE_NULL_STR(SSID), REPLACE_NULL_STR(password),
-        REPLACE_NULL_STR(hostname), REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn),
+        REPLACE_NULL_STR(hostname), 
+        REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn), REPLACE_NULL_STR(static_dns1),
         REPLACE_NULL_STR(_phy_mode),
         connectionTimeout, captivePortalTimeout, minimumSignalQuality, dtostrf(outputPower,3,1, buff) );
        
@@ -141,14 +143,15 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
             if(connectionTimeout) wifiManager.setConnectTimeout(connectionTimeout);                 //cerca di stabilire una connessione in 15 secondi
             if(captivePortalTimeout) wifiManager.setConfigPortalTimeout(captivePortalTimeout);      //il portale dura per 5 minuti poi fa reset
             if(minimumSignalQuality) wifiManager.setMinimumSignalQuality(minimumSignalQuality);
-            if(static_ip && static_gw && static_sn) 
+            if(static_ip && static_gw && static_sn && static_dns1) 
             {
-                this->theApp->getLogger().printf( F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
-                IPAddress ip1,ip2,ip3;                 
+                this->theApp->getLogger().printf( F("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
+                IPAddress ip1,ip2,ip3, dns1;                 
                 if(ip1.fromString(static_ip))
                 {
-                    ip2.fromString(static_gw); ip3.fromString(static_sn);
-                    wifiManager.setSTAStaticIPConfig(ip1, ip2, ip3);
+                    ip2.fromString(static_gw); ip3.fromString(static_sn); 
+                    dns1.fromString(static_dns1);
+                    wifiManager.setSTAStaticIPConfig(ip1, ip2, ip3, dns1);
                 }
             }
 
@@ -173,13 +176,13 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
         else //SSID defined
         {
             this->theApp->getLogger().printf( F("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
-            if(static_ip && static_gw && static_sn) 
+            if(static_ip && static_gw && static_sn && static_dns1) 
             {
-                this->theApp->getLogger().printf( F("Use Custom STA IP/GW/Subnet (%s, %s, %s)\r\n"), static_ip, static_gw, static_sn);
-                IPAddress ip1,ip2,ip3;
-                if(ip1.fromString(static_ip) && ip2.fromString(static_gw) && ip3.fromString(static_sn))
+                this->theApp->getLogger().printf( F("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
+                IPAddress ip1,ip2,ip3, dns1;
+                if(ip1.fromString(static_ip) && ip2.fromString(static_gw) && ip3.fromString(static_sn) && dns1.fromString(static_dns1))
                 {                    
-                    WiFi.config(ip1, ip2, ip3);                
+                    WiFi.config(ip1, ip2, ip3, dns1);                
                 }
                 else
                 {
