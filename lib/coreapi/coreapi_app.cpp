@@ -141,6 +141,19 @@ void _Application::addModule(_BaseModule* module)
     if(module) {
         module->theApp = this;
         
+        auto * found = this->getBaseModule(module->getTitle());
+        if(found) 
+        {
+            this->logger.printf(F("_Application module already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
+        }
+        
+
+        if(module->unique)
+        {
+            //TODO
+        }
+
+        //TODO remove
         module->beforeModuleAdded();
 
         this->modules.push_back(module);
@@ -191,8 +204,13 @@ void _Application::idleLoop()
 void _Application::loop()
 {
     static long logmillis = 0 ;
-    bool tolog = ( this->isDebug() && ( (millis() - logmillis) > 1000) ); 
-    if(tolog) this->logger.printf(F("_Application::loop(%d) BEGIN, "), loopcnt );
+    long now = millis();
+    this->toLog = ( this->isDebug() && ( (now - logmillis) > 1000) ); 
+
+    if(this->isToLog()) {
+        logmillis = now; 
+        this->logger.printf(F("_Application::loop(%d) BEGIN, "), loopcnt );
+    } 
 
     for(_BaseModule* module : this->modules) 
     {
@@ -201,7 +219,7 @@ void _Application::loop()
             if(module->isEnabled())
             {
                 //module main loop
-                if(tolog) this->logger.printf(F("[%s]loop, "), module->getTitle().c_str() );
+                if(this->isToLog()) this->logger.printf(F("[%s]loop, "), module->getTitle().c_str() );
                 module->loop();
             }
         }
@@ -212,15 +230,14 @@ void _Application::loop()
     if(idle)
     {
         //app idle loop
-        if(tolog) this->logger.printf(F("[IDLE]loop, ") );
+        if(this->isToLog()) this->logger.printf(F("[IDLE]loop, ") );
         this->idleLoop();
     }
     this->loopcnt++;
 
 
-    if(tolog) {
+    if(this->isToLog()) {
         this->logger.printf(F("_Application::loop END.\n") );
-        logmillis = millis(); 
     }
 }
 

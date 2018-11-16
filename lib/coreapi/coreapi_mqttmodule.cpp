@@ -75,24 +75,16 @@ _Error MqttModule::setup(const JsonObject &root)
     const int _server_port= root["mqtt_server_port"] | 1883;
     
     this->clientId = String(root["client_id"] | "shgw_*");    
-    // if(_client_id.length()==0)
-    // {
-    //     this->clientId = _client_id;
-    // }
-    // else
-    // {
-    //     // Create a random client ID
-    //     this->clientId = this->getTitle();
-    //     this->clientId += "_" + String(random(0xffff), HEX);
-    // }
+
+    this->topicPrefix = String(root["topic_prefix"] | "");
 
     const char* _server_auth_username= root["server_auth"]["username"];
     const char* _server_auth_password= root["server_auth"]["password"];    
 
-    this->theApp->getLogger().printf(F("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
+    this->theApp->getLogger().printf(F("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, topic_prefix: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_server_host), _server_port,
-        this->clientId.c_str(),
+        this->clientId.c_str(), this->topicPrefix.c_str(),
         REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password)
     );
     
@@ -131,17 +123,16 @@ _Error MqttModule::setup(const JsonObject &root)
 
 void MqttModule::loop()
 {
-    static long lastReconnectAttempt = 0;
     if (!mqttClient.connected()) 
     {
         // Client not connected
         long now = millis();
-        if (now - lastReconnectAttempt > LOOP_RECONNECT_ATTEMPT_MS) {
-            lastReconnectAttempt = now;
+        if (now - this->lastReconnectAttempt > LOOP_RECONNECT_ATTEMPT_MS) {
+            this->lastReconnectAttempt = now;
             // Attempt to reconnect
             _Error ret = this->reconnect();
             if (ret == _NoError) {
-                lastReconnectAttempt = 0;
+                this->lastReconnectAttempt = 0;
                 // DPRINTF(F(">\t%s CONNECTED: reconnect() return-> OK\n"), this->getTitle().c_str());
             } else {
                 DPRINTF(F(">\t%s ERROR: reconnect(): %s (%d)\n"),
@@ -158,19 +149,20 @@ void MqttModule::loop()
 
 }
 
-void MqttModule::publish(String topicEnd, String value) const
+void MqttModule::publish(String topicEnd, String value, bool retained) const
 {
     if(_NoError == this->reconnect())
     {
+        String topic = this->topicPrefix + topicEnd;
         //TODO
-
+        mqttClient.publish(topic.c_str(), value.c_str(), retained);
     }
 }
 
-void MqttModule::publish(String topicEnd, int value) const
+void MqttModule::publish(String topicEnd, int value, bool retained) const
 {
     String value_str = String(value);
-    this->publish(topicEnd, value_str);
+    this->publish(topicEnd, value_str, retained);
 }
 
 void MqttModule::shutdown()

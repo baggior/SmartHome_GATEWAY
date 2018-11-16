@@ -31,6 +31,8 @@ class _Application;
 
 class _BaseModule {
 
+    friend _Application;
+
 protected:           
     enum CoreModuleOrderEnum {
         Order_First, Order_BeforeNormal, Order_Normal, Order_AfterNormal, Order_Last
@@ -38,8 +40,8 @@ protected:
 
 public:    
     inline _BaseModule(String _title, String _descr, 
-        bool _executeInMainLoop=true, CoreModuleOrderEnum _order=Order_Normal)
-        : title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop), order(_order) {}
+        bool _executeInMainLoop=true, CoreModuleOrderEnum _order=Order_Normal, bool _unique=false)
+        : title(_title), descr(_descr), executeInMainLoop(_executeInMainLoop), order(_order), unique(_unique) {}
     inline virtual ~_BaseModule() {}
     
     inline String getTitle() const {return this->title; }
@@ -57,20 +59,22 @@ protected:
     virtual void shutdown()=0;
     virtual void loop() =0;    
 
+    //TODO remove
     inline virtual void beforeModuleAdded() {}
     inline virtual void afterModuleRemoved() {}
 
     _Application* theApp = NULL;
-    bool enabled = false;
 
     String title;
     String descr;
-    
+
 private:
-    friend _Application;
+    
+    bool enabled = false;  
 
     const bool executeInMainLoop;
     const CoreModuleOrderEnum order;
+    const bool unique;
 };
 
 // class _ServiceModule : public _BaseModule
@@ -122,8 +126,11 @@ protected:
     void taskloop();
 
     unsigned int taskLoopTimeMs;
-    Task loopTask;
+    Task loopTask;    
+
+private:
     long loopcnt = 0;
+
 };
 
 class AsyncWebServer;
@@ -264,11 +271,11 @@ public:
     {
         return (T*) this->getBaseModule(title);
     }
-
     
     void loop();
 
-    inline bool isDebug() {return this->debug;}
+    inline bool isDebug() { return this->debug; }
+    inline bool isToLog() { return this->debug && this->toLog; }
 
     inline unsigned long millisSinceStartup() const {return millis() - this->startupTimeMillis;} 
     inline const _ApplicationLogger& getLogger() const {return this->logger;}
@@ -299,6 +306,7 @@ private:
     Scheduler runner;
 
     bool debug=false;
+    bool toLog=false;
 
     IdleLoopCallback idleLoopCallback_fn=NULL;
     long loopcnt = 0;

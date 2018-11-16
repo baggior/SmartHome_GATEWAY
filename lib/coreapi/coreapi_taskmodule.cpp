@@ -38,9 +38,7 @@ void _TaskModule::setEnabled(bool _enabled)
 
 void _TaskModule::taskloop()
 {    
-    static long logmillis = 0 ;
-    bool tolog = this->theApp->isDebug() && ( (millis() - logmillis) > 1000) ;
-    if(tolog) {
+    if(this->theApp->isToLog()) {
         this->theApp->getLogger().printf(F("TASK [%s]loop(%d)BEGIN, "), 
             this->getTitle().c_str(), this->loopcnt );
     }
@@ -48,12 +46,10 @@ void _TaskModule::taskloop()
     this->loop();
     this->loopcnt++; 
 
-    if(tolog) {
+    if(this->theApp->isToLog()) {
         this->theApp->getLogger().printf(F("TASK [%s]loop END.\n"), 
-            this->getTitle().c_str() );
-        logmillis = millis(); 
+            this->getTitle().c_str() );         
     }
-
 }
 
 void _TaskModule::shutdown()  
