@@ -43,7 +43,7 @@ static PubSubClient mqttClient(espClient);
 //----------------------------------------------------
 
 MqttModule::MqttModule()
-: _BaseModule(ENUM_TO_STR(_CoreMqttModule), "Core Mqtt service module", true, Order_BeforeNormal )
+: _BaseModule(ENUM_TO_STR(_CoreMqttModule), "Core Mqtt service module", true, Order_BeforeNormal, true )
 {
 
 }
@@ -154,8 +154,12 @@ void MqttModule::publish(String topicEnd, String value, bool retained) const
     if(_NoError == this->reconnect())
     {
         String topic = this->topicPrefix + topicEnd;
-        //TODO
-        mqttClient.publish(topic.c_str(), value.c_str(), retained);
+
+        bool ok = mqttClient.publish(topic.c_str(), value.c_str(), retained);
+        if(!ok) {
+            DPRINTF(F("\t> Error MqttModule::publish(%s)\n%s\n "), topic.c_str(), value.c_str());
+        }
+        
     }
 }
 

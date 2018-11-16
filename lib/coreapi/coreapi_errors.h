@@ -14,6 +14,7 @@ public:
 
 extern _Error _NoError;
 extern _Error _Disable;
+extern _Error _FSError;
 extern _Error _ConfigLoadError;
 extern _Error _ConfigPersistError;
 

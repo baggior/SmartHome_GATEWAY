@@ -68,7 +68,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
         return err;
     }
     
-    //TODO config  
+    // config  
     const char * _protocolo = root["protocol"];
     const int _slave_id= root["slave_id"]; //16
     
@@ -259,33 +259,45 @@ void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, 
     size_t size = modbusMemoryConfig.size();
 
     // Walk the JsonArray efficiently
-    for (JsonObject& item : modbusMemoryConfig) {
-        const char* type = item["type"];
+    for (JsonObject& item : modbusMemoryConfig) 
+    {
+        String type = item["modbus_type"]      | String("register");
+        String topic = item["topic"]    | type; //String("");
+
         int address = item["address"];
         int count = item["count"];
+
         if(type && count>0 && address>=0)
         {
-            ModbusDataMemory::ItemType itemType = ModbusDataMemory::ItemType::UNKNOWN;
+            ModbusDataMemory::ModbusItemType ModbusItemType = ModbusDataMemory::ModbusItemType::UNKNOWN;
             
-            if( String(type).equalsIgnoreCase("coil") )
+            if( type.equalsIgnoreCase("coil") )
             {
-                itemType = ModbusDataMemory::ItemType::coil;
+                ModbusItemType = ModbusDataMemory::ModbusItemType::coil;
             }
-            else if( String(type).equalsIgnoreCase("register") )
+            else if( type.equalsIgnoreCase("register") )
             {
-                itemType = ModbusDataMemory::ItemType::holding_register;
+                ModbusItemType = ModbusDataMemory::ModbusItemType::holding_register;
             }
             else
             {
                 // log 
-                DPRINTF(F("ModbusMemory config Error: unknown type: %s \n"), type);
+                DPRINTF(F("ModbusMemory config Error: unknown type: %s \n"), type.c_str());
                 continue;
             }
 
-            int endaddress = address+count;
+            int endaddress = address + count;
             for (int i=address; i<endaddress; ++i) 
-            {
-                modbusDataMemory.addItem(itemType, i, String(type) + "-" + String(i));
+            {                
+                String name = topic;
+                if(count>1) {
+                    if(name.length() > 0) {
+                        name += "_";
+                    }
+                    name += String(i);
+                } 
+
+                modbusDataMemory.addItem(ModbusItemType, i, name);
             }
         }
     }
@@ -293,21 +305,21 @@ void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, 
     // {
     //     for (int i=1; i<79; ++i) 
     //     {
-    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::coil, i, "coil-"+String(i));
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ModbusItemType::coil, i, "coil-"+String(i));
     //     }
     // }
 
     // {
     //     for (int i=1; i<90; ++i) 
     //     {
-    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register, i, "register-"+String(i));
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ModbusItemType::holding_register, i, "register-"+String(i));
     //     }
     // }
 
     // {
     //     for (int i=209; i<244; ++i) 
     //     {
-    //         this->modbusDataMemory.addItem(ModbusDataMemory::ItemType::holding_register2, i, "register2-"+String(i));
+    //         this->modbusDataMemory.addItem(ModbusDataMemory::ModbusItemType::holding_register2, i, "register2-"+String(i));
     //     }
     // }
 }
@@ -321,14 +333,14 @@ void ModbusDataMemory::clean() {
     // this->registers2_buffer.clear();
 }
 
-void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_address, String name) {
+void ModbusDataMemory::addItem(ModbusDataMemory::ModbusItemType type, uint16_t modbus_address, String name) {
 
     Item _item;
     _item.modbus_address = modbus_address;
     _item.name = name;
     _item.value = 0;
 
-    if(type==ItemType::coil)
+    if(type==ModbusItemType::coil)
     {
         coils_buffer.push_back(_item);    
         if (min_coil_address==-1 || min_coil_address > _item.modbus_address)
@@ -336,7 +348,7 @@ void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_
             min_coil_address = _item.modbus_address;
         }
     }
-    else if(type==ItemType::holding_register)
+    else if(type==ModbusItemType::holding_register)
     {        
         registers_buffer.push_back(_item);    
         if (min_reg_address==-1 || min_reg_address > _item.modbus_address)
@@ -344,7 +356,7 @@ void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_
             min_reg_address = _item.modbus_address;
         }    
     }
-    // else if(type==ItemType::holding_register2)
+    // else if(type==ModbusItemType::holding_register2)
     // {        
     //     registers2_buffer.push_back(_item);    
     //     if (min_reg2_address==-1 || min_reg2_address > _item.modbus_address)
@@ -352,5 +364,40 @@ void ModbusDataMemory::addItem(ModbusDataMemory::ItemType type, uint16_t modbus_
     //         min_reg2_address = _item.modbus_address;
     //     }    
     // }
+}
+
+static void print(const ModbusDataMemory::Item& item, JsonObject& obj, const char * modbus_type) 
+{
+    obj["name"] = item.name;
+    obj["value"] = item.value;
+    obj["address"] = item.modbus_address;
+    obj["modbus_type"] = modbus_type;
+}
+
+
+void ModbusDataMemory::printDataMemory(Stream* out) const
+{
+    if(out)
+    {
+        DynamicJsonBuffer jsonBuffer(1024);
+        JsonArray& arr = jsonBuffer.createArray();
+
+        for(const ModbusDataMemory::Item& item : this->coils_buffer) 
+        {
+            JsonObject& obj = jsonBuffer.createObject();
+            print(item, obj, "coil");
+            arr.add(obj);
+        }
+
+        for(const ModbusDataMemory::Item& item : this->registers_buffer) 
+        {
+            JsonObject& obj = jsonBuffer.createObject();
+            print(item, obj, "register");
+            arr.add(obj);
+        }
+
+        arr.prettyPrintTo(*out);
+    }
+
 }
 

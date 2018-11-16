@@ -54,6 +54,7 @@ _Error ModbusPollingModule::setup()
         else
         {
             this->theApp->getLogger().printf(F(">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
+            return _Disable;
         }
 
         //MQTT
@@ -91,10 +92,18 @@ void ModbusPollingModule::publish(const ModbusDataMemory& modbusDataMemory)
 
 void ModbusPollingModule::loop()
 {
-    if(this->p_modbus) {
+    if(this->p_modbus) 
+    {
         this->p_modbus->updateDataMemoryValues(this->modbusDataMemory);
         if(this->p_mqtt) {                       
             this->publish(this->modbusDataMemory);
+        }
+        
+        if(this->theApp->isDebug())
+        {
+            File f = baseutils::openFile("log/modbuspollingdata.json", "w");
+            this->modbusDataMemory.printDataMemory(&f);
+            f.close();
         }
     }
 }

@@ -205,7 +205,7 @@ public:
 private:
     friend _Application;
 
-    _Error load(_ApplicationLogger& logger, bool formatSPIFFSOnFails=false);
+    _Error load(_ApplicationLogger& logger);
 
     _Error persist();
 
@@ -291,6 +291,9 @@ private:
     void idleLoop();
     
     void shutdown();
+    
+    _Error mountFS();
+    void dismountFS();
 
     bool modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) const;
 

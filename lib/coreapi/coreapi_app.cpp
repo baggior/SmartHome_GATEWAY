@@ -69,6 +69,11 @@ _Error _Application::setup()
 
     this->logger.printf(F("_Application setup start\n"));
    
+    //FS MOUNT
+    this->logger.printf(F("_Application FS mount..\n"));
+    _Error ret = this->mountFS();
+    if(ret!=_NoError) return ret; 
+
     //setup main configuration
     this->logger.printf(F("_Application config load start\n"));
     _Error err = this->config.load(this->logger);
@@ -122,11 +127,17 @@ _Error _Application::setup()
 
 void _Application::shutdown()
 {
-    this->logger.printf(F("_Application shutdown start\n"));
+    this->logger.printf(F("_Application modules shutdown (%d).. \n"), this->modules.size());
     for(_BaseModule* module : this->modules) {
         module->setEnabled(false);
         module->shutdown();        
     }    
+    this->logger.printf(F("_Application modules shutdown done. \n"));
+
+    //FS Un-MOUNT
+    this->dismountFS();
+    this->logger.printf(F("_Application FS dismounted.\n"));
+
     this->logger.printf(F("_Application shutdown completed.\n"));
 }
 
@@ -251,6 +262,35 @@ void _Application::restart()
     delay(5000);
 }
 
+_Error _Application::mountFS()
+{
+    bool b = false;
+#ifdef ESP32
+    b = SPIFFS.begin(true);
+#elif defined ESP8266
+    b = SPIFFS.begin();
+#endif
+
+    if(!b)
+    {
+        logger.printf(F(">Error opening SPIFFS filesystem\r\n"));   
+        return _FSError;
+    }
+    else 
+    {
+#ifdef ESP32
+        logger.printf(F("\tSPIFFS filesystem mounted (%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
+#elif defined ESP8266   
+        logger.printf(F("SPIFFS filesystem mounted\r\n"));
+#endif          
+    }
+    return _NoError;
+}
+
+void _Application::dismountFS()
+{
+    SPIFFS.end();
+}
 
 
 

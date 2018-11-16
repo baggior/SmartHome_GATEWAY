@@ -24,21 +24,22 @@
     "task_listen_interval": 10000,
     "dataMemoryConfig": [
       {
-        "type": "coil",
+        "topic": "onoff",
+        "modbus_type": "coil",
         "address": 1,
         "count": 78
       },
       {
-        "type": "register",
+        "modbus_type": "register",
         "address": 1,
         "count": 89
       },
       {
-        "type": "register",
+        "topic": "register2",
+        "modbus_type": "register",
         "address": 209,
         "count": 35
       }
-
     ]
   },
 
@@ -78,7 +79,7 @@
     "mqtt_server_host": "iot.eclipse.org",
     "mqtt_server_port": 1883,
     "client_id": "shgw_*",
-    "topic_prefix": "YEPPA/kid",
+    "topic_prefix": "HPU_KITA",
 
 
     "enable": false,

@@ -16,11 +16,11 @@ class ModbusDataMemory
 public:
     struct Item {
         uint16_t modbus_address;
-        String name;
+        String name;                //mqtt topic name
         uint16_t value;    
     };
 
-    enum ItemType {
+    enum ModbusItemType {
         coil,
         holding_register,     
         // holding_register2,    
@@ -36,8 +36,10 @@ public:
     // inline const etl::ivector<Item>& getRegisters2() const     { return this->registers2_buffer; }
 
     void clean();
-    void addItem(ItemType type, uint16_t modbus_address, String name);
+    void addItem(ModbusItemType modbus_type, uint16_t modbus_address, String name);
     
+    void printDataMemory(Stream* out) const;
+
 private:
 
     etl::vector<Item, ModbusDataMemory_MAX_MEMORY_ITEM_COUNT> coils_buffer;
@@ -70,6 +72,7 @@ public:
 
     void updateDataMemoryValues(ModbusDataMemory & modbusDataMemory) const;
     void buildDataMemory(const JsonArray & modbusMemoryConfig, ModbusDataMemory & modbusDataMemory) const;    
+    
 
 protected:
     virtual _Error setup() final override;

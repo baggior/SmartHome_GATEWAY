@@ -23,51 +23,26 @@ _ApplicationConfig::~_ApplicationConfig()
 {  
 }
 
-_Error _ApplicationConfig::load(_ApplicationLogger& logger, bool formatSPIFFSOnFails)
+_Error _ApplicationConfig::load(_ApplicationLogger& logger)
 {
-    bool b = false;
-#ifdef ESP32
-    b = SPIFFS.begin(formatSPIFFSOnFails);
-#elif defined ESP8266
-    b = SPIFFS.begin();
-#endif
+    logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
+    const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
 
-    if(!b)
+    this->jsonObject = NULL;
+    jsonBuffer.clear();
+    JsonObject& jsonObject_parsed = jsonBuffer.parseObject(configJsonString);    // the input is read-only, the parser copies the input
+    if(jsonObject_parsed.success())
     {
-        logger.printf(F("Error opening SPIFFS filesystem\r\n"));   
+        this->jsonObject = &jsonObject_parsed;
+        this->printConfigTo(logger.getStream());
 
-        _Error err(-1, "Error opening SPIFFS filesystem");
-        return err;
+        return _NoError; 
     }
-    else 
+    else
     {
-#ifdef ESP32
-        logger.printf(F("SPIFFS filesystem open(%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
-#elif defined ESP8266   
-        logger.printf(F("SPIFFS filesystem open\r\n"));
-#endif  
-        logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
-        const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
-    
-        SPIFFS.end();   
-
-        this->jsonObject = NULL;
-        jsonBuffer.clear();
-        JsonObject& jsonObject_parsed = jsonBuffer.parseObject(configJsonString);    // the input is read-only, the parser copies the input
-        if(jsonObject_parsed.success())
-        {
-            this->jsonObject = &jsonObject_parsed;
-            this->printConfigTo(logger.getStream());
-
-            return _NoError; 
-        }
-        else
-        {
-            //  DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
-            return _Error(-1, "Error parsing json config file");
-        }
+        //  DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
+        return _Error(-1, "Error parsing json config file");
     }    
-    
 }
 
 void _ApplicationConfig::printConfigTo(Stream* stream) const
@@ -116,17 +91,17 @@ const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
 _Error _ApplicationConfig::persist()
 {
    
-#ifdef ESP32
-    bool b = SPIFFS.begin(true);
-#elif defined ESP8266
-    bool b = SPIFFS.begin();
-#endif
+// // #ifdef ESP32
+// //     bool b = SPIFFS.begin(true);
+// // #elif defined ESP8266
+// //     bool b = SPIFFS.begin();
+// // #endif
 
-    if(!b)
-    {
-        DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
-        return _ConfigPersistError;
-    }
+//     if(!b)
+//     {
+//         DPRINTF(F("Error opening SPIFFS filesystem\r\n"));   
+//         return _ConfigPersistError;
+//     }
 
     //ArduinoUtil au;    
     //TODO
@@ -139,7 +114,7 @@ _Error _ApplicationConfig::persist()
     if (!configFile) 
     {
         DPRINTF(F("ERROR Preparing to write config file: %s \r\n"),CONFIG_FILE_PATH);      
-        SPIFFS.end();
+        // SPIFFS.end();
         return _ConfigPersistError;     
     }
     else
@@ -156,7 +131,7 @@ _Error _ApplicationConfig::persist()
         }
    
         configFile.close();
-        SPIFFS.end();   
+        // SPIFFS.end();   
     }   
 
     this->theApp.getLogger().printf(F("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);

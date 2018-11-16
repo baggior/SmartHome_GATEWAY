@@ -157,7 +157,7 @@ static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
 // -----------------------------------------------
 
 Rs485ServiceModule::Rs485ServiceModule(String _title, String _descr) 
-: _BaseModule(_title,_descr, false, Order_First),
+: _BaseModule(_title,_descr, false, Order_First, true),
   p_logger(NULL), 
   m_bitTime_us(0), p_ser(NULL), 
   defaultCommandTimeout(DEFAULT_COMMAND_TIMEOUT)
