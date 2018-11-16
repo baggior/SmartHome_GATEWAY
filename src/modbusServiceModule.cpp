@@ -375,29 +375,25 @@ static void print(const ModbusDataMemory::Item& item, JsonObject& obj, const cha
 }
 
 
-void ModbusDataMemory::printDataMemory(Stream* out) const
+void ModbusDataMemory::printDataMemory(Stream& out) const
 {
-    if(out)
+    DynamicJsonBuffer jsonBuffer(1024);
+    JsonArray& arr = jsonBuffer.createArray();
+
+    for(const ModbusDataMemory::Item& item : this->coils_buffer) 
     {
-        DynamicJsonBuffer jsonBuffer(1024);
-        JsonArray& arr = jsonBuffer.createArray();
-
-        for(const ModbusDataMemory::Item& item : this->coils_buffer) 
-        {
-            JsonObject& obj = jsonBuffer.createObject();
-            print(item, obj, "coil");
-            arr.add(obj);
-        }
-
-        for(const ModbusDataMemory::Item& item : this->registers_buffer) 
-        {
-            JsonObject& obj = jsonBuffer.createObject();
-            print(item, obj, "register");
-            arr.add(obj);
-        }
-
-        arr.prettyPrintTo(*out);
+        JsonObject& obj = jsonBuffer.createObject();
+        print(item, obj, "coil");
+        arr.add(obj);
     }
 
+    for(const ModbusDataMemory::Item& item : this->registers_buffer) 
+    {
+        JsonObject& obj = jsonBuffer.createObject();
+        print(item, obj, "register");
+        arr.add(obj);
+    }
+
+    arr.prettyPrintTo(out);
 }
 

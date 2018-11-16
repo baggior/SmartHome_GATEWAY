@@ -2,6 +2,9 @@
 
 #define DEFAULT_MODBUS_TASK_LOOP_TIME_MS 60000 //each 60 seconds
 
+#define DATAMEMORY_LOG_FILE "log/modbuspollingdata.json"
+
+
 ModbusPollingModule::ModbusPollingModule() 
 :   _TaskModule("ModbusPollingModule", "Scan configured registers values and forwards them to MQTT", DEFAULT_MODBUS_TASK_LOOP_TIME_MS),
     p_modbus(NULL)
@@ -95,14 +98,15 @@ void ModbusPollingModule::loop()
     if(this->p_modbus) 
     {
         this->p_modbus->updateDataMemoryValues(this->modbusDataMemory);
+
         if(this->p_mqtt) {                       
             this->publish(this->modbusDataMemory);
         }
         
         if(this->theApp->isDebug())
         {
-            File f = baseutils::openFile("log/modbuspollingdata.json", "w");
-            this->modbusDataMemory.printDataMemory(&f);
+            File f = baseutils::openFile(DATAMEMORY_LOG_FILE, "w");
+            this->modbusDataMemory.printDataMemory(f);
             f.close();
         }
     }

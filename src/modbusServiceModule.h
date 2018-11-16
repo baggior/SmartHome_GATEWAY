@@ -38,7 +38,7 @@ public:
     void clean();
     void addItem(ModbusItemType modbus_type, uint16_t modbus_address, String name);
     
-    void printDataMemory(Stream* out) const;
+    void printDataMemory(Stream& out) const;
 
 private:
 
