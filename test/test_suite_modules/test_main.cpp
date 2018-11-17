@@ -17,7 +17,6 @@
 
 #include <unity.h>
 
-#define RS485_REDE_CONTROL 25
 
 #ifdef UNIT_TEST
 #include "../../src/wifiRestServerModule.cpp"

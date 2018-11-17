@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "../../src/config.h"
+// #include "../../src/config.h"
+#include <dbgutils.h>
 #include <ModbusMaster.h>
 #include <ConfigurableSoftwareSerial.h>
 
@@ -16,6 +17,7 @@
 
 #define RX_PIN 16
 #define TX_PIN 17
+#define RS485_REDE_CONTROL 25
 
 #define MODBUS_NODE_SLAVE_ID 16
 
@@ -29,17 +31,32 @@ ModbusMaster node;
 
 #define COIL_ADDR(n)   (0x0000 + n) ///< returns  discrete coil address
 
+static void preTransmission() {
+    _serial.flush();
+    digitalWrite(RS485_REDE_CONTROL, HIGH);
+}
+
+static void postTransmission() {
+    _serial.flush();    
+    digitalWrite(RS485_REDE_CONTROL, LOW);
+}
+
+
 void test_connection(void) {
 
     _serial.begin(MODBUS_BAUD, SERIAL_8N1, RX_PIN, TX_PIN);
 //_serial.begin(MODBUS_BAUD);
 //_serial.enableRx(true);
+    // _serial.setDebugOutput(true);
+
+    pinMode(RS485_REDE_CONTROL, OUTPUT);
+    digitalWrite(RS485_REDE_CONTROL, LOW);
+
     node.begin(MODBUS_NODE_SLAVE_ID, _serial);
-
-// _serial.setDebugOutput(true);
-
-    // node.clearResponseBuffer();
-    // node.clearTransmitBuffer();
+    node.clearResponseBuffer();
+    node.clearTransmitBuffer();
+    node.preTransmission( preTransmission );    
+    node.postTransmission( postTransmission );
     
     // //compressor working COIL 18
     // uint8_t err = node.readCoils(COIL_ADDR(18), 1);
@@ -61,6 +78,9 @@ void test_connection(void) {
 void test_read_coil(void) {
    
     //compressor working COIL 18
+    //  TX: 10h 01h 00h 12h 00h 01h 5eh 8eh
+    //  RX: 10h 01h 01h 00h 54h b4h
+
     uint8_t err = node.readCoils(COIL_ADDR(18), 1);
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(ModbusMaster::ku8MBSuccess, err, String(String("readCoil error: ")+err).c_str());
     
@@ -71,6 +91,7 @@ void test_read_coil(void) {
         for (uint8_t j = 0; j < 1; j++)
         {
             data[j] = node.getResponseBuffer(j);
+            DPRINTF(F("read data: %d\n"), data[j]);
         }
     }
     
