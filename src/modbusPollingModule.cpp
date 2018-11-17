@@ -2,7 +2,7 @@
 
 #define DEFAULT_MODBUS_TASK_LOOP_TIME_MS 60000 //each 60 seconds
 
-#define DATAMEMORY_LOG_FILE "log/modbuspollingdata.json"
+#define DATAMEMORY_LOG_FILE "/LOG/modbuspollingdata.json"
 
 
 ModbusPollingModule::ModbusPollingModule() 

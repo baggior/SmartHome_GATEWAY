@@ -124,7 +124,7 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
 {
     //COILS
     {
-        uint16_t min_coil_address = modbusDataMemory.min_coil_address;
+        const uint16_t min_coil_address = modbusDataMemory.min_coil_address;
         uint16_t coil_count = modbusDataMemory.coils_buffer.size();
         DPRINTF("updateCoilsDataMemoryValues: min_address: %d, count: %d \n", min_coil_address, coil_count);
         if(coil_count>0 && min_coil_address>=0) 
@@ -161,7 +161,7 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
 
     // REGS
     {
-        uint16_t min_reg_address = modbusDataMemory.min_reg_address;
+        const uint16_t min_reg_address = modbusDataMemory.min_reg_address;
         uint16_t regs_count = modbusDataMemory.registers_buffer.size();
         DPRINTF("updateRegistersDataMemoryValues: min_address: %d, count: %d \n", min_reg_address, regs_count);
         if(regs_count>0 && min_reg_address>=0) 
@@ -325,9 +325,9 @@ void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, 
 }
 
 void ModbusDataMemory::clean() {
-    this->min_coil_address= -1 ;
+    this->min_coil_address= 0 ;
     this->coils_buffer.clear();
-    this->min_reg_address = -1 ;
+    this->min_reg_address = 0 ;
     this->registers_buffer.clear();
     // this->min_reg2_address = -1 ;
     // this->registers2_buffer.clear();
@@ -343,17 +343,17 @@ void ModbusDataMemory::addItem(ModbusDataMemory::ModbusItemType type, uint16_t m
     if(type==ModbusItemType::coil)
     {
         coils_buffer.push_back(_item);    
-        if (min_coil_address==-1 || min_coil_address > _item.modbus_address)
+        if (this->min_coil_address > _item.modbus_address)
         {
-            min_coil_address = _item.modbus_address;
+            this->min_coil_address = _item.modbus_address;
         }
     }
     else if(type==ModbusItemType::holding_register)
     {        
         registers_buffer.push_back(_item);    
-        if (min_reg_address==-1 || min_reg_address > _item.modbus_address)
+        if (min_reg_address > _item.modbus_address)
         {
-            min_reg_address = _item.modbus_address;
+            this->min_reg_address = _item.modbus_address;
         }    
     }
     // else if(type==ModbusItemType::holding_register2)

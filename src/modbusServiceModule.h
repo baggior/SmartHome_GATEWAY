@@ -43,9 +43,9 @@ public:
 private:
 
     etl::vector<Item, ModbusDataMemory_MAX_MEMORY_ITEM_COUNT> coils_buffer;
-    uint16_t min_coil_address=-1;
+    uint16_t min_coil_address;
     etl::vector<Item, ModbusDataMemory_MAX_MEMORY_ITEM_COUNT> registers_buffer;
-    uint16_t min_reg_address=-1;    
+    uint16_t min_reg_address;    
     // etl::vector<Item, ModbusDataMemory_MAX_MEMORY_ITEM_COUNT> registers2_buffer;
     // uint16_t min_reg2_address=-1;    
 

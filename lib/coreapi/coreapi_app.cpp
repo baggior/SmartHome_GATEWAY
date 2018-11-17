@@ -225,6 +225,7 @@ void _Application::loop()
 
     for(_BaseModule* module : this->modules) 
     {
+        //run loop of modules that are to be executed in main loop
         if(module->executeInMainLoop)
         {
             if(module->isEnabled())
@@ -246,10 +247,11 @@ void _Application::loop()
     }
     this->loopcnt++;
 
-
     if(this->isToLog()) {
         this->logger.printf(F("_Application::loop END.\n") );
     }
+
+    yield();
 }
 
 
