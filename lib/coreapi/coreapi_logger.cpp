@@ -35,3 +35,11 @@ void _ApplicationLogger::printf(const __FlashStringHelper *fmt, ...) const
         va_end (args);
     }
 }
+
+void _ApplicationLogger::printf(const _Error& error) const
+{
+    if(error==_NoError)
+        this->printf(F("[NoError]"));
+    else
+        this->printf(F("[Error (%d): %s]"), error.errorCode, error.message.c_str());
+}

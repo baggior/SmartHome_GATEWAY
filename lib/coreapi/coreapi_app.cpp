@@ -255,8 +255,14 @@ void _Application::loop()
 }
 
 
-void _Application::restart()
+void _Application::restart(const _Error& error) const
 {
+    if(error!=_NoError)
+    {
+        this->getLogger().printf(error);
+    }
+    this->getLogger().printf(F("RESTART\n"));
+
     delay(3000);      
     this->getLogger().flush();
 

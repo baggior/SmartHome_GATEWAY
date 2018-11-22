@@ -179,6 +179,8 @@ public:
 
     void printf(const char *fmt, ...) const;
     void printf(const __FlashStringHelper *fmt, ...) const;
+    void printf(const _Error& error) const;
+
     inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
     inline Stream* getStream()const {return this->dbgstream; }
@@ -258,7 +260,7 @@ public:
     _Application();
     ~_Application();
     
-    void restart();
+    void restart(const _Error& error=_NoError) const;
 
     _Error setup();
     void addModule(_BaseModule* module);

@@ -162,9 +162,10 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
             bool connected= wifiManager.autoConnect();  //use this for auto generated name ESP + ChipID   
             if(!connected)
             {
+                _Error ret = _Error(-10, "wifiManager auto connection error => restart.");
                 // Reset
-                this->theApp->restart();      
-                return _Error(-10, "wifiManager auto connection error => reset.");           
+                this->theApp->restart(ret);      
+                return ret;           
             }
             else
             {
@@ -201,9 +202,10 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
             }
             else
             {
+                _Error ret = _Error(-10, "connection error to SSID: "+String(SSID)+" => restart.");
                 // Reset
-                this->theApp->restart();     
-                return _Error(-10, "connection error to SSID: "+String(SSID)+" => reset."); 
+                this->theApp->restart(ret);     
+                return ret;
             }
         }         
     }
