@@ -1,0 +1,95 @@
+{
+  "wifi": {
+    
+  },  
+
+  "modbus": {
+    "uart": 1,
+    "baud": 9600,
+    "databits": 8,
+    "stopbits": 1,
+    "parity": "N",
+
+    "protocol": "RTU",    
+    "slave_id": 16    
+  },
+  "modbusPolling": {
+    "enable": true,
+    "task_listen_interval": 10000,
+    "dataMemoryConfig": [
+      {
+        "topic": "onoff",
+        "modbus_type": "coil",
+        "address": 1,
+        "count": 78
+      },
+      {
+        "modbus_type": "register",
+        "address": 1,
+        "count": 89
+      },
+      {
+        "topic": "register2",
+        "modbus_type": "register",
+        "address": 209,
+        "count": 35
+      }
+    ]
+  },
+
+  "telnet": {
+    "enable": true,
+    "port": 23,
+    "inactivetime": 300,
+    "task_listen_interval": 100
+  },
+  "websocket": {
+    "enable": true,
+    "server_port": 81,
+    "protocol": null,
+    "server_auth": {
+      "username": null,
+      "password": null
+    },
+    "task_listen_interval": 10
+  },
+  "rest": {
+    "enable": true,
+    "server_port": 80,
+    "server_auth": {
+      "username": null,
+      "password": null
+    }
+  },
+  "ftp": {
+    "enable": true,
+    "server_auth": {
+      "username": "esp",
+      "password": "esp"
+    },
+    "task_listen_interval": 20
+  },
+  "mqtt": {
+    "mqtt_server_host": "iot.eclipse.org",
+    "mqtt_server_port": 1883,
+    "client_id": "shgw_*",
+    "topic_prefix": "HPU_KITA",
+
+
+    "enable": false,
+    "task_listen_interval": 50,
+
+    "cayenne" : {    
+
+      "enable": true,
+      "username_token": "36cc5bb0-266e-11e7-a4a6-237007b7399c",
+      "mqttpassword_token": "cd82e8f61ca283c10209db705d6c10582d619693",
+      "client_id": "e6fd0b70-b56f-11e7-bd7e-3193fab997a8",
+      "mqtt_server_host": "mqtt.mydevices.com",
+      "mqtt_server_port": 1883
+    }
+
+  }   
+
+  
+}

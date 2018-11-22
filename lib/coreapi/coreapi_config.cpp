@@ -9,6 +9,8 @@
 #endif
 
 #define CONFIG_FILE_PATH "/config.json"
+// #define CONFIG_FILE_PATH "/config.sist.json"
+
 #define JSON_BUFFER_SIZE 1024
 
 
