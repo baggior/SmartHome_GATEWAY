@@ -41,7 +41,7 @@ protected:
     virtual void shutdown() override;
 
 private:
-    inline virtual void loop() final override { } //task loop not used for a service module  
+    inline virtual void loop() override { } //task loop not used for a service module  
 
     void fixSerialFlush();
     
