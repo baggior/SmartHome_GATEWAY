@@ -82,7 +82,7 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     if(_tcp_port) this->tcp_port = _tcp_port;
     if(_slave_id) this->default_slave_id = _slave_id;
 
-    // node.begin(_slave_id, * this->Rs485ServiceModule::getSerialAsStream());
+
 
     ::pfn_idle = std::bind(&Rs485ServiceModule::idle, this);    
     node.idle( ::idle );
@@ -105,5 +105,7 @@ void ModbusTCPGatewayModule::shutdown()
 
 
 void ModbusTCPGatewayModule::loop() {
-    
+    //TODO
+
+    // node.begin(_slave_id, * this->Rs485ServiceModule::getSerialAsStream());
 }
