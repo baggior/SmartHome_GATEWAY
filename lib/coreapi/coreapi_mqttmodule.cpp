@@ -68,7 +68,7 @@ _Error MqttModule::setup()
 
 _Error MqttModule::setup(const JsonObject &root) 
 {
-    bool on = false;
+    bool on = root["enable"] | false ;
         
     // config  
     const char * _server_host = root["mqtt_server_host"];
@@ -88,8 +88,8 @@ _Error MqttModule::setup(const JsonObject &root)
         REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password)
     );
     
-    if(_server_host) {
-        on = true;
+    if(! _server_host) {
+        on = false;
     }
 
     if(on)
@@ -116,8 +116,7 @@ _Error MqttModule::setup(const JsonObject &root)
     {
         return _Disable;
     }
-
-
+    
     return _NoError;
 }
 

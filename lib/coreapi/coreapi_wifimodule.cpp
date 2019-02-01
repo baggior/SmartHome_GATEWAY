@@ -10,7 +10,7 @@
 #include <ESPmDNS.h>
 #endif
 
-#include <ESPAsyncWiFiManager.h>
+#include <WiFiManager.h>
 
 
 
@@ -132,13 +132,14 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     {               
         if (!SSID)  
         {           
-            AsyncWebServer server(80);
+            // AsyncWebServer server(80);
             DNSServer dns;            
-            AsyncWiFiManager wifiManager(&server,&dns);             
+            // AsyncWiFiManager wifiManager(&server,&dns);             
+            WiFiManager wifiManager(DEBUG_OUTPUT);      
 
             this->theApp->getLogger().printf( F("Start WiFiManager connection.. \r\n") );            
             
-            wifiManager.setDebugOutput(this->theApp->isDebug());
+            wifiManager.setDebugOutput(this->theApp->isDebug());            
 
             if(connectionTimeout) wifiManager.setConnectTimeout(connectionTimeout);                 //cerca di stabilire una connessione in 15 secondi
             if(captivePortalTimeout) wifiManager.setConfigPortalTimeout(captivePortalTimeout);      //il portale dura per 5 minuti poi fa reset
