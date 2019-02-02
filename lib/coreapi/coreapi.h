@@ -16,7 +16,9 @@
 
 //3rd party libs
 #include <ArduinoJson.h>
-#include <ESPAsyncWiFiManager.h>
+// #include <ESPAsyncWiFiManager.h>
+
+#include <WiFiManager.h>
 
 #define     _TASK_STD_FUNCTION
 //#define     _TASK_SLEEP_ON_IDLE_RUN
