@@ -1,0 +1,5 @@
+Chip is ESP32D0WDQ5 (revision 1)
+Features: WiFi, BT, Dual Core
+
+
+
