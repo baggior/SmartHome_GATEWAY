@@ -17,7 +17,9 @@
 // #include "ota.h"
 // #include "mqttclient.h"
 // #include "modbus.h"
-#include "modbusServiceModule.h"
+// #include "modbusServiceModule.h"
+#include "modbusTcpGatewayModule.h"
+
 // #include "mqttServiceModule.h"
 
 PRAGMA_MESSAGE (VAR_NAME_VALUE(ARDUINO))
@@ -43,7 +45,9 @@ ModbusPollingModule modbusPollingModule;
 
 // Rs485 rs485;
 // Rs485ServiceModule rs485;
-ModbusServiceModule modbus;
+// ModbusServiceModule modbus;
+ModbusTCPGatewayModule modbusTcpGateway;
+
 // MqttModule mqtt;
 
 // TODO migrate
@@ -121,7 +125,7 @@ void setup() {
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
-    app.addModule(&modbus);
+    app.addModule(&modbusTcpGateway);
     // app.addModule(&mqtt);
     _Error ret = app.setup();
     if(ret!=_NoError) {

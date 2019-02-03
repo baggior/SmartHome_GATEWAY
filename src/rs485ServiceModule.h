@@ -34,7 +34,7 @@ public:
     void idle();
 
 protected:
-    Rs485ServiceModule(String _title, String _descr);
+    Rs485ServiceModule(String _title, String _descr, bool executeInMainLoop=false);
 
     virtual _Error setup(const JsonObject &root) ;//override;
     virtual _Error setup() override;

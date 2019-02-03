@@ -4,8 +4,8 @@
 
 // WiFiServer mbServer(MODBUSIP_PORT);
 
-ModbusTcpSlave::ModbusTcpSlave(uint16_t port = MODBUSIP_PORT)
-: mbServer(port)
+ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT)
+: mbServer(port), mLogger(logger)
 {
   mbServer.begin();
   mbServer.setNoDelay(true);
@@ -26,11 +26,10 @@ void ModbusTcpSlave::waitNewClient(void)
       {
         clientOnLine[i].client.stop();
         clientOnLine[i].onLine = false;
-        // trace.print ("Client stop: ");
-        // trace.println (i);
-      }
-  //    else clientOnLine[i].client.flush();
+        this->mLogger.printf (F("Client stop: %d\n"), i);
 
+      }
+      // else clientOnLine[i].client.flush();
    }
 
    if (mbServer.hasClient())
@@ -40,11 +39,11 @@ void ModbusTcpSlave::waitNewClient(void)
      {
        if( !clientOnLine[i].onLine)
        {
-           clientOnLine[i].client = mbServer.available();
-           clientOnLine[i].onLine = true;
-           // trace.print ("New client: ");
-           // trace.println (clientOnLine[i].client.remoteIP().toString());
-           break;
+          clientOnLine[i].client = mbServer.available();
+          clientOnLine[i].onLine = true;
+          this->mLogger.printf (F("New Client: %s\n"), clientOnLine[i].client.remoteIP().toString().c_str());
+
+          break;
        }
      }
      if (!clientReg) // If there was no place for a new client
@@ -80,8 +79,8 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     count =0;
     smbap  mbap;
     mbapUnpack(&mbap, &buf[0]);
-  //  trace.println(String("Paket in : len data ") + String(len) +
-  //  "Len pak " + String(mbap._len) + ", TI " + String(mbap._ti));
+    this->mLogger.printf (F("Paket in : len data [%d] Len pak [%d], TI [%d] \n"),
+      len, mbap._len, mbap._ti);
 
     // checking for glued requests. (wizards are requested for 4 requests)
     while((count < len ) && ((len - count) <= (mbap._len + 6)) && (mbap._pi ==0))
@@ -93,15 +92,12 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
       pmbFrame->len = mbap._len + 6;
       pmbFrame->millis   = millis();
 
-
       for (uint16_t j = 0; j < (pmbFrame->len); j++)
         pmbFrame->buffer[j] = buf[j];
       count +=  pmbFrame->len;
       mbapUnpack(&mbap, &buf[count]);
 
     }
-    //trace.print ("read paket. Num byte: ");
-    //trace.println (mbFrame[i].len);
   }
   else
   {
@@ -140,7 +136,7 @@ void ModbusTcpSlave::task()
       if (millis() - mbFrame[i].millis > RTU_TIMEOUT)
       {
         mbFrame[i].status = frameStatus::empty;
-        // trace.println ("Del pack.");
+        this->mLogger.printf (F("Del pack.\n"));        
       }
   }
 
@@ -153,11 +149,13 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
   while (mbFrame[scanBuff].status != frameStatus::empty)
   {
     scanBuff++;
-    if(scan >=  FRAME_COUNT) {
-        // trace.println ("No Free buffer"); 
-        return 0;
+    if(scan >=  FRAME_COUNT) 
+    {
+      this->mLogger.printf (F("No Free buffer\n"));
+      return 0;
     }
-    if (scanBuff >= FRAME_COUNT) scanBuff = 0;
+    if (scanBuff >= FRAME_COUNT) 
+      scanBuff = 0;
   }
   return &mbFrame[scanBuff];
 }

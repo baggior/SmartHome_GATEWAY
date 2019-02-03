@@ -50,9 +50,9 @@ static ModbusTcpSlave * p_tcpSlave = NULL;
 
     
 ModbusTCPGatewayModule::ModbusTCPGatewayModule()
-: Rs485ServiceModule("ModbusServiceModule", "seriale usata per protocollo modbus")
-{
-
+: Rs485ServiceModule("ModbusTCPGatewayModule", "gateway Modbus TCP <-> RTU", true)
+{ 
+    
 }
 
 ModbusTCPGatewayModule::~ModbusTCPGatewayModule()
@@ -63,7 +63,7 @@ ModbusTCPGatewayModule::~ModbusTCPGatewayModule()
 
 _Error ModbusTCPGatewayModule::setup() 
 {
-    const JsonObject &root = this->theApp->getConfig().getJsonObject("modbus_gtw");
+    const JsonObject &root = this->theApp->getConfig().getJsonObject("modbus_tcp_gtw");
     if(root.success()) 
     {
         return this->setup(root);
@@ -77,37 +77,45 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     if ( err.errorCode != _NoError.errorCode) {
         return err;
     }
+
+    bool on = root["enable"] | false;
     
     // config  
     const unsigned int _tcp_port = root["tcp_port"];
     
-    this->theApp->getLogger().printf(F("\t%s Modbus config: tcp_port: %d \n"), 
+    this->theApp->getLogger().printf(F("\t%s Modbus TCP gateway config: tcp_port: %d \n"), 
         this->getTitle().c_str(), _tcp_port);
     
-    if(_tcp_port) this->tcp_port = _tcp_port;
+    if(_tcp_port) 
+        this->tcp_port = _tcp_port;
 
-    // -----------------------
-    //TCP SLAVE SETUP:
-    p_tcpSlave = new ModbusTcpSlave(this->tcp_port);
+    if (on)
+    {
+        // -----------------------
+        //TCP SLAVE SETUP:
+        p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port );
 
-    // -----------------------
-    //MODBUS MASTER SETUP:
+        // -----------------------
+        //MODBUS MASTER SETUP:
 
-    // ::pfn_idle = std::bind(&Rs485ServiceModule::idle, this);    
-    // node.idle( ::idle );
-    // ::pfn_pre = std::bind(&Rs485ServiceModule::preTransmit, this);
-    // node.preTransmission( ::preTransmit );
-    // ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
-    // node.postTransmission( ::postTransmit );
-    
-    // node.begin(_slave_id);
+        // ::pfn_idle = std::bind(&Rs485ServiceModule::idle, this);    
+        // node.idle( ::idle );
+        // ::pfn_pre = std::bind(&Rs485ServiceModule::preTransmit, this);
+        // node.preTransmission( ::preTransmit );
+        // ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
+        // node.postTransmission( ::postTransmit );
+        
+        // node.begin(_slave_id);
 
-    // -----------------------
-
-    this->theApp->getLogger().printf(F("\t%s TCP Modbus Gateway setup done\n"), 
-        this->getTitle().c_str());
+        // -----------------------        
+    }
+    else 
+    {
+        return _Disable;
+    }
     
     return _NoError;
+   
 }
 
 void ModbusTCPGatewayModule::shutdown()
@@ -128,10 +136,9 @@ void ModbusTCPGatewayModule::loop() {
     {
         p_tcpSlave->task();
 
-        this->rtuTransactionTask();        
+        this->rtuTransactionTask();       
 
     }
-
 }
 
 
@@ -148,9 +155,9 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                 if(p_rtu_frame)
                 {
                     ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
-                //  trace.print ("Send pack. CRC  ");
                     uint16_t crcFrame = baseutils::CRC16(pmbFrame->buffer + 6, (pmbFrame->len) - 6 );
-                    //trace.print (crcFrame);
+                    this->theApp->getLogger().printf(F("Send pack. CRC  %X"), crcFrame);
+
                     *((pmbFrame->buffer) + (pmbFrame->len) +1) = (uint8_t) (crcFrame >> 8);
                     *((pmbFrame->buffer) + (pmbFrame->len) +0) = (uint8_t)  (crcFrame & 0xFF);
 
@@ -168,8 +175,9 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                     }
 
                     pmbFrame->status = ModbusTcpSlave::frameStatus::waitFromRtu;
-                //  trace.println (String(" Status: ") + String(status) +
-                //   String("Len: ") + String((pmbFrame->len)-4) );
+                    this->theApp->getLogger().printf(F("Status: %d Len: . CRC  %X"), 
+                        status, (pmbFrame->len)-4);
+
                     pmbFrame->millis   = millis();
                     status = 1;
                 }

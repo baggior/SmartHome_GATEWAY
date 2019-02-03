@@ -2,8 +2,8 @@
 #define MBTCPSLAVE_H
 
 
-#include <WiFi.h>
-//#include "RtuMaster.h"
+// #include <WiFi.h>
+#include "coreapi.h"
 
 #define MODBUSIP_MAXFRAME   200
 #define TCP_BUFFER_SIZE     300
@@ -32,7 +32,7 @@ public:
         uint16_t len;
         uint32_t millis;                // Time of sending the package to Serial
     };
-    
+
 private:
     struct smbap
     {
@@ -51,6 +51,7 @@ private:
     struct smbFrame mbFrame[FRAME_COUNT];
 
     WiFiServer mbServer;
+    const _ApplicationLogger& mLogger;
 
     void waitNewClient (void);  //
     void readDataClient(void);  // customer scan for data availability
@@ -59,7 +60,7 @@ private:
     void mbapUnpack (smbap* pmbap, uint8_t * buff );
 
 public:
-    ModbusTcpSlave(uint16_t port);
+    ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port);
     ~ModbusTcpSlave();
     void task(void);
     smbFrame * getFreeBuffer (void);
