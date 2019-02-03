@@ -1,0 +1,213 @@
+#include "Arduino.h"
+
+#include "modbusTcpSlave.h"
+
+// WiFiServer mbServer(MODBUSIP_PORT);
+
+ModbusTcpSlave::ModbusTcpSlave(uint16_t port = MODBUSIP_PORT)
+: mbServer(port)
+{
+  mbServer.begin();
+  mbServer.setNoDelay(true);
+  for (uint8_t i = 0 ; i < FRAME_COUNT; i++)
+    mbFrame[i].status = frameStatus::empty;
+}
+
+ModbusTcpSlave::~ModbusTcpSlave()
+{    
+}
+
+void ModbusTcpSlave::waitNewClient(void)
+{
+   // see if the old customers are alive if not alive then release them
+   for (uint8_t i = 0 ; i < 4; i++)
+   {
+      if (clientOnLine[i].onLine && !clientOnLine[i].client.connected())
+      {
+        clientOnLine[i].client.stop();
+        clientOnLine[i].onLine = false;
+        // trace.print ("Client stop: ");
+        // trace.println (i);
+      }
+  //    else clientOnLine[i].client.flush();
+
+   }
+
+   if (mbServer.hasClient())
+   {
+     bool clientReg = true;
+     for(uint8_t i = 0 ; i < 4; i++)
+     {
+       if( !clientOnLine[i].onLine)
+       {
+           clientOnLine[i].client = mbServer.available();
+           clientOnLine[i].onLine = true;
+           // trace.print ("New client: ");
+           // trace.println (clientOnLine[i].client.remoteIP().toString());
+           break;
+       }
+     }
+     if (!clientReg) // If there was no place for a new client
+     {
+       clientOnLine[0].client.stop();
+       clientOnLine[0].client = mbServer.available();
+     }
+   }
+}
+
+void ModbusTcpSlave::readDataClient(void)
+{
+  for(uint8_t i = 0; i < 4; i++)
+  {
+    if(clientOnLine[i].onLine)
+    {
+      if(clientOnLine[i].client.available())
+      {
+        readFrameClient(clientOnLine[i].client, i);
+      }
+    }
+  }
+}
+
+void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
+{
+  if ((client.available() < TCP_BUFFER_SIZE) && (client.available() > 11))
+  {
+    size_t len = client.available();
+    uint8_t buf[len];
+    size_t count = 0;
+    while(client.available()) {buf[count] = client.read(); count++; }
+    count =0;
+    smbap  mbap;
+    mbapUnpack(&mbap, &buf[0]);
+  //  trace.println(String("Paket in : len data ") + String(len) +
+  //  "Len pak " + String(mbap._len) + ", TI " + String(mbap._ti));
+
+    // checking for glued requests. (wizards are requested for 4 requests)
+    while((count < len ) && ((len - count) <= (mbap._len + 6)) && (mbap._pi ==0))
+    {
+      smbFrame * pmbFrame = getFreeBuffer();
+      if(pmbFrame == 0) break; // if there is no free buffer then we reduce the parsing
+      pmbFrame->nClient = nClient;
+      pmbFrame->status = frameStatus::readyToSendRtu;
+      pmbFrame->len = mbap._len + 6;
+      pmbFrame->millis   = millis();
+
+
+      for (uint16_t j = 0; j < (pmbFrame->len); j++)
+        pmbFrame->buffer[j] = buf[j];
+      count +=  pmbFrame->len;
+      mbapUnpack(&mbap, &buf[count]);
+
+    }
+    //trace.print ("read paket. Num byte: ");
+    //trace.println (mbFrame[i].len);
+  }
+  else
+  {
+    uint16_t tmp = client.available();
+    while(client.available()) client.read();
+  }
+}
+
+void ModbusTcpSlave::writeFrameClient(void)
+{
+  smbFrame * pmbFrame = getReadyToSendTcpBuffer();
+  if(pmbFrame)
+  {
+    uint8_t cli = pmbFrame->nClient;
+    size_t len = pmbFrame->len;
+    clientOnLine[cli].client.write(&pmbFrame->buffer[0], len);
+    delay(1);
+    //clientOnLine[cli].client.flush();
+    pmbFrame->status = frameStatus::empty;
+  }
+}
+
+void ModbusTcpSlave::task()
+{
+
+  waitNewClient();
+  yield();
+  readDataClient();
+  yield();  
+  writeFrameClient();
+  yield();
+  // Cleaning the buffers
+  for(uint8_t i = 0; i < FRAME_COUNT; i++)
+  {
+    if(mbFrame[i].status != frameStatus::empty )
+      if (millis() - mbFrame[i].millis > RTU_TIMEOUT)
+      {
+        mbFrame[i].status = frameStatus::empty;
+        // trace.println ("Del pack.");
+      }
+  }
+
+}
+
+ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
+{
+  static uint8_t  scanBuff = 0;
+  uint8_t scan = 0;
+  while (mbFrame[scanBuff].status != frameStatus::empty)
+  {
+    scanBuff++;
+    if(scan >=  FRAME_COUNT) {
+        // trace.println ("No Free buffer"); 
+        return 0;
+    }
+    if (scanBuff >= FRAME_COUNT) scanBuff = 0;
+  }
+  return &mbFrame[scanBuff];
+}
+
+ModbusTcpSlave::smbFrame * ModbusTcpSlave::getReadyToSendRtuBuffer ()
+{
+  uint8_t pointer = 255;
+  uint8_t pointerMillis = 0;
+  for(uint8_t i = 0; i < FRAME_COUNT; i++)
+  {
+    if(mbFrame[i].status == frameStatus::readyToSendRtu )
+    {
+      if ( pointerMillis  < (millis() - mbFrame[i].millis))
+      {
+        pointerMillis = millis() - mbFrame[i].millis;
+        pointer = i;
+        // break; // TODO TEST
+      }
+    }
+  }
+  if (pointer != 255)
+    return &mbFrame[pointer];
+  else
+    return 0;
+}
+
+ModbusTcpSlave::smbFrame * ModbusTcpSlave::getWaitFromRtuBuffer ()
+{
+  for(uint8_t i = 0; i < FRAME_COUNT; i++)
+  {
+    if(mbFrame[i].status == frameStatus::waitFromRtu )
+      return &mbFrame[i];
+  }
+  return 0;
+}
+ModbusTcpSlave::smbFrame *ModbusTcpSlave:: getReadyToSendTcpBuffer ()
+{
+  for(uint8_t i = 0; i < FRAME_COUNT; i++)
+  {
+    if(mbFrame[i].status == frameStatus::readyToSendTcp )
+      return &mbFrame[i];
+  }
+  return 0;
+}
+void ModbusTcpSlave::mbapUnpack(smbap* pmbap, uint8_t * buff )
+{
+  pmbap->_ti  = *(buff + 0) << 8 |  *(buff + 1);
+  pmbap->_pi  = *(buff + 2) << 8 |  *(buff + 3);
+  pmbap->_len = *(buff + 4) << 8 |  *(buff + 5);
+  pmbap->_ui  = *(buff + 6);
+}
+
+

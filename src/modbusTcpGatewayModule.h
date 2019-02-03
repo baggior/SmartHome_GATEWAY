@@ -3,7 +3,6 @@
 
 
 #include <coreapi.h>
-#include <vector.h>
 
 #include "rs485ServiceModule.h"
 
@@ -26,9 +25,12 @@ protected:
     virtual void loop() final override;
 
 private:   
+
+    void rtuTransactionTask();
+    uint16_t status = 0;
     
     unsigned int tcp_port = 502;
-    unsigned int default_slave_id = 1;
+    // unsigned int default_slave_id = 1;
 
 };
 

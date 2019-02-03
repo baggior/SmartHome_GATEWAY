@@ -27,7 +27,7 @@ public:
     inline void broadcastMasterCommand(BINARY_BUFFER_T& CMD) {sendMasterCommand(CMD,0);} 
 
     //
-    inline Stream* getSerialAsStream() {return p_ser;}
+    inline Stream* getSerialAsStream() { return p_ser; }
 
     void preTransmit();
     void postTransmit();

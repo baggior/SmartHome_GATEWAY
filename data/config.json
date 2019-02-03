@@ -16,8 +16,7 @@
     "stopbits": 1,
     "parity": "N",
 
-    "tcp_port": 502,    
-    "default_slave_id": 16    
+    "tcp_port": 502
   },
 
   "modbusPolling": {
