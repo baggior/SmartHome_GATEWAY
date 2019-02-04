@@ -1,5 +1,9 @@
 Chip is ESP32D0WDQ5 (revision 1)
 Features: WiFi, BT, Dual Core
+NOTA: premere Boot per l'upload
 
-
-
+------------------------------------
+Chip ID: 30AEA486A9BC
+Chip is ESP32D0WDQ6 (revision 1)
+Features: WiFi, BT, Dual Core, Coding Scheme None
+MAC: 30:ae:a4:86:a9:bc

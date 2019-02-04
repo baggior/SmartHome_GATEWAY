@@ -7,6 +7,7 @@
 #include "internal/modbusTcpSlave.h"
 
 #define RTU_BUFFER_SIZE  264
+#define RTU_RESPONSE_END_MILLIS 2
 
 /* ---------------------------------------
 * Modbus-TCP 
@@ -135,9 +136,8 @@ void ModbusTCPGatewayModule::loop() {
     if(p_tcpSlave) 
     {
         p_tcpSlave->task();
-
-        this->rtuTransactionTask();       
-
+        yield();
+        this->rtuTransactionTask(); 
     }
 }
 
@@ -149,14 +149,13 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
     {
         switch(status) 
         {
-            case 0: // Sending a package
+            case 0: // Sending a packet to RTU
             {
                 ModbusTcpSlave::smbFrame* p_rtu_frame = p_tcpSlave->getReadyToSendRtuBuffer();
                 if(p_rtu_frame)
                 {
                     ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
                     uint16_t crcFrame = baseutils::CRC16(pmbFrame->buffer + 6, (pmbFrame->len) - 6 );
-                    this->theApp->getLogger().printf(F("Send pack. CRC  %X"), crcFrame);
 
                     *((pmbFrame->buffer) + (pmbFrame->len) +1) = (uint8_t) (crcFrame >> 8);
                     *((pmbFrame->buffer) + (pmbFrame->len) +0) = (uint8_t)  (crcFrame & 0xFF);
@@ -164,6 +163,9 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                     size_t len = (pmbFrame->len) + 2;
                     size_t count = 6;
                     
+                    this->theApp->getLogger().printf(F("\tSend pack to RTU. CRC [%X], Len RTU pak: [%d]\n"), 
+                        crcFrame, (pmbFrame->len) - 4);
+
                     if(count<len) {
                         this->preTransmit();
 
@@ -174,42 +176,36 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                         this->postTransmit();
                     }
 
-                    pmbFrame->status = ModbusTcpSlave::frameStatus::waitFromRtu;
-                    this->theApp->getLogger().printf(F("Status: %d Len: . CRC  %X"), 
-                        status, (pmbFrame->len)-4);
-
-                    pmbFrame->millis   = millis();
-                    status = 1;
-                }
-                break;
-            }
-
-            case 1: // Awaiting response
-            {
-                ModbusTcpSlave::smbFrame* p_rtu_frame = p_tcpSlave->getWaitFromRtuBuffer();
-                if (p_rtu_frame)
-                {
-                    ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
-                    if (pSerial->available())
+                    if(pmbFrame->status == ModbusTcpSlave::frameStatus::readyToSendRtuNoReply)
                     {
+                        pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
+                        status = 0;
+                    } 
+                    else 
+                    {
+                        pmbFrame->status = ModbusTcpSlave::frameStatus::waitFromRtu;
                         pmbFrame->millis = millis();
-                        pmbFrame->len = 6;
-                        status = 2;
+                        status = 1;
                     }
                 }
-                else
-                    status = 0;
                 break;
             }
 
-            case 2: // reading the answer
+            case 1: // Awaiting response & reading the RTU answer
             {
                 ModbusTcpSlave::smbFrame* p_rtu_frame = p_tcpSlave->getWaitFromRtuBuffer();
                 if (p_rtu_frame)
                 {
                     ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
+                    // if (pSerial->available())
+                    // {
+                    //     pmbFrame->millis = millis();
+                    //     pmbFrame->len = 6;
+                    //     status = 2;
+                    // }
                     if (pSerial->available())
                     {
+                        // Reading the RTU answer
                         pmbFrame->millis = millis();
                         while(pSerial->available())
                         {
@@ -220,17 +216,21 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             }
                         }
                     }
-                    else if (millis() - pmbFrame->millis > 2)
+
+                    else if (millis() - pmbFrame->millis > RTU_RESPONSE_END_MILLIS) 
                     {
+                        // RTU response received (completed)
                         uint16_t crcFrame = baseutils::CRC16(pmbFrame->buffer + 6, (pmbFrame->len) - 6 );
                         if (!crcFrame)
                         {
+                            // response CRC check OK => send TCP response
                             pmbFrame->len -= 2;
                             *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len-6;
                             pmbFrame->status = ModbusTcpSlave::frameStatus::readyToSendTcp;
                         }
                         else
                         {
+                            // response CRC check error
                             status = 0;
                             pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
                             while(pSerial->available()) 
@@ -242,6 +242,47 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                     status = 0;
                 break;
             }
+
+            // case 2: // reading the answer
+            // {
+            //     ModbusTcpSlave::smbFrame* p_rtu_frame = p_tcpSlave->getWaitFromRtuBuffer();
+            //     if (p_rtu_frame)
+            //     {
+            //         ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
+            //         if (pSerial->available())
+            //         {
+            //             pmbFrame->millis = millis();
+            //             while(pSerial->available())
+            //             {
+            //                 if (pmbFrame->len <= RTU_BUFFER_SIZE)
+            //                 {
+            //                     *(pmbFrame->buffer + pmbFrame->len) =  pSerial->read();
+            //                     pmbFrame->len ++;
+            //                 }
+            //             }
+            //         }
+            //         else if (millis() - pmbFrame->millis > 2)
+            //         {
+            //             uint16_t crcFrame = baseutils::CRC16(pmbFrame->buffer + 6, (pmbFrame->len) - 6 );
+            //             if (!crcFrame)
+            //             {
+            //                 pmbFrame->len -= 2;
+            //                 *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len-6;
+            //                 pmbFrame->status = ModbusTcpSlave::frameStatus::readyToSendTcp;
+            //             }
+            //             else
+            //             {
+            //                 status = 0;
+            //                 pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
+            //                 while(pSerial->available()) 
+            //                     pSerial->read();
+            //             }
+            //         }
+            //     }
+            //     else
+            //         status = 0;
+            //     break;
+            // }
         }
     }
 

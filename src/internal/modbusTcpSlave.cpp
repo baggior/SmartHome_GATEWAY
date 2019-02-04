@@ -4,11 +4,15 @@
 
 // WiFiServer mbServer(MODBUSIP_PORT);
 
+#define TCP_TIMEOUT_MS RTU_TIMEOUT
+
 ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT)
 : mbServer(port), mLogger(logger)
 {
   mbServer.begin();
   mbServer.setNoDelay(true);
+  mbServer.setTimeout(TCP_TIMEOUT_MS / 1000);
+
   for (uint8_t i = 0 ; i < FRAME_COUNT; i++)
     mbFrame[i].status = frameStatus::empty;
 }
@@ -26,7 +30,7 @@ void ModbusTcpSlave::waitNewClient(void)
       {
         clientOnLine[i].client.stop();
         clientOnLine[i].onLine = false;
-        this->mLogger.printf (F("Client stop: %d\n"), i);
+        this->mLogger.printf (F("\tClient stop: %d\n"), i);
 
       }
       // else clientOnLine[i].client.flush();
@@ -41,7 +45,7 @@ void ModbusTcpSlave::waitNewClient(void)
        {
           clientOnLine[i].client = mbServer.available();
           clientOnLine[i].onLine = true;
-          this->mLogger.printf (F("New Client: %s\n"), clientOnLine[i].client.remoteIP().toString().c_str());
+          this->mLogger.printf (F("\tNew Client: %s\n"), clientOnLine[i].client.remoteIP().toString().c_str());
 
           break;
        }
@@ -75,12 +79,15 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     size_t len = client.available();
     uint8_t buf[len];
     size_t count = 0;
-    while(client.available()) {buf[count] = client.read(); count++; }
+    while(client.available()) {
+      buf[count] = client.read(); count++; 
+    }
+
     count =0;
     smbap  mbap;
     mbapUnpack(&mbap, &buf[0]);
-    this->mLogger.printf (F("Paket in : len data [%d] Len pak [%d], TI [%d] \n"),
-      len, mbap._len, mbap._ti);
+    this->mLogger.printf (F("\tPaket in : len TCP data [%d] Len mbap pak [%d], UnitId [%d], TI [%d] \n"),
+      len, mbap._len, mbap._ui, mbap._ti);
 
     // checking for glued requests. (wizards are requested for 4 requests)
     while((count < len ) && ((len - count) <= (mbap._len + 6)) && (mbap._pi ==0))
@@ -88,15 +95,22 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
       smbFrame * pmbFrame = getFreeBuffer();
       if(pmbFrame == 0) break; // if there is no free buffer then we reduce the parsing
       pmbFrame->nClient = nClient;
-      pmbFrame->status = frameStatus::readyToSendRtu;
+      
+      if(mbap._ui==0) {
+        // UnitId = 0 => broadcast modbus message
+        pmbFrame->status = frameStatus::readyToSendRtuNoReply;
+      } else {
+        pmbFrame->status = frameStatus::readyToSendRtu;
+
+      }
       pmbFrame->len = mbap._len + 6;
       pmbFrame->millis   = millis();
 
       for (uint16_t j = 0; j < (pmbFrame->len); j++)
         pmbFrame->buffer[j] = buf[j];
+
       count +=  pmbFrame->len;
       mbapUnpack(&mbap, &buf[count]);
-
     }
   }
   else
@@ -114,7 +128,8 @@ void ModbusTcpSlave::writeFrameClient(void)
     uint8_t cli = pmbFrame->nClient;
     size_t len = pmbFrame->len;
     clientOnLine[cli].client.write(&pmbFrame->buffer[0], len);
-    delay(1);
+    // delay(1);
+    yield();
     //clientOnLine[cli].client.flush();
     pmbFrame->status = frameStatus::empty;
   }
@@ -122,22 +137,23 @@ void ModbusTcpSlave::writeFrameClient(void)
 
 void ModbusTcpSlave::task()
 {
-
   waitNewClient();
   yield();
   readDataClient();
   yield();  
   writeFrameClient();
   yield();
+
   // Cleaning the buffers
   for(uint8_t i = 0; i < FRAME_COUNT; i++)
   {
-    if(mbFrame[i].status != frameStatus::empty )
+    if(mbFrame[i].status != frameStatus::empty ) {
       if (millis() - mbFrame[i].millis > RTU_TIMEOUT)
       {
         mbFrame[i].status = frameStatus::empty;
-        this->mLogger.printf (F("Del pack.\n"));        
+        this->mLogger.printf (F("\tDel pack.\n"));        
       }
+    }
   }
 
 }
@@ -151,7 +167,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
     scanBuff++;
     if(scan >=  FRAME_COUNT) 
     {
-      this->mLogger.printf (F("No Free buffer\n"));
+      this->mLogger.printf (F("\tNo Free buffer\n"));
       return 0;
     }
     if (scanBuff >= FRAME_COUNT) 
@@ -166,7 +182,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getReadyToSendRtuBuffer ()
   uint8_t pointerMillis = 0;
   for(uint8_t i = 0; i < FRAME_COUNT; i++)
   {
-    if(mbFrame[i].status == frameStatus::readyToSendRtu )
+    if(mbFrame[i].status == frameStatus::readyToSendRtu || mbFrame[i].status == frameStatus::readyToSendRtuNoReply)
     {
       if ( pointerMillis  < (millis() - mbFrame[i].millis))
       {

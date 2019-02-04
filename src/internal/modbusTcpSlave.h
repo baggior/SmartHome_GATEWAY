@@ -20,6 +20,7 @@ public:
     { 
         empty,
         readyToSendRtu,
+        readyToSendRtuNoReply,
         waitFromRtu,
         readyToSendTcp
     } frameStatus;
