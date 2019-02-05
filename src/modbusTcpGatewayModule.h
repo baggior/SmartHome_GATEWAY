@@ -10,7 +10,7 @@
 * Modbus-TCP
 * Modbus-RTU (remote terminal unit)
 */
-class ModbusTCPGatewayModule final : public Rs485ServiceModule
+class ModbusTCPGatewayModule final : public _BaseModule
 {    
 public:
     
@@ -20,7 +20,7 @@ public:
 
 protected:
     virtual _Error setup() final override;
-    virtual _Error setup(const JsonObject &root) final override;
+    virtual _Error setup(const JsonObject &root) final;
     virtual void shutdown() final override;
     virtual void loop() final override;
 
@@ -31,6 +31,7 @@ private:
     
     unsigned int tcp_port = 502;
     // unsigned int default_slave_id = 1;
+    Rs485ServiceModule* p_rs485 = NULL;
 
 };
 

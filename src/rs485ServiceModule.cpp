@@ -156,8 +156,8 @@ static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
 }
 // -----------------------------------------------
 
-Rs485ServiceModule::Rs485ServiceModule(String _title, String _descr, bool executeInMainLoop)
-: _BaseModule(_title,_descr, executeInMainLoop, Order_First, true),
+Rs485ServiceModule::Rs485ServiceModule(String _title, String _descr)
+: _BaseModule(_title,_descr, false, Order_First, true),
   p_logger(NULL), 
   m_bitTime_us(0), p_ser(NULL), 
   defaultCommandTimeout(DEFAULT_COMMAND_TIMEOUT)
@@ -249,6 +249,9 @@ _Error Rs485ServiceModule::setup()
 void Rs485ServiceModule::shutdown()
 {
   if(p_ser!=NULL) {
+
+    p_ser->flush();
+    
     endSerial();
     
     delete(p_ser);
@@ -409,24 +412,35 @@ Rs485ServiceModule::BINARY_BUFFER_T Rs485ServiceModule::sendMasterCommand(Rs485S
 }
 
 
-void Rs485ServiceModule::fixSerialFlush() {
+size_t Rs485ServiceModule::write(uint8_t* buffer, size_t size)
+{
+  size_t count = 0;
+  if(this->p_ser && buffer) {
 
-  p_ser->flush();
+    this->preTransmit();
 
-  //Workaround for a bug in serial not actually being finished yet
-  //Wait for 8 data bits, 1 parity and 2 stop bits, just in case
-  delayMicroseconds(m_bitTime_us);
+    count = p_ser->write( buffer, size );                        
+
+    this->postTransmit();
+
+  }
+  return count;
 }
 
 
-//TODO
+
 void Rs485ServiceModule::preTransmit() {
   this->p_ser->flush();
   digitalWrite(RS485_REDE_CONTROL, HIGH);
 }
 
 void Rs485ServiceModule::postTransmit() {
-  this->fixSerialFlush();  
+  this->p_ser->flush();
+
+  //Workaround for a bug in serial (ESP32 too fast) not actually being finished yet
+  //Wait for 8 data bits, 1 parity and 2 stop bits, just in case
+  delayMicroseconds(m_bitTime_us);
+
   digitalWrite(RS485_REDE_CONTROL, LOW);
 }
 

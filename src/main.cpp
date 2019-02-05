@@ -12,7 +12,7 @@
 #include "modbusPollingModule.h"
 
 // #include "wifiTelnetServer.h"
-// #include "rs485ServiceModule.h"
+#include "rs485ServiceModule.h"
 // #include "webSocketRs485Gateway.h"
 // #include "ota.h"
 // #include "mqttclient.h"
@@ -44,7 +44,7 @@ ModbusPollingModule modbusPollingModule;
 // WebSocketRs485Gateway webSocketRs485Gateway;
 
 // Rs485 rs485;
-// Rs485ServiceModule rs485;
+Rs485ServiceModule rs485;
 // ModbusServiceModule modbus;
 ModbusTCPGatewayModule modbusTcpGateway;
 
@@ -126,10 +126,11 @@ void setup() {
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
     app.addModule(&modbusTcpGateway);
+    app.addModule(&rs485);
     // app.addModule(&mqtt);
     _Error ret = app.setup();
     if(ret!=_NoError) {
-        DPRINTF("\n-----MAIN setup done ERROR-----\n%d: %s", ret.errorCode, ret.message.c_str());
+        DPRINTF("\n-----MAIN setup done ERROR-----\n%d: %s\n---------------\n\n", ret.errorCode, ret.message.c_str());
         delay(3000);
         // DPRINTLN("\n-----RESTARTING...-----\n...\n..\n.\n");
         // app.restart();

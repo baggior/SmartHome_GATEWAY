@@ -33,8 +33,10 @@ public:
     void postTransmit();
     void idle();
 
+    size_t write(uint8_t* buffer, size_t count);
+
 protected:
-    Rs485ServiceModule(String _title, String _descr, bool executeInMainLoop=false);
+    Rs485ServiceModule(String _title, String _descr);
 
     virtual _Error setup(const JsonObject &root) ;//override;
     virtual _Error setup() override;
@@ -43,8 +45,6 @@ protected:
 private:
     inline virtual void loop() override { } //task loop not used for a service module  
 
-    void fixSerialFlush();
-    
     // Stream * p_dbgstream;
 
     const _ApplicationLogger * p_logger=NULL;
