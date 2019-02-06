@@ -152,16 +152,14 @@ void _Application::addModule(_BaseModule* module)
     if(module) {
         module->theApp = this;
         
-        auto * found = this->getBaseModule(module->getTitle());
-        if(found) 
-        {
-            this->logger.printf(F("_Application module already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
-        }
-        
-
         if(module->unique)
         {
-            //TODO
+            auto * found = this->getBaseModule(module->getTitle());
+            if(found) 
+            {
+                this->logger.printf(F("_Application module is unique and already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
+            }
+    
         }
 
         //TODO remove

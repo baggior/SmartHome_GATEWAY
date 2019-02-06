@@ -177,14 +177,16 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
 
                         if(count<len) 
                         {
-                            this->p_rs485->write( (uint8_t*) (pmbFrame->buffer + count), len );
-                            // this->preTransmit();
+                            uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + count);                            
+                            this->p_rs485->write( buffer, len );
+                            
+                            if(this->theApp->isDebug()) {
+                                String hex = baseutils::byteToHexString(buffer, len);
+                                this->theApp->getLogger().printf(F("%s: sent to RTU: \n\t%s\n"), 
+                                    this->getTitle().c_str(),
+                                    hex.c_str());
+                            }
 
-                            // while (count < len) {
-                            //     pSerial->write((uint8_t)*(pmbFrame->buffer + (count++)));
-                            // }
-
-                            // this->postTransmit();
                         }
 
                         if(pmbFrame->status == ModbusTcpSlave::frameStatus::readyToSendRtuNoReply)
@@ -218,6 +220,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                         {
                             // Reading the RTU answer
                             pmbFrame->millis = millis();
+                            pmbFrame->len = 6;
                             while(pSerial->available())
                             {
                                 if (pmbFrame->len <= RTU_BUFFER_SIZE)
@@ -226,6 +229,15 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                                     pmbFrame->len ++;
                                 }
                             }
+                            
+                            if(this->theApp->isDebug()) {
+                                uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + 6 );
+                                String hex = baseutils::byteToHexString(buffer, (pmbFrame->len - 6));
+                                this->theApp->getLogger().printf(F("%s: read from RTU: \n\t%s\n"), 
+                                    this->getTitle().c_str(),
+                                    hex.c_str());
+                            }
+                            
                         }
 
                         else if (millis() - pmbFrame->millis > RTU_RESPONSE_END_MILLIS) 

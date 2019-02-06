@@ -418,7 +418,7 @@ size_t Rs485ServiceModule::write(uint8_t* buffer, size_t size)
   if(this->p_ser && buffer) {
 
     this->preTransmit();
-
+    
     count = p_ser->write( buffer, size );                        
 
     this->postTransmit();
@@ -430,16 +430,23 @@ size_t Rs485ServiceModule::write(uint8_t* buffer, size_t size)
 
 
 void Rs485ServiceModule::preTransmit() {
-  this->p_ser->flush();
+
+  // flush receive buffer before transmitting request
+  while (this->p_ser->read() != -1);
+  // this->p_ser->flush();
+
   digitalWrite(RS485_REDE_CONTROL, HIGH);
 }
 
 void Rs485ServiceModule::postTransmit() {
+
+  // flush transmit buffer
   this->p_ser->flush();
 
+  // TODO test if neededed:
   //Workaround for a bug in serial (ESP32 too fast) not actually being finished yet
-  //Wait for 8 data bits, 1 parity and 2 stop bits, just in case
-  delayMicroseconds(m_bitTime_us);
+  //Wait for 8 data bits, 1 parity and 2 stop bits, just in case  
+  // delayMicroseconds(m_bitTime_us);
 
   digitalWrite(RS485_REDE_CONTROL, LOW);
 }
