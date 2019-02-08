@@ -30,7 +30,7 @@ void ModbusTcpSlave::waitNewClient(void)
       {
         clientOnLine[i].client.stop();
         clientOnLine[i].onLine = false;
-        this->mLogger.printf (F("\tClient stop: %d\n"), i);
+        this->mLogger.printf (F("\tClient stopped: [%d]\n"), i);
 
       }
       // else clientOnLine[i].client.flush();
@@ -38,22 +38,25 @@ void ModbusTcpSlave::waitNewClient(void)
 
    if (mbServer.hasClient())
    {
-     bool clientReg = true;
+     bool clientReg = false;
      for(uint8_t i = 0 ; i < 4; i++)
      {
        if( !clientOnLine[i].onLine)
        {
           clientOnLine[i].client = mbServer.available();
           clientOnLine[i].onLine = true;
-          this->mLogger.printf (F("\tNew Client: %s\n"), clientOnLine[i].client.remoteIP().toString().c_str());
+          this->mLogger.printf (F("\tNew Client: [%d] -> %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
 
+          clientReg = true;
           break;
        }
      }
+
      if (!clientReg) // If there was no place for a new client
      {
-       clientOnLine[0].client.stop();
-       clientOnLine[0].client = mbServer.available();
+        this->mLogger.printf (F("\tToo many Clients reuse first \n") );
+        clientOnLine[0].client.stop();
+        clientOnLine[0].client = mbServer.available();
      }
    }
 }
@@ -92,7 +95,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     // checking for glued requests. (wizards are requested for 4 requests)
     while((count < len ) && ((len - count) <= (mbap._len + 6)) && (mbap._pi ==0))
     {
-      smbFrame * pmbFrame = getFreeBuffer();
+      smbFrame * pmbFrame = this->getFreeBuffer();
       if(pmbFrame == 0) break; // if there is no free buffer then we reduce the parsing
       pmbFrame->nClient = nClient;
       
@@ -151,7 +154,7 @@ void ModbusTcpSlave::task()
       if (millis() - mbFrame[i].millis > RTU_TIMEOUT)
       {
         mbFrame[i].status = frameStatus::empty;
-        this->mLogger.printf (F("\tDel pack.\n"));        
+        this->mLogger.printf (F("\tRTU_TIMEOUT -> Del pack.\n"));        
       }
     }
   }
