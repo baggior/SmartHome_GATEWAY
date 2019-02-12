@@ -93,7 +93,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
       len, mbap._len, mbap._ui, mbap._ti);
 
     // checking for glued requests. (wizards are requested for 4 requests)
-    while((count < len ) && ((len - count) <= (mbap._len + 6)) && (mbap._pi ==0))
+    while((count < len ) && ((len - count) <= (mbap._len + TCP_MBAP_SIZE)) && (mbap._pi ==0))
     {
       smbFrame * pmbFrame = this->getFreeBuffer();
       if(pmbFrame == 0) break; // if there is no free buffer then we reduce the parsing
@@ -106,7 +106,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
         pmbFrame->status = frameStatus::readyToSendRtu;
 
       }
-      pmbFrame->len = mbap._len + 6;
+      pmbFrame->len = mbap._len + TCP_MBAP_SIZE;
       pmbFrame->millis   = millis();
 
       for (uint16_t j = 0; j < (pmbFrame->len); j++)
