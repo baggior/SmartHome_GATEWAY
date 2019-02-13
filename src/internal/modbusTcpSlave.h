@@ -11,6 +11,7 @@
 #define CLIENT_NUM            4
 #define MODBUSIP_PORT       502
 #define RTU_TIMEOUT        5000
+#define TCP_MBAP_SIZE         6       
 
 class ModbusTcpSlave
 {
