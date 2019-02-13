@@ -1,5 +1,7 @@
 Chip is ESP32D0WDQ5 (revision 1)
-Features: WiFi, BT, Dual Core
+Features: WiFi, BT, Dual Core, Coding Scheme None
+MAC: 24:0a:c4:1d:3e:00
+
 NOTA: premere Boot per l'upload
 
 ------------------------------------

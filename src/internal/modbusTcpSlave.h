@@ -7,14 +7,16 @@
 
 #define MODBUSIP_MAXFRAME   200
 #define TCP_BUFFER_SIZE     300
-#define FRAME_COUNT         10
-#define NO_CLIENT           255
+#define FRAME_COUNT          10
+#define CLIENT_NUM            4
 #define MODBUSIP_PORT       502
 #define RTU_TIMEOUT        5000
 
 class ModbusTcpSlave
 {
-public:
+    friend class ModbusTCPGatewayModule;
+
+private:
 
     typedef enum eFrameStatus
     { 
@@ -34,7 +36,6 @@ public:
         uint32_t millis;                // Time of sending the package to Serial
     };
 
-private:
     struct smbap
     {
         uint16_t  _ti;  // Transaction Identifier
@@ -47,7 +48,7 @@ private:
     {
         WiFiClient client;
         bool onLine;
-    } clientOnLine[4];
+    } clientOnLine[CLIENT_NUM];
 
     struct smbFrame mbFrame[FRAME_COUNT];
 
@@ -58,6 +59,8 @@ private:
     void readDataClient(void);  // customer scan for data availability
     void readFrameClient(WiFiClient  client, uint8_t i);   // parsing data from the client
     void writeFrameClient(void);
+    void timeoutBufferCleanup();
+
     void mbapUnpack (smbap* pmbap, uint8_t * buff );
 
 public:

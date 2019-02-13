@@ -142,9 +142,15 @@ void ModbusTCPGatewayModule::shutdown()
 void ModbusTCPGatewayModule::loop() {
     if(p_tcpSlave) 
     {
-        p_tcpSlave->task();
-        yield();
+        p_tcpSlave->timeoutBufferCleanup();
+        // yield();
+        p_tcpSlave->waitNewClient();
+        // yield();  
+        p_tcpSlave->readDataClient();
+        // yield();
         this->rtuTransactionTask(); 
+        // yield();
+        p_tcpSlave->writeFrameClient();        
     }
 }
 
@@ -186,7 +192,6 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                                     this->getTitle().c_str(),
                                     hex.c_str());
                             }
-
                         }
 
                         if(pmbFrame->status == ModbusTcpSlave::frameStatus::readyToSendRtuNoReply)
@@ -201,7 +206,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             status = 1;
                         }
                     }
-                    break;
+                    // break;
                 }
 
                 case 1: // Awaiting response
@@ -232,13 +237,17 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             buffer[7] = 0xBB; buffer[8] = 0xD0;
                         
                             pmbFrame->millis = millis();
-                            pmbFrame->len = 6 + 9;
+                            pmbFrame->len = 6 - 2 + 9;
+                            *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len-6; 
                             pmbFrame->status = ModbusTcpSlave::frameStatus::readyToSendTcp;
+                            status = 0;
+
+                            this->theApp->getLogger().printf(F("\tTEST data received from RTU to client TCP: %d len:%d \n"), pmbFrame->nClient, pmbFrame->len);
                         }                        
                     }
                     else
                         status = 0;
-                    break;
+                    // break;
                 }                
 
                 case 2: // reading the answer
@@ -282,8 +291,8 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             if (!crcFrame)
                             {
                                 // response CRC check OK => send TCP response
-                                pmbFrame->len -= 2;
-                                *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len-6;
+                                pmbFrame->len -= 2; //remove CRC
+                                *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len-6;  //set response length
                                 pmbFrame->status = ModbusTcpSlave::frameStatus::readyToSendTcp;
                             }
                             else
@@ -291,16 +300,16 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                                 // response CRC check error
                                 this->theApp->getLogger().printf(F("\tCRC check ERROR in packet received from RTU -> Del pack.\n"));
 
-                                status = 0;  
                                 pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
                                 while(pSerial->available()) 
                                     pSerial->read();
                             }
+                            status = 0;  
                         }
                     }
                     else
                         status = 0;
-                    break;
+                    // break;
                 }
             }
         }
