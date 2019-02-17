@@ -7,3 +7,5 @@
 .vscode/.browse.c_cpp*
 
 my.spiffs.bin
+
+tools/modpoll.exe

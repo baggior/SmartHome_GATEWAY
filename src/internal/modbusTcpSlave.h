@@ -55,6 +55,7 @@ private:
 
     WiFiServer mbServer;
     const _ApplicationLogger& mLogger;
+    const bool isDebug = false;
 
     void waitNewClient (void);  //
     void readDataClient(void);  // customer scan for data availability
@@ -65,7 +66,7 @@ private:
     void mbapUnpack (smbap* pmbap, uint8_t * buff );
 
 public:
-    ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port);
+    ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port, bool _isDebug);
     ~ModbusTcpSlave();
     void task(void);
     smbFrame * getFreeBuffer (void);

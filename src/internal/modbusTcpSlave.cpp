@@ -6,8 +6,8 @@
 
 #define TCP_TIMEOUT_MS RTU_TIMEOUT
 
-ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT)
-: mbServer(port), mLogger(logger)
+ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT, bool _isDebug = false)
+: mbServer(port), mLogger(logger), isDebug(_isDebug)
 {
   mbServer.begin();
   mbServer.setNoDelay(true);
@@ -48,7 +48,9 @@ void ModbusTcpSlave::waitNewClient(void)
        {
           clientOnLine[i].client = mbServer.available();
           clientOnLine[i].onLine = true;
-          this->mLogger.printf (F("\tNew Client: [%d] -> %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
+          if(this->isDebug) {
+            this->mLogger.printf (F("\tNew Client: [%d] -> %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
+          }
 
           clientReg = true;
           break;
@@ -93,8 +95,10 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     count =0;
     smbap  mbap;
     mbapUnpack(&mbap, &buf[0]);
-    this->mLogger.printf (F("\tPaket in : len TCP data [%d] Len mbap pak [%d], UnitId [%d], TI [%d] \n"),
-      len, mbap._len, mbap._ui, mbap._ti);
+    if(this->isDebug) {
+      this->mLogger.printf (F("\tPaket in : len TCP data [%d] Len mbap pak [%d], UnitId [%d], TI [%d] \n"),
+        len, mbap._len, mbap._ui, mbap._ti);
+    }
 
     // checking for glued requests. (wizards are requested for 4 requests)
     while((count < len ) && ((len - count) <= (mbap._len + TCP_MBAP_SIZE)) && (mbap._pi ==0))
@@ -143,9 +147,12 @@ void ModbusTcpSlave::writeFrameClient(void)
       this->mLogger.printf (F("\tERROR writeFrameClient: writing to a disconnected client: %d"), cli);
     }
 
-    this->mLogger.printf (F("TEST writeFrameClient: len=%d, cli=%d\n"), len, cli);
-    // write to TCP client
     size_t written = clientOnLine[cli].client.write(&pmbFrame->buffer[0], len);
+
+    // write to TCP client
+    if(this->isDebug) {
+      this->mLogger.printf (F("\twritten data buffer to TCP client: %d, len=%d\n"), cli, len );
+    }
 
     if(written!= len) {
       this->mLogger.printf (F("\tERROR writeFrameClient: writing buffer [%d] to RTU client len_to_write=%d, written=%d\n"), cli, len, written);

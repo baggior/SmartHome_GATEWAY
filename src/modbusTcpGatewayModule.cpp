@@ -99,7 +99,7 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     {
         // -----------------------
         //TCP SLAVE SETUP:
-        p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port );
+        p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port, this->theApp->isDebug() );
 
         // -----------------------
         //MODBUS MASTER SETUP:
@@ -177,11 +177,8 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
 
                         size_t len = (pmbFrame->len) - TCP_MBAP_SIZE + 2 ; //(pmbFrame->len) + 2;
                         size_t base = TCP_MBAP_SIZE;
-                        
-                        this->theApp->getLogger().printf(F("\tSend pack to RTU. CRC [%X], Len RTU pak: [%d]\n"), 
-                            crcFrame, len);
-
-                        if(base<len) 
+                       
+                        if(base < len) 
                         {
                             // write to RTU len bytes from buffer
                             uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + base);                            
@@ -189,8 +186,9 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             
                             if(this->theApp->isDebug()) {
                                 String hex = baseutils::byteToHexString(buffer, len);
-                                this->theApp->getLogger().printf(F("%s: sent to RTU: \n\t%s\n"), 
+                                this->theApp->getLogger().printf(F("%s: Send pack to RTU. CRC [%X], Len RTU pak: [%d]: \n\t%s\n"), 
                                     this->getTitle().c_str(),
+                                    crcFrame, len,
                                     hex.c_str());
                             }
                         }
@@ -227,6 +225,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             pmbFrame->len = TCP_MBAP_SIZE;
                             status = 2;
                         }
+
                         // TEST
                         else
                         {
@@ -235,15 +234,20 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             buffer[1] = 01;
                             buffer[2] = 02;
                             buffer[3] = 00; buffer[4] = 07; 
-                            // buffer[5] = 00; buffer[6] = 03;
-                            //buffer[7] = 0xBB; buffer[8] = 0xD0;
+                            //buffer[5] = 0xF8; buffer[6] = 0x3E; //CRC
                         
                             pmbFrame->millis = millis();
                             pmbFrame->len = TCP_MBAP_SIZE + 5;
+
+                            *(pmbFrame->buffer + 5) = (uint8_t) pmbFrame->len - TCP_MBAP_SIZE; // set MBAP response size                            
                             pmbFrame->status = ModbusTcpSlave::frameStatus::readyToSendTcp;
                             status = 0;
 
-                            this->theApp->getLogger().printf(F("\tTEST data received from RTU to client TCP: %d len:%d \n"), pmbFrame->nClient, pmbFrame->len);
+                            String hex = baseutils::byteToHexString(buffer, 5);
+
+                            this->theApp->getLogger().printf(F("\n\tTEST: simulate data received from RTU... sending to client TCP cli: %d len=%d \n\t%s\n"), 
+                                pmbFrame->nClient, pmbFrame->len,
+                                hex.c_str());
                         }                        
                     }
                     else
