@@ -12,8 +12,13 @@
 #define RS485_REDE_CONTROL D6 //receive enable / data enable
 
 #elif defined ESP32 
-#define RS485_RO_RX 16 //27        //receive out
-#define RS485_DI_TX 17 //26        //data in
+// uart 1
+#define RS485_RO_RX   9  //27        //receive out
+#define RS485_DI_TX   10 //26        //data in
+// uart 2
+#define RS485_RO_RX   16 //9  //27        //receive out
+#define RS485_DI_TX   17 //10 //26        //data in
+
 #define RS485_REDE_CONTROL 25 //receive enable / data enable
 #endif
 

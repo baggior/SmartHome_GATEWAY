@@ -10,7 +10,7 @@
   },  
 
   "rs485": {
-    "uart": 1,
+    "uart": 2,
     "baud": 9600,
     "databits": 8,
     "stopbits": 1,

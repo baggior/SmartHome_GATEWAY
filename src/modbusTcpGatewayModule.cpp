@@ -7,7 +7,9 @@
 #include "internal/modbusTcpSlave.h"
 
 #define RTU_BUFFER_SIZE  264
-#define RTU_RESPONSE_END_MILLIS 2
+#define RTU_RESPONSE_END_MILLIS  2
+
+#define TEST_REPLY_RTU false
 
 /* ---------------------------------------
 * Modbus-TCP 
@@ -151,6 +153,8 @@ void ModbusTCPGatewayModule::loop() {
         this->rtuTransactionTask(); 
         // yield();
         p_tcpSlave->writeFrameClient();        
+
+        // yield();
     }
 }
 
@@ -164,6 +168,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
         {
             switch(status) 
             {
+                default:
                 case 0: // Sending a packet to RTU
                 {
                     ModbusTcpSlave::smbFrame* p_rtu_frame = p_tcpSlave->getReadyToSendRtuBuffer();
@@ -182,14 +187,19 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                         {
                             // write to RTU len bytes from buffer
                             uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + base);                            
-                            this->p_rs485->write( buffer, len );
-                            
+                            size_t written = this->p_rs485->write( buffer, len );
+                                                        
                             if(this->theApp->isDebug()) {
                                 String hex = baseutils::byteToHexString(buffer, len);
                                 this->theApp->getLogger().printf(F("%s: Send pack to RTU. CRC [%X], Len RTU pak: [%d]: \n\t%s\n"), 
                                     this->getTitle().c_str(),
                                     crcFrame, len,
                                     hex.c_str());
+                            }
+                            
+                            if(written != len) {
+                                this->theApp->getLogger().printf(F("ERROR sending packet to RTU . written=%d, RTU pak len=%d:\n"), 
+                                    written, len);
                             }
                         }
 
@@ -205,7 +215,8 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             status = 1;
                         }
                     }
-                    // break;
+                    
+                    break;
                 }
 
                 case 1: // Awaiting response
@@ -227,7 +238,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                         }
 
                         // TEST
-                        else
+                        else if (TEST_REPLY_RTU)
                         {
                             uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + TCP_MBAP_SIZE );
                             buffer[0] = 01;
@@ -248,11 +259,14 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             this->theApp->getLogger().printf(F("\n\tTEST: simulate data received from RTU... sending to client TCP cli: %d len=%d \n\t%s\n"), 
                                 pmbFrame->nClient, pmbFrame->len,
                                 hex.c_str());
-                        }                        
+                        }              
+
+                        yield();          
                     }
                     else
                         status = 0;
-                    // break;
+                    
+                    break;
                 }                
 
                 case 2: // reading the answer
@@ -274,7 +288,8 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                             {
                                 if (pmbFrame->len <= RTU_BUFFER_SIZE)
                                 {
-                                    *(pmbFrame->buffer + pmbFrame->len) =  pSerial->read();
+                                    // *(pmbFrame->buffer + pmbFrame->len) =  pSerial->read();
+                                    pmbFrame->buffer[pmbFrame->len] = pSerial->read();
                                     pmbFrame->len ++;
                                 }
                             }
@@ -286,9 +301,11 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
 
                             if(this->theApp->isDebug()) {
                                 uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + TCP_MBAP_SIZE );
-                                String hex = baseutils::byteToHexString(buffer, (pmbFrame->len - TCP_MBAP_SIZE));
-                                this->theApp->getLogger().printf(F("%s: read from RTU: \n\t%s\n"), 
+                                size_t cnt = pmbFrame->len - TCP_MBAP_SIZE;
+                                String hex = baseutils::byteToHexString( buffer, cnt );
+                                this->theApp->getLogger().printf(F("%s: has read from RTU %d bytes: \n\t%s\n"), 
                                     this->getTitle().c_str(),
+                                    cnt,
                                     hex.c_str());
                             }
                             
@@ -309,12 +326,16 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                                 while(pSerial->available()) 
                                     pSerial->read();
                             }
+
                             status = 0;  
                         }
+
+                        yield();
                     }
                     else
                         status = 0;
-                    // break;
+                    
+                    break;
                 }
             }
         }
