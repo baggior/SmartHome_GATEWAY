@@ -22,9 +22,6 @@
 #define RS485_REDE_CONTROL 25 //receive enable / data enable
 #endif
 
-// #define RS485_Tx HIGH         //control send
-// #define RS485_Rx LOW          //control receive
-
 #define UART_BAUD 19200
 #define UART_STOP_BITS 2
 #define UART_PARITY "N"
@@ -79,7 +76,7 @@ static HardwareSerial* p_hWser=NULL;
 
 static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits, char _parity) {
 
-  if(_uart_nr==0) 
+  if(_uart_nr==3) // _uart_nr=3 -> SOFTWARE SERIAL
   {
     //SOFTWARE SERIAL
     p_sWser = new ConfigurableSoftwareSerial(RS485_RO_RX, RS485_DI_TX);
@@ -87,15 +84,26 @@ static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits,
     p_sWser->begin(_baud, _stopbits, _parity, _databits);
     p_sWser->setTransmitEnablePin(RS485_REDE_CONTROL);
     p_sWser->enableRx(true);
-    return p_sWser;
-      
+
+    DPRINTF(F("\t Software serial configured. \n"));
+
+    return p_sWser;      
   }
   else
   {
     //HARDWARE SERIAL
-    if (_uart_nr<1 || _uart_nr>3) return NULL; //uart out of range
-    if(_databits<5 && _databits>8) return NULL; //databit out of range
-    if(_stopbits<1 && _stopbits>2) return NULL; //_stopbits out of range
+    if (_uart_nr<0 || _uart_nr>3) {
+      DPRINTF(F("\tERROR: Hardware serial -> uart out of range: %d \n"), _uart_nr);
+      return NULL; //uart out of range
+    }
+    if(_databits<5 && _databits>8) {
+      DPRINTF(F("\tERROR: Hardware serial -> databit out of range: %d \n"), _databits);
+      return NULL; //databit out of range
+    }
+    if(_stopbits<1 && _stopbits>2) {
+      DPRINTF(F("\tERROR: Hardware serial -> _stopbits out of range: %d \n"), _stopbits);
+      return NULL; //_stopbits out of range
+    }
 
     conf0_t c;
     c.val = SERIAL_8N1;
@@ -104,11 +112,25 @@ static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits,
     c.bit_num = (_databits==5)?0:(_databits==6)?1:(_databits==7)?2:(_databits==8)?3 : 3;// error
     c.stop_bit_num = (_stopbits==1)?1:(_stopbits==2)?3 : 1; //error 
   
-    DPRINTF(F("\tserial config %X \n"), c.val);
+    switch(_uart_nr) {
+      case 0:
+        p_hWser = &Serial;
+        break;
+      case 1:
+        p_hWser = &Serial1;
+        break;
+      case 2:
+        p_hWser = &Serial2;
+        break;
+      default:
+        return NULL;
+    }
+    // p_hWser = new HardwareSerial( _uart_nr );
 
-    p_hWser = new HardwareSerial( _uart_nr );
-    p_hWser->begin(_baud, c.val, RS485_RO_RX, RS485_DI_TX);
+    p_hWser->begin(_baud, c.val); //, RS485_RO_RX, RS485_DI_TX);
     p_hWser->setDebugOutput(false);
+
+    DPRINTF(F("\t Hardware serial configured %X \n"), c.val);
 
     return p_hWser;
   }
@@ -123,6 +145,7 @@ static void endSerial() {
   }
   if(p_sWser)
   {
+    delete p_sWser;
     p_sWser = NULL;
   }
 }
@@ -174,12 +197,7 @@ Rs485ServiceModule::Rs485ServiceModule()
 
 Rs485ServiceModule::~Rs485ServiceModule() {
   this->shutdown();
-  // if(p_ser!=NULL) {
-  //   endSerial();
-    
-  //   delete(p_ser);
-  //   p_ser = NULL;
-  // }
+  
 }
 _Error Rs485ServiceModule::setup(const JsonObject &root)
 {  
@@ -258,8 +276,7 @@ void Rs485ServiceModule::shutdown()
     p_ser->flush();
     
     endSerial();
-    
-    delete(p_ser);
+
     p_ser = NULL;
   }
 }
