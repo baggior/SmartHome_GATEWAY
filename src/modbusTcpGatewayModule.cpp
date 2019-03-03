@@ -7,7 +7,7 @@
 #include "internal/modbusTcpSlave.h"
 
 #define RTU_BUFFER_SIZE  264
-#define RTU_RESPONSE_END_MILLIS  2
+#define RTU_RESPONSE_END_TIMEOUT_MILLIS  200
 
 #define TEST_REPLY_RTU false
 
@@ -48,6 +48,8 @@
 // ---------------------------------------
 
 static ModbusTcpSlave * p_tcpSlave = NULL;
+
+static uint16_t guessResponseFrameDataSize(uint8_t* buffer, uint16_t len);
 
 // ---------------------------------------
 
@@ -154,7 +156,7 @@ void ModbusTCPGatewayModule::loop() {
         // yield();
         p_tcpSlave->writeFrameClient();        
 
-        // yield();
+        yield();
     }
 }
 
@@ -226,12 +228,12 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                     {
                         ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
 
-                        if(this->theApp->isDebug()) {
-                            this->theApp->getLogger().printf(F("\tawaiting respose from RTU for TCP client: %d\n"), pmbFrame->nClient);
-                        }
-
                         if (pSerial->available())
                         {
+                            if(this->theApp->isDebug()) {
+                                this->theApp->getLogger().printf(F("\treceived respose from RTU for TCP client: %d\n"), pmbFrame->nClient);
+                            }
+
                             pmbFrame->millis = millis();
                             pmbFrame->len = TCP_MBAP_SIZE;
                             status = 2;
@@ -276,36 +278,55 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
                     {
                         ModbusTcpSlave::smbFrame* pmbFrame = p_rtu_frame;
 
-                        if(this->theApp->isDebug()) {
-                            this->theApp->getLogger().printf(F("\treading respose from RTU for TCP client: %d\n"), pmbFrame->nClient);
-                        }
-                        
                         if (pSerial->available())
                         {
-                            // Reading the RTU answer
-                            pmbFrame->millis = millis();
+                            if(this->theApp->isDebug()) {
+                                this->theApp->getLogger().printf(F("\treading respose from RTU for TCP client: %d (so far: %d bytes)\n"), 
+                                    pmbFrame->nClient, pmbFrame->len - TCP_MBAP_SIZE);
+                            }
+                            
+                            // Reading the RTU answer                            
                             while(pSerial->available())
                             {
                                 if (pmbFrame->len <= RTU_BUFFER_SIZE)
                                 {
-                                    // *(pmbFrame->buffer + pmbFrame->len) =  pSerial->read();
+                                    // READ one byte
                                     pmbFrame->buffer[pmbFrame->len] = pSerial->read();
+
                                     pmbFrame->len ++;
                                 }
+                                else {
+                                    this->theApp->getLogger().printf(F("\tERROR: response RTU buffer is FULL for TCP client: %d\n"), pmbFrame->nClient);
+                                }
                             }
+
+                            // try to read response data size in bytes
+                            if(p_rtu_frame->guessedReponseLen == 0 ) {
+                                pmbFrame->guessedReponseLen = guessResponseFrameDataSize(pmbFrame->buffer, pmbFrame->len);
+
+                                if( pmbFrame->guessedReponseLen>0 && this->theApp->isDebug()) {
+                                    this->theApp->getLogger().printf(F("\tguessed respose RTU length for TCP client: %d is: %d bytes\n"), 
+                                        pmbFrame->nClient, pmbFrame->guessedReponseLen);
+                                }
+                            }
+
+                            // tick last read time
+                            pmbFrame->millis = millis();                            
                         }
 
-                        else if (millis() - pmbFrame->millis > RTU_RESPONSE_END_MILLIS) 
+                        else if( ( (p_rtu_frame->guessedReponseLen > 0) && (p_rtu_frame->len - TCP_MBAP_SIZE >= p_rtu_frame->guessedReponseLen) )
+                            || ( millis() - pmbFrame->millis > RTU_RESPONSE_END_TIMEOUT_MILLIS ) ) 
                         {
-                            // RTU response received (completed)
+
+                            // RTU response received (!!! is supposed completed now !!!)
 
                             if(this->theApp->isDebug()) {
                                 uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + TCP_MBAP_SIZE );
                                 size_t cnt = pmbFrame->len - TCP_MBAP_SIZE;
                                 String hex = baseutils::byteToHexString( buffer, cnt );
-                                this->theApp->getLogger().printf(F("%s: has read from RTU %d bytes: \n\t%s\n"), 
+                                this->theApp->getLogger().printf(F("%s: has read from RTU %d bytes, (guessed are %d): \n\t%s\n"), 
                                     this->getTitle().c_str(),
-                                    cnt,
+                                    cnt, pmbFrame->guessedReponseLen,
                                     hex.c_str());
                             }
                             
@@ -340,5 +361,43 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
             }
         }
     }
+
+}
+
+
+
+uint16_t guessResponseFrameDataSize(uint8_t* buffer, uint16_t len) {
+    uint8_t fncode_index = TCP_MBAP_SIZE + 1 ;
+    uint8_t count_index = fncode_index + 1 ;
+    if( len > count_index )
+    {
+        uint8_t fncode = buffer[fncode_index];
+        uint8_t count = buffer[count_index];
+
+        if (fncode == 1 || fncode == 2 || fncode == 3 || fncode == 4) {
+            uint16_t ret = 1 + 1 + 1 + count + 2;   // ID , FN , count ,  data , CRC 
+            return ret;
+        }
+        else if (fncode == 5 || fncode == 6) {
+            uint16_t ret = 1 + 1 + 4 + 2;       // ID , FN , addrval , CRC
+            return ret;
+        }
+        else if (fncode == 7) {
+            uint16_t ret = 1 + 1 + 1 + 2;       // ID , FN , val , CRC
+            return ret;
+        }
+        else if (fncode == 15 || fncode == 16) {
+            uint16_t ret = 1 + 1 + 4 + 2;       // ID , FN , addrquant , CRC
+            return ret;
+        }
+
+        else if (fncode >= 0x80) {              //exception response
+            uint16_t ret = 1 + 1 + 1 + 2;       // ID , FN , excode , CRC
+            return ret;
+        }
+
+    }
+
+    return 0;
 
 }

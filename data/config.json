@@ -72,7 +72,7 @@
     }
   },
   "ftp": {
-    "enable": true,
+    "enable": false,
     "server_auth": {
       "username": "esp",
       "password": "esp"

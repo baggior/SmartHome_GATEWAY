@@ -104,7 +104,9 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     while((count < len ) && ((len - count) <= (mbap._len + TCP_MBAP_SIZE)) && (mbap._pi ==0))
     {
       smbFrame * pmbFrame = this->getFreeBuffer();
-      if(pmbFrame == 0) break; // if there is no free buffer then we reduce the parsing
+      if(pmbFrame == 0) 
+        break; // if there is no free buffer then we reduce the parsing
+
       pmbFrame->nClient = nClient;
       
       if(mbap._ui==0) {
@@ -202,6 +204,12 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
       return 0;
     }    
   }
+  //init frame  
+  mbFrame[scanBuff].nClient=0;
+  mbFrame[scanBuff].len=0;
+  mbFrame[scanBuff].millis=0;
+  mbFrame[scanBuff].guessedReponseLen=0;
+
   return &mbFrame[scanBuff];
 }
 

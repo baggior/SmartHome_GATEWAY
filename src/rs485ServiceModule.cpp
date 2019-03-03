@@ -474,3 +474,28 @@ void Rs485ServiceModule::idle() {
 }
 
 
+/**
+ *  MODBUS RTU SPEC NOTES
+ * 
+ * Character size:
+ * The format ( 11 bits ) for each byte in RTU mode is :
+ * Coding System: 8–bit binary
+ * Bits per Byte: 1 start bit
+ * 8 data bits, least significant bit sent first
+ * 1 bit for parity completion
+ * 1 stop bit 
+ * 
+ *  RTU Framing timings
+ * In RTU mode, message frames are separated by a silent interval of at least 3.5 character times. In the following sections, this time interval is called t3,5. 
+ * If a silent interval of more than 1.5 character times occurs between two characters, the message frame is declared incomplete and should be discarded by the receiver. 
+ * 
+ * The implementation of RTU reception driver may imply the management of a lot of interruptions due to the t1.5 and t3.5 timers. With 
+ * high communication baud rates, this leads to a heavy CPU load. Consequently these two timers must be strictly respected when the
+ * baud rate is equal or lower than 19200 Bps. For baud rates greater than 19200 Bps, fixed values for the 2 timers should be used: it is
+ * recommended to use a value of 750µs for the inter-character time-out (t1.5) and a value of 1.750ms for inter-frame delay (t3.5).
+ * 
+ * 
+ * 
+ * 
+ **/
+
