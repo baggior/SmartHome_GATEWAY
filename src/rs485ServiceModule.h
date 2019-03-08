@@ -34,6 +34,7 @@ public:
     void idle();
 
     size_t write(uint8_t* buffer, size_t count);
+    size_t write(const String& asci_buffer);
 
 protected:
     Rs485ServiceModule(String _title, String _descr);

@@ -36,6 +36,7 @@ private:
         uint16_t len;
         uint32_t millis;                    // Time of sending the package to Serial
         uint16_t guessedReponseLen =0;      // when received guessedReponseLen the response is considered completed 
+        String ascii_response_buffer;
     };
 
     struct smbap

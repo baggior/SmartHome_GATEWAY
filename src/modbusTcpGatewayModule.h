@@ -26,8 +26,10 @@ protected:
 
 private:   
 
-    void rtuTransactionTask();
+    void serialTransactionTask();
+
     uint16_t status = 0;
+    bool modbus_ascii = false;
     
     unsigned int tcp_port = 502;
     // unsigned int default_slave_id = 1;

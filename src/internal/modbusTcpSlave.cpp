@@ -209,6 +209,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
   mbFrame[scanBuff].len=0;
   mbFrame[scanBuff].millis=0;
   mbFrame[scanBuff].guessedReponseLen=0;
+  mbFrame[scanBuff].ascii_response_buffer="";
 
   return &mbFrame[scanBuff];
 }

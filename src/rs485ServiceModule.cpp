@@ -430,6 +430,20 @@ Rs485ServiceModule::BINARY_BUFFER_T Rs485ServiceModule::sendMasterCommand(Rs485S
   return RESPONSE;
 }
 
+size_t Rs485ServiceModule::write(const String& asciibuffer) 
+{
+  size_t count = 0;
+  if(this->p_ser && asciibuffer.length()>0) {
+
+    this->preTransmit();
+    
+    count = p_ser->write( asciibuffer.c_str(), asciibuffer.length() );                        
+
+    this->postTransmit();
+
+  }
+  return count;
+}
 
 size_t Rs485ServiceModule::write(uint8_t* buffer, size_t size)
 {
