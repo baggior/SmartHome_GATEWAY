@@ -49,7 +49,7 @@
 
 static ModbusTcpSlave * p_tcpSlave = NULL;
 
-static uint16_t guessResponseFrameDataSize(uint8_t* buffer, uint16_t len);
+static uint16_t guessRtuResponseFrameDataSize(uint8_t* buffer, uint16_t len);
 
 // ---------------------------------------
 
@@ -302,7 +302,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
 
                             // try to read response data size in bytes
                             if(p_rtu_frame->guessedReponseLen == 0 ) {
-                                pmbFrame->guessedReponseLen = guessResponseFrameDataSize(pmbFrame->buffer, pmbFrame->len);
+                                pmbFrame->guessedReponseLen = guessRtuResponseFrameDataSize(pmbFrame->buffer, pmbFrame->len);
 
                                 if( pmbFrame->guessedReponseLen>0 && this->theApp->isDebug()) {
                                     this->theApp->getLogger().printf(F("\tguessed respose RTU length for TCP client: %d is: %d bytes\n"), 
@@ -366,7 +366,7 @@ void ModbusTCPGatewayModule::rtuTransactionTask()
 
 
 
-uint16_t guessResponseFrameDataSize(uint8_t* buffer, uint16_t len) {
+uint16_t guessRtuResponseFrameDataSize(uint8_t* buffer, uint16_t len) {
     uint8_t fncode_index = TCP_MBAP_SIZE + 1 ;
     uint8_t count_index = fncode_index + 1 ;
     if( len > count_index )

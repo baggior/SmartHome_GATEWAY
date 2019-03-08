@@ -35,7 +35,7 @@ private:
         uint8_t buffer[TCP_BUFFER_SIZE];
         uint16_t len;
         uint32_t millis;                    // Time of sending the package to Serial
-        uint16_t guessedReponseLen =0;   // when received guessedReponseLen the response is considered completed 
+        uint16_t guessedReponseLen =0;      // when received guessedReponseLen the response is considered completed 
     };
 
     struct smbap
