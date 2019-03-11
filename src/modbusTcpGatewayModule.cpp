@@ -519,14 +519,41 @@ size_t guessRtuResponseFrameDataSize(uint8_t* buffer, size_t len) {
 }
 
 
+
 String convertRtuToAsci ( uint8_t* rtubuffer, size_t len)
 {
-    //TODO
-    return "";
+    String ret;
+    if (rtubuffer && len>0) 
+    {
+        for (int i=0; i<len; ++i)
+        {
+            unsigned char high_nibble = ( unsigned char ) rtubuffer[i] >>4;
+            unsigned char high_char = baseutils::binNibble2Char(high_nibble);
+
+            unsigned char low_nibble = ( unsigned char ) rtubuffer[i]  & 0x0F;
+            unsigned char low_char = baseutils::binNibble2Char(low_nibble);
+
+            ret += high_char + low_char;
+        }
+    }
+    return ret;
 }
 
 size_t convertAsciiToRtu ( uint8_t* rtubuffer, const String& inputAsciiBuffer)
 {
-    //TODO
+    int len = inputAsciiBuffer.length();
+    if (rtubuffer && len>0)
+    {
+        for (int i=0; i<len; ++i)
+        {
+            unsigned char c = inputAsciiBuffer[i];
+            unsigned char bin = baseutils::char2Binary( c );
+            
+            rtubuffer[i] = bin;
+        }
+
+        return len;
+    }
     return 0;
 }
+
