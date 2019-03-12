@@ -92,7 +92,9 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
 
      // configuration    
     const JsonObject& root = this->theApp->getConfig().getJsonObject("wifi");
-    if(!root.success()) return _Error(-1, "Error parsing wifi config");
+    if(root.isNull()) 
+        return _Error(-1, "Error parsing wifi config");
+
     
     const char* SSID = root["SSID"]; //TODO
     const char* password = root["password"]; //TODO
