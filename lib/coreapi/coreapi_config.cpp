@@ -88,8 +88,6 @@ const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
     return JsonObject::invalid();
 }
 
-
-
 _Error _ApplicationConfig::persist()
 {
    

@@ -11,7 +11,10 @@ ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port =
 {
   mbServer.begin();
   mbServer.setNoDelay(true);
+
+#ifdef ESP32
   mbServer.setTimeout(TCP_TIMEOUT_MS / 1000);
+#endif
 
   for (uint8_t i = 0 ; i < FRAME_COUNT; i++)
     mbFrame[i].status = frameStatus::empty;
