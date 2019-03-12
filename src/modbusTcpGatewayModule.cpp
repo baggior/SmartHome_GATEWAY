@@ -72,7 +72,7 @@ ModbusTCPGatewayModule::~ModbusTCPGatewayModule()
 _Error ModbusTCPGatewayModule::setup() 
 {
     const JsonObject &root = this->theApp->getConfig().getJsonObject("modbus_tcp_gtw");
-    if(root.success()) 
+    if(!root.isNull()) 
     {
         return this->setup(root);
     }

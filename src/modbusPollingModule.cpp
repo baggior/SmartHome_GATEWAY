@@ -18,8 +18,8 @@ _Error ModbusPollingModule::setup()
     bool on = false;
     int task_listen_interval = 0;
 
-    const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");  
-    if(root.success()) 
+    const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");      
+    if(!root.isNull()) 
     {
         on = root["enable"];   
         task_listen_interval = root["task_listen_interval"];   
@@ -44,7 +44,7 @@ _Error ModbusPollingModule::setup()
         }
 
         const JsonArray& memoryConfigArray = root["dataMemoryConfig"];  
-        if(memoryConfigArray.success())  
+        if(!memoryConfigArray.isNull()) 
         {            
             this->p_modbus->buildDataMemory(memoryConfigArray, this->modbusDataMemory);
 

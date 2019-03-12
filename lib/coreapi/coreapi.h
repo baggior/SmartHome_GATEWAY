@@ -214,7 +214,7 @@ private:
     _Error persist();
 
     _Application& theApp;
-    const JsonObject* jsonObject=NULL;
+    JsonObject jsonObject;
 };
 
 ///////////////////////////////////////////////////////

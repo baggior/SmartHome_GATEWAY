@@ -57,7 +57,7 @@ MqttModule::~MqttModule()
 _Error MqttModule::setup() 
 {  
   const JsonObject& root = this->theApp->getConfig().getJsonObject("mqtt");  
-  if(root.success()) 
+  if(!root.isNull()) 
   {
     return this->setup(root);
   }

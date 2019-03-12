@@ -22,7 +22,7 @@ _Error _RestApiModule::setup()
 
   // configuration
   const JsonObject& root = this->theApp->getConfig().getJsonObject("rest");  
-  if(root.success()) 
+  if(!root.isNull()) 
   {
     on = root["enable"];   
     this->_server_port=root["server_port"];

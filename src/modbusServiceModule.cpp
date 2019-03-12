@@ -54,7 +54,7 @@ ModbusServiceModule::ModbusServiceModule()
 
 _Error ModbusServiceModule::setup() {
     const JsonObject &root = this->theApp->getConfig().getJsonObject("modbus");
-    if(root.success()) 
+    if(!root.isNull()) 
     {
         return this->setup(root);
     }
@@ -259,7 +259,7 @@ void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, 
     size_t size = modbusMemoryConfig.size();
 
     // Walk the JsonArray efficiently
-    for (JsonObject& item : modbusMemoryConfig) 
+    for (const JsonObject& item : modbusMemoryConfig) 
     {
         String type = item["modbus_type"]      | String("register");
         String topic = item["topic"]    | type; //String("");
@@ -377,23 +377,21 @@ static void print(const ModbusDataMemory::Item& item, JsonObject& obj, const cha
 
 void ModbusDataMemory::printDataMemory(Stream& out) const
 {
-    DynamicJsonBuffer jsonBuffer(1024);
-    JsonArray& arr = jsonBuffer.createArray();
+    DynamicJsonDocument jsonBuffer(1024);
+    const JsonArray arr = jsonBuffer.to<JsonArray>();
 
     for(const ModbusDataMemory::Item& item : this->coils_buffer) 
     {
-        JsonObject& obj = jsonBuffer.createObject();
+        JsonObject obj = arr.createNestedObject();
         print(item, obj, "coil");
-        arr.add(obj);
     }
 
     for(const ModbusDataMemory::Item& item : this->registers_buffer) 
     {
-        JsonObject& obj = jsonBuffer.createObject();
+        JsonObject obj = arr.createNestedObject();
         print(item, obj, "register");
-        arr.add(obj);
     }
 
-    arr.prettyPrintTo(out);
+    size_t size = serializeJsonPretty(arr, out);
 }
 

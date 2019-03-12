@@ -25,7 +25,7 @@ _Error WifiFtpServerModule::setup()
 
     // configuration
     const JsonObject& root = this->theApp->getConfig().getJsonObject("ftp");
-    if(root.success())
+    if(!root.isNull())
     {
         on = root["enable"]; 
         _server_auth_username = root["server_auth"]["username"];

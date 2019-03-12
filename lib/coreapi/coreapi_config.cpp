@@ -14,11 +14,10 @@
 #define JSON_BUFFER_SIZE 1024
 
 
-static DynamicJsonBuffer jsonBuffer(JSON_BUFFER_SIZE);
+static DynamicJsonDocument jsonBuffer(JSON_BUFFER_SIZE);
 
 _ApplicationConfig::_ApplicationConfig(_Application& _theApp) : 
-    theApp(_theApp), 
-    jsonObject(NULL)
+    theApp(_theApp)
 {    
 }
 _ApplicationConfig::~_ApplicationConfig()
@@ -30,12 +29,15 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
     logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
     const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
 
-    this->jsonObject = NULL;
     jsonBuffer.clear();
-    JsonObject& jsonObject_parsed = jsonBuffer.parseObject(configJsonString);    // the input is read-only, the parser copies the input
-    if(jsonObject_parsed.success())
+    this->jsonObject.clear();
+
+    DeserializationError error = deserializeJson(jsonBuffer, configJsonString);
+    // JsonObject& jsonObject_parsed = jsonBuffer.parseObject(configJsonString);    // the input is read-only, the parser copies the input
+
+    if(!error)
     {
-        this->jsonObject = &jsonObject_parsed;
+        this->jsonObject = jsonBuffer.as<JsonObject>();
         this->printConfigTo(logger.getStream());
 
         return _NoError; 
@@ -43,7 +45,7 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
     else
     {
         //  DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
-        return _Error(-1, "Error parsing json config file");
+        return _Error(-1, String(F("Error parsing json config file: ")) + String(error.c_str()) );
     }    
 }
 
@@ -52,9 +54,10 @@ void _ApplicationConfig::printConfigTo(Stream* stream) const
     if(stream)
     {
         stream->println(F("Configuration: "));
-        if(this->jsonObject!=NULL)
+        if(! this->jsonObject.isNull())
         {
-            this->jsonObject->prettyPrintTo(*stream);
+            size_t size = serializeJsonPretty(this->jsonObject, *stream);
+            // this->jsonObject->prettyPrintTo(*stream);
             stream->println();
         }
         else 
@@ -70,22 +73,13 @@ void _ApplicationConfig::printConfigTo(Stream* stream) const
 
 const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
 {   
-    if(this->jsonObject)
+    if(node) 
     {
-        if(node) 
-        {
-            JsonObject& jsonNode = ((*this->jsonObject)[node]);
+        JsonObject jsonNode = ((this->jsonObject)[node]);
+        if(! jsonNode.isNull() )
             return jsonNode;
-        }
-        return * this->jsonObject;
     }
-    else
-    {
-        //DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
-        // throw error TODO        
-    } 
-    
-    return JsonObject::invalid();
+    return this->jsonObject;
 }
 
 
@@ -123,9 +117,10 @@ _Error _ApplicationConfig::persist()
     {
         DPRINTF(F("Prepared to write config file: %s \r\n"),CONFIG_FILE_PATH);   
         
-        if(this->jsonObject==NULL)
+        if(! this->jsonObject.isNull())
         {
-            this->jsonObject->prettyPrintTo(configFile);        
+            size_t size = serializeJsonPretty(this->jsonObject, configFile);
+            // this->jsonObject->prettyPrintTo(configFile);        
         }
         else 
         {

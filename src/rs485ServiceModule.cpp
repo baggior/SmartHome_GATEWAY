@@ -200,7 +200,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
 {  
   this->p_logger = &this->theApp->getLogger();
 
-  if(! root.success()) {
+  if (!root.isNull())  {
     this->p_logger->printf(F(">Rs485 Error initializing configuration. Json file error\n"));
     return _ConfigLoadError;
   }
@@ -258,8 +258,8 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
 _Error Rs485ServiceModule::setup() 
 {  
   const JsonObject& root = this->theApp->getConfig().getJsonObject("rs485");  
-  if(root.success()) 
-  {
+  if(!root.isNull()) 
+  {    
     return this->setup(root);
   }
 
