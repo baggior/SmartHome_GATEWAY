@@ -525,7 +525,7 @@ String convertRtuToAsci ( uint8_t* rtubuffer, size_t len)
     String ret;
     if (rtubuffer && len>0) 
     {
-        for (int i=0; i<len; ++i)
+        for (size_t i=0; i<len; ++i)
         {
             unsigned char high_nibble = ( unsigned char ) rtubuffer[i] >>4;
             unsigned char high_char = baseutils::binNibble2Char(high_nibble);

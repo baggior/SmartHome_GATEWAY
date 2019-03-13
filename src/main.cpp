@@ -3,7 +3,7 @@
 
 // #include "wifiConnection.h"
 
-
+#include <Arduino.h>
 
 #include "coreapi.h"
 #include "coreapi_ftpmodule.h"

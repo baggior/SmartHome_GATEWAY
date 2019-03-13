@@ -101,7 +101,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     }
 
     // checking for glued requests. (wizards are requested for 4 requests)
-    while((count < len ) && ((len - count) <= (mbap._len + TCP_MBAP_SIZE)) && (mbap._pi ==0))
+    while((count < len ) && ((len - count) <= (size_t) (mbap._len + TCP_MBAP_SIZE)) && (mbap._pi ==0))
     {
       smbFrame * pmbFrame = this->getFreeBuffer();
       if(pmbFrame == 0) 
