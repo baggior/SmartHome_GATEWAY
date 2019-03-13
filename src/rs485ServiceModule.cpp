@@ -116,9 +116,14 @@ static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits,
       case 1:
         p_hWser = &Serial1;
         break;
+
+#ifdef ESP32        
+
       case 2:
         p_hWser = &Serial2;
         break;
+        
+#endif        
       default:
         return NULL;
     }
