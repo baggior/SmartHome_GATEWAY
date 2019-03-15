@@ -75,7 +75,7 @@ const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
 {   
     if(node) 
     {
-        JsonObject jsonNode = ((this->jsonObject)[node]);
+        const JsonObject& jsonNode = ((this->jsonObject)[node]);
         if(! jsonNode.isNull() )
             return jsonNode;
     }

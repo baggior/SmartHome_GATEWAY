@@ -88,7 +88,7 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
     {
       AsyncJsonResponse * response = new AsyncJsonResponse();
       response->setContentType("application/json");
-      JsonObject& responseObjectRoot = response->getRoot();
+      const JsonObject& responseObjectRoot = response->getRoot();
 
       callback( NULL, &responseObjectRoot );
 
@@ -104,9 +104,9 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
     {
       AsyncJsonResponse * response = new AsyncJsonResponse();
       response->setContentType("application/json");
-      JsonObject& responseObjectRoot = response->getRoot();
+      JsonObject responseObjectRoot = response->getRoot();
 
-      JsonObject& requestObjectRoot = json.as<JsonObject>();
+      JsonObject requestObjectRoot = json.as<JsonObject>();
       callback( &requestObjectRoot, &responseObjectRoot );
 
       response->setLength();
@@ -350,8 +350,8 @@ _Error _RestApiModule::restApiMethodSetup()
   this->webServer->on("/api/plain/heap", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
-  this->addRestApiMethod("/api/heap", [](JsonObject* requestPostBody,  JsonObject* responseBody) {
-    JsonObject& root = (*responseBody);
+  this->addRestApiMethod("/api/heap", [](const JsonObject* requestPostBody, const JsonObject* responseBody) {
+    const JsonObject& root = (*responseBody);
     root["heap"] = ESP.getFreeHeap();
     root["ssid"] = WiFi.SSID();
   });

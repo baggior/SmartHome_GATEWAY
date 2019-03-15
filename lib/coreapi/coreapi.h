@@ -146,7 +146,7 @@ class _RestApiModule : public _BaseModule
 {
 public:
     
-    typedef std::function<void(JsonObject* requestPostBody,  JsonObject* responseBody)> RestHandlerCallback;
+    typedef std::function<void(const JsonObject* requestPostBody,  const JsonObject* responseBody)> RestHandlerCallback;
     
     inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, Order_AfterNormal) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
