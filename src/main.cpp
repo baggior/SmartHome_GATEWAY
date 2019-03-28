@@ -69,13 +69,9 @@ void setup() {
 
     // put your setup code here, to run once:    
     Serial.end();
-    Serial.begin(115200);
-
-    #ifdef MY_DEBUG
-    Serial.setDebugOutput(true);
-    #endif
-    
-    Serial.println();
+    // Serial.begin(115200);
+   
+    // Serial.println();
     // DPRINTLN("\n-----OLD Main setup start-----\n");
 /* 
 #ifdef MY_DEBUG

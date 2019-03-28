@@ -87,7 +87,7 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
     webServer->on(uri, HTTP_GET, [callback](AsyncWebServerRequest *request)
     {
       AsyncJsonResponse * response = new AsyncJsonResponse();
-      response->setContentType("application/json");
+      response->setContentType(JSON_MIMETYPE);
       const JsonObject& responseObjectRoot = response->getRoot();
 
       callback( NULL, &responseObjectRoot );
@@ -103,7 +103,7 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
     AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri, [callback] (AsyncWebServerRequest *request, JsonVariant &json) 
     {
       AsyncJsonResponse * response = new AsyncJsonResponse();
-      response->setContentType("application/json");
+      response->setContentType(JSON_MIMETYPE);
       JsonObject responseObjectRoot = response->getRoot();
 
       JsonObject requestObjectRoot = json.as<JsonObject>();
@@ -189,7 +189,7 @@ static void _onScanWiFi(AsyncWebServerRequest *request)
     }
   }
   json += "]";
-  request->send(200, "application/json", json);
+  request->send(200, JSON_MIMETYPE, json);
   json = String();
 }
 
