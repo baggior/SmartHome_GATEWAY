@@ -71,13 +71,14 @@ void _ApplicationConfig::printConfigTo(Stream* stream) const
 
 
 
-const JsonObject& _ApplicationConfig::getJsonObject(const char* node)const
+const JsonObject _ApplicationConfig::getJsonObject(const char* node)const
 {   
     if(node) 
     {
         const JsonObject& jsonNode = ((this->jsonObject)[node]);
         if(! jsonNode.isNull() )
             return jsonNode;
+            // return ((this->jsonObject)[node]);
     }
     return this->jsonObject;
 }

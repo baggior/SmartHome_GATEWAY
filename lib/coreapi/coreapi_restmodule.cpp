@@ -7,6 +7,8 @@
 #include <SPIFFSEditor.h>
 
 #include <ESPAsyncWebServer.h>
+ 
+// #define ARDUINOJSON_VERSION_MAJOR 5
 #include <AsyncJson.h>
 
 // #include "WiFiConnection.h"

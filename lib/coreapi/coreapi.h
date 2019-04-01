@@ -200,7 +200,7 @@ public:
     _ApplicationConfig(_Application& _theApp);
     virtual ~_ApplicationConfig();
 
-    const JsonObject& getJsonObject(const char* node=NULL)const;
+    const JsonObject getJsonObject(const char* node=NULL)const;
     void printConfigTo(Stream* stream)const ;
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
