@@ -21,7 +21,7 @@ _Error _WifiConnectionModule::setup()
     _Error err = this->wifiManagerOpenConnection();
     if(err==_NoError)
     {
-        bool ret = this->theApp->getNetServices().announceTheDevice();        
+        bool ret = this->theApp->getNetServices().mdnsAnnounceTheDevice();        
         if(!ret) {
             err = _Error(-12,"MDNS announce error") ;
         }

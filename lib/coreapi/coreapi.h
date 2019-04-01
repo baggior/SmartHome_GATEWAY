@@ -238,8 +238,8 @@ public:
     typedef etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES> MdnsAttributeList;
     
     MdnsQueryResult mdnsQuery(String service, String proto);
-    bool announceTheDevice(unsigned int server_port=80);
-    bool announceTheDevice(unsigned int server_port, const MdnsAttributeList & attributes);
+    bool mdnsAnnounceTheDevice(unsigned int server_port=80);
+    bool mdnsAnnounceTheDevice(unsigned int server_port, const MdnsAttributeList & attributes);
 
 private:
     friend _Application;

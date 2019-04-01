@@ -25,13 +25,13 @@ String _NetServices::getHostname() {
 }
 
 
-bool _NetServices::announceTheDevice(unsigned int server_port)
+bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port)
 {    
     MdnsAttributeList attributes;    
-    return this->announceTheDevice(server_port, attributes);
+    return this->mdnsAnnounceTheDevice(server_port, attributes);
 } 
 
-bool _NetServices::announceTheDevice(unsigned int server_port, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
+bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
 {
     if(server_port)
     { 
@@ -47,18 +47,20 @@ bool _NetServices::announceTheDevice(unsigned int server_port, const etl::list<M
         this->theApp.getLogger().printf(F("\tMDNS responder started. hostname: %s (ip: %s) \n"),
             hostname.c_str(), ip.toString().c_str());
     
-        String proto("_"), service("_");    
-        proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
-        service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
+        // Announce esp tcp service on port 80:
 
-        // Announce esp tcp service on port 80
-        MDNS.addService(service, proto, server_port);      
+        // String proto("_"), service("_");    
+        // proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
+        // service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
+        // MDNS.addService(service, proto, server_port);      
+
+        MDNS.addService(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);  
 
         // Add service attributes
         for(MdnsAttribute attr: attributes)
         {            
             this->theApp.getLogger().printf(F("\tMDNS attribute: %s -> %s\n"), attr.name, attr.value);
-            MDNS.addServiceTxt(service, proto, attr.name, attr.value);
+            MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, attr.name, attr.value);
         }
   
         this->theApp.getLogger().printf(F(">MDNS announced service: %s, proto: %s, port: %d \n"), 
