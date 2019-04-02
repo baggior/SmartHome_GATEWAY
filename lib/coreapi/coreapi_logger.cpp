@@ -14,6 +14,8 @@ static void initRemoteDebug(String hostname)
     Debug.showProfiler(true); // To show profiler - time between messages of Debug
 	Debug.showColors(true); // Colors
 
+    Debug.showTime(true); // Show time in millis
+    Debug.showDebugLevel(true); // Show debug level
 }
 
 // void _ApplicationLogger::setup(HardwareSerial& hwserial)
@@ -37,13 +39,22 @@ _ApplicationLogger::~_ApplicationLogger()
 
 }
 
+void _ApplicationLogger::loop()
+{
+    // RemoteDebug handle
+    Debug.handle();
+}
+
 void _ApplicationLogger::printf(const char *fmt, ...) const
 {
     if(this->dbgstream)
     {
         va_list args;
         va_start (args, fmt );
-        Stream_printf_args(*this->dbgstream, fmt, args);
+        
+        Stream_printf_args(*this->dbgstream, fmt, args);        
+        Debug.printf(fmt, args);    //TODO: test
+
         va_end (args);
     }
 }
@@ -53,17 +64,12 @@ void _ApplicationLogger::printf(const __FlashStringHelper *fmt, ...) const
     {
         va_list args;
         va_start (args, fmt );
+
         Stream_printf_args(*this->dbgstream, fmt, args);
+        Debug.printf(reinterpret_cast<const char *> (fmt), args); //TODO: test
+
         va_end (args);
     }
-}
-
-void _ApplicationLogger::printf(const _Error& error) const
-{
-    if(error==_NoError)
-        this->printf(F("[NoError]"));
-    else
-        this->printf(F("[Error (%d): %s]"), error.errorCode, error.message.c_str());
 }
 
 
@@ -75,3 +81,16 @@ size_t _ApplicationLogger::write(uint8_t data)
     }
     return 0;
 }
+
+
+
+void _ApplicationLogger::printf(const _Error& error) const
+{
+    if(error==_NoError)
+        this->printf(F("[NoError]"));
+    else
+        this->printf(F("[Error (%d): %s]"), error.errorCode, error.message.c_str());
+}
+
+
+
