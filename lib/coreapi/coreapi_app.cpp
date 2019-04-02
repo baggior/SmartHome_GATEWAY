@@ -209,16 +209,17 @@ void _Application::idleLoop()
     }
 }
 
+// MAIN LOOP
 void _Application::loop()
 {
-    static long logmillis = 0 ;
-    long now = millis();
-    this->toLog = ( this->isDebug() && ( (now - logmillis) > 1000) ); 
+    // static long logmillis = 0 ;
+    // long now = millis();
+    // this->toLog = ( this->isDebug() && ( (now - logmillis) > 1000) ); 
 
-    if(this->isToLog()) {
-        logmillis = now; 
-        this->logger.printf(F("_Application::loop(%d) BEGIN, "), loopcnt );
-    } 
+    // if(this->isToLog()) {
+    //     logmillis = now; 
+    //     this->logger.printf(F("_Application::loop(%d) BEGIN, "), loopcnt );
+    // } 
 
     for(_BaseModule* module : this->modules) 
     {
@@ -228,7 +229,7 @@ void _Application::loop()
             if(module->isEnabled())
             {
                 //module main loop
-                if(this->isToLog()) this->logger.printf(F("[%s]loop, "), module->getTitle().c_str() );
+                // if(this->isToLog()) this->logger.printf(F("[%s]loop, "), module->getTitle().c_str() );
                 module->loop();
             }
         }
@@ -239,14 +240,17 @@ void _Application::loop()
     if(idle)
     {
         //app idle loop
-        if(this->isToLog()) this->logger.printf(F("[IDLE]loop, ") );
+        // if(this->isToLog()) this->logger.printf(F("[IDLE]loop, ") );
         this->idleLoop();
     }
     this->loopcnt++;
 
-    if(this->isToLog()) {
-        this->logger.printf(F("_Application::loop END.\n") );
-    }
+    // if(this->isToLog()) {
+    //     this->logger.printf(F("_Application::loop END.\n") );
+    // }
+
+    // handle log
+    this->logger.loop();
 
     yield();
 }

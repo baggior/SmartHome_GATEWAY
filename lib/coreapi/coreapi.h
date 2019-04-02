@@ -170,6 +170,18 @@ private:
 
 
 ///////////////////////////////////////////////////////
+
+/**
+ * RemoteDebug print with Debug levels
+ * 
+ * debugV("* This is a message of debug level VERBOSE");
+ * debugD("* This is a message of debug level DEBUG");
+ * debugI("* This is a message of debug level INFO");
+ * debugW("* This is a message of debug level WARNING");
+ * debugE("* This is a message of debug level ERROR");
+ * 
+ **/
+
 class _ApplicationLogger : public Print {
     
 public:
@@ -189,6 +201,8 @@ public:
 
 private:
     friend _Application;
+
+    void loop();
 
     // inline Stream* getStream()const {return this->dbgstream; }
     // for print implementation
@@ -284,7 +298,7 @@ public:
     void loop();
 
     inline bool isDebug() { return this->debug; }
-    inline bool isToLog() { return this->debug && this->toLog; }
+    // inline bool isToLog() { return this->debug && this->toLog; }
 
     inline unsigned long millisSinceStartup() const {return millis() - this->startupTimeMillis;} 
     inline const _ApplicationLogger& getLogger() const {return this->logger;}
@@ -318,7 +332,7 @@ private:
     Scheduler runner;
 
     bool debug=false;
-    bool toLog=false;
+    // bool toLog=false;
 
     IdleLoopCallback idleLoopCallback_fn=NULL;
     long loopcnt = 0;

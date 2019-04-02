@@ -38,18 +38,18 @@ void _TaskModule::setEnabled(bool _enabled)
 
 void _TaskModule::taskloop()
 {    
-    if(this->theApp->isToLog()) {
-        this->theApp->getLogger().printf(F("TASK [%s]loop(%d)BEGIN, "), 
-            this->getTitle().c_str(), this->loopcnt );
-    }
+    // if(this->theApp->isToLog()) {
+    //     this->theApp->getLogger().printf(F("TASK [%s]loop(%d)BEGIN, "), 
+    //         this->getTitle().c_str(), this->loopcnt );
+    // }
 
     this->loop();
     this->loopcnt++; 
 
-    if(this->theApp->isToLog()) {
-        this->theApp->getLogger().printf(F("TASK [%s]loop END.\n"), 
-            this->getTitle().c_str() );         
-    }
+    // if(this->theApp->isToLog()) {
+    //     this->theApp->getLogger().printf(F("TASK [%s]loop END.\n"), 
+    //         this->getTitle().c_str() );         
+    // }
 }
 
 void _TaskModule::shutdown()  

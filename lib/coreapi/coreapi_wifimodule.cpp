@@ -21,9 +21,9 @@ _Error _WifiConnectionModule::setup()
     _Error err = this->wifiManagerOpenConnection();
     if(err==_NoError)
     {
-        // TODO: enable remote debug
         if(this->theApp->isDebug()) 
         {            
+            // setup remote log
             _ApplicationLogger& logger = (_ApplicationLogger&) this->theApp->getLogger();
             logger.setupRemoteLog( _NetServices::getHostname() );
             
