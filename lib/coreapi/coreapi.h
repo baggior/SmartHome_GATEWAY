@@ -16,16 +16,14 @@
 
 //3rd party libs
 #include <ArduinoJson.h>
-// #include <ESPAsyncWiFiManager.h>
-
 #include <WiFiManager.h>
-
 #define     _TASK_STD_FUNCTION
 //#define     _TASK_SLEEP_ON_IDLE_RUN
 //#define     _TASK_STATUS_REQUEST
 #define     _TASK_WDT_IDS
 //#define     _TASK_LTS_POINTER
 #include <TaskSchedulerDeclarations.h>
+#include <RemoteDebug.h>
 
 
 class _Application;
@@ -172,11 +170,13 @@ private:
 
 
 ///////////////////////////////////////////////////////
-class _ApplicationLogger {
+class _ApplicationLogger : public Print {
     
 public:
-    void setup(HardwareSerial& hwserial);
-    void setup(Stream* dbgstream);
+    // void setup(HardwareSerial& hwserial);
+    // void setup(Stream* dbgstream);
+    void setup(Stream* _dbgstream);
+    void setupRemoteLog(const String hostname);
     virtual ~_ApplicationLogger();
 
     void printf(const char *fmt, ...) const;
@@ -185,10 +185,14 @@ public:
 
     inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
-    inline Stream* getStream()const {return this->dbgstream; }
+    inline Print* asPrint() const { return (Print*) this; }
 
 private:
     friend _Application;
+
+    // inline Stream* getStream()const {return this->dbgstream; }
+    // for print implementation
+    virtual size_t write(uint8_t) override;
 
     Stream * dbgstream = NULL;
 };
@@ -201,7 +205,7 @@ public:
     virtual ~_ApplicationConfig();
 
     const JsonObject getJsonObject(const char* node=NULL)const;
-    void printConfigTo(Stream* stream)const ;
+    void printConfigTo(Print* stream)const ;
 
     static inline String getSoftwareVersion() { return SW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
@@ -223,7 +227,8 @@ class _NetServices {
 public:
 
     static String getHostname();
-    static void printDiagWifi(Stream * dbgstream);
+
+    void printDiagWifi();
 
     //MDNS
     struct MdnsQueryResult {    
@@ -301,7 +306,7 @@ private:
 
     bool modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) const;
 
-    typedef etl::list<_BaseModule*, MAX_MODULES> ModuleListType;
+    typedef etl::list<_BaseModule*, MAX_MODULES> ModuleList_t;
 
     unsigned long startupTimeMillis=0;
 
@@ -309,7 +314,7 @@ private:
     _ApplicationConfig config;
     _ApplicationLogger logger;
     
-    ModuleListType modules;
+    ModuleList_t modules;
     Scheduler runner;
 
     bool debug=false;

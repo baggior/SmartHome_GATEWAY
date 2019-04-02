@@ -105,12 +105,12 @@ _NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String pro
     return ret;
 }
 
-void _NetServices::printDiagWifi(Stream* dbgstream)
+void _NetServices::printDiagWifi()
 {    
-    if(dbgstream)
+    if( this->theApp.isDebug() )
     {
-        dbgstream->println(F("---- WiFI Diag ----"));
-        WiFi.printDiag(*dbgstream);        
-        dbgstream->println(F("-------------------"));
+        this->theApp.getLogger().printf(F("---- WiFI Diag ----\n"));        
+        WiFi.printDiag( *this->theApp.getLogger().asPrint() );        
+        this->theApp.getLogger().printf(F("-------------------\n"));
     }
 }

@@ -38,7 +38,7 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
     if(!error)
     {
         this->jsonObject = jsonBuffer.as<JsonObject>();
-        this->printConfigTo(logger.getStream());
+        this->printConfigTo(logger.asPrint());
 
         return _NoError; 
     }
@@ -49,20 +49,20 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
     }    
 }
 
-void _ApplicationConfig::printConfigTo(Stream* stream) const
+void _ApplicationConfig::printConfigTo(Print* print) const
 {
-    if(stream)
+    if(print)
     {
-        stream->println(F("Configuration: "));
+        print->println(F("Configuration: "));
         if(! this->jsonObject.isNull())
         {
-            size_t size = serializeJsonPretty(this->jsonObject, *stream);
+            size_t size = serializeJsonPretty(this->jsonObject, *print);
             // this->jsonObject->prettyPrintTo(*stream);
-            stream->println();
+            print->println();
         }
         else 
         {
-            stream->println(F("<NULL>"));
+            print->println(F("<NULL>"));
         }
     }    
 }
@@ -173,11 +173,11 @@ String _ApplicationConfig::getDeviceInfoString(const char* crlf)
 
 #ifdef ESP8266
         ret.concat(WiFi.getPhyMode()); ret.concat(crlf);
-        ret.concat("* Host:");ret.concat(WiFi.hostname()); 
 #elif defined (ESP32)
         ret.concat(WiFi.getMode()); ret.concat(crlf);
-        ret.concat("* Host: ");ret.concat(WiFi.getHostname()); 
 #endif
+
+        ret.concat("* Host: ");ret.concat(_NetServices::getHostname()); 
 
         ret.concat(" IP: ");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
         ret.concat("* subnet mask: ");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP: ");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP: ");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        

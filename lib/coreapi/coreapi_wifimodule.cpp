@@ -21,15 +21,20 @@ _Error _WifiConnectionModule::setup()
     _Error err = this->wifiManagerOpenConnection();
     if(err==_NoError)
     {
+        // TODO: enable remote debug
+        if(this->theApp->isDebug()) 
+        {            
+            _ApplicationLogger& logger = (_ApplicationLogger&) this->theApp->getLogger();
+            logger.setupRemoteLog( _NetServices::getHostname() );
+            
+            this->theApp->getNetServices().printDiagWifi( );        
+        }
+
         bool ret = this->theApp->getNetServices().mdnsAnnounceTheDevice();        
         if(!ret) {
             err = _Error(-12,"MDNS announce error") ;
         }
 
-        if(this->theApp->isDebug())
-        {
-            this->theApp->getNetServices().printDiagWifi(this->theApp->getLogger().getStream());        
-        }
     }
 
     return err;   
@@ -94,10 +99,9 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     const JsonObject& root = this->theApp->getConfig().getJsonObject("wifi");
     if(root.isNull()) 
         return _Error(-1, "Error parsing wifi config");
-
     
-    const char* SSID = root["SSID"]; //TODO
-    const char* password = root["password"]; //TODO
+    const char* SSID = root["SSID"]; // TODO: parse
+    const char* password = root["password"]; // TODO: parse
     
     const char* hostname = root["hostname"];
     const char* static_ip = root["static_ip"];
@@ -233,7 +237,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
 
     String connectedSSID = WiFi.SSID();
     this->theApp->getLogger().printf( F("WiFi connected to SSID: %s "), connectedSSID.c_str());
-    this->theApp->getLogger().printf( F(" HOSTNAME: %s"),  this->theApp->getNetServices().getHostname().c_str());
+    this->theApp->getLogger().printf( F(" HOSTNAME: %s"),  _NetServices::getHostname().c_str());
 
     IPAddress connectedIPAddress = WiFi.localIP();  
     this->theApp->getLogger().printf( F(" IP address: %s"), connectedIPAddress.toString().c_str());

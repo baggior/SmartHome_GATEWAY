@@ -247,7 +247,7 @@ static void _printToResponseHandler(AsyncWebServerRequest *request)
 }
 
 
-static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request)
+static void _onNotFoundHandler(Print* dbgstream, AsyncWebServerRequest *request)
 {
   if (dbgstream) 
   {
@@ -305,7 +305,7 @@ static void _onNotFoundHandler(Stream* dbgstream, AsyncWebServerRequest *request
 };
 
 
-static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+static void _onBody(Print* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
   if(dbgstream) {
     //Handle body
@@ -319,7 +319,7 @@ static void _onBody(Stream* dbgstream, AsyncWebServerRequest *request, uint8_t *
   }
 }
 
-static void _onUpload(Stream* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+static void _onUpload(Print* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
 {
   if(dbgstream) {
 
@@ -378,9 +378,9 @@ _Error _RestApiModule::restApiMethodSetup()
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it
   // ends in the callbacks below.  
-  this->webServer->onNotFound( std::bind(_onNotFoundHandler, this->theApp->getLogger().getStream(), std::placeholders::_1) );
-  this->webServer->onFileUpload( std::bind(_onUpload, this->theApp->getLogger().getStream(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
-  this->webServer->onRequestBody( std::bind(_onBody, this->theApp->getLogger().getStream(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+  this->webServer->onNotFound( std::bind(_onNotFoundHandler, this->theApp->getLogger().asPrint(), std::placeholders::_1) );
+  this->webServer->onFileUpload( std::bind(_onUpload, this->theApp->getLogger().asPrint(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
+  this->webServer->onRequestBody( std::bind(_onBody, this->theApp->getLogger().asPrint(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
   return this->additionalRestApiMethodSetup();
   //return _NoError;

@@ -16,15 +16,16 @@
 _Application::_Application()
 :   netSvc(*this), config(*this)
 {
+
 #ifdef DEBUG_OUTPUT
-    this->debug=true;
-#endif
+    this->debug=true;    
+#endif 
 
     this->loopcnt = 0 ;
     this->startupTimeMillis = 0;
 
     //create core modules
-    addCoreModules();
+    this->addCoreModules();
 }
 
 
@@ -43,7 +44,6 @@ void _Application::addCoreModules()
     this->addModule(&Core_WifiConnectionModule);
     this->addModule(&Core_RestApiModule);
     this->addModule(&Core_MqttModule);
-
 }
 
 _Error _Application::setup()
@@ -59,7 +59,7 @@ _Error _Application::setup()
     {
         DEBUG_OUTPUT.setDebugOutput(true);    
         //setup logger
-        this->logger.setup(DEBUG_OUTPUT);    
+        this->logger.setup(&DEBUG_OUTPUT);    
     }
 
 #endif 
@@ -89,11 +89,11 @@ _Error _Application::setup()
     this->logger.printf(F("_Application modules setup start\n"));
 
     if(this->isDebug()) {
-        DPRINTF(F("\t (%d) Moduli: ["), this->modules.size());
+        this->logger.printf(F("\t (%d) Moduli: ["), this->modules.size());
         for(_BaseModule* module : this->modules) {
-            DPRINTF(F("%s, "), module->info().c_str());
+           this->logger.printf(F("%s, "), module->info().c_str());
         }
-        DPRINTF(F("]\n"));
+        this->logger.printf(F("]\n"));
     }
 
     for(_BaseModule* module : this->modules) 
@@ -158,8 +158,7 @@ void _Application::addModule(_BaseModule* module)
             if(found) 
             {
                 this->logger.printf(F("_Application module is unique and already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
-            }
-    
+            }    
         }
 
         //TODO remove
