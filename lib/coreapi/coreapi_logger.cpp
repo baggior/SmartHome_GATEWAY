@@ -47,32 +47,40 @@ void _ApplicationLogger::loop()
 
 void _ApplicationLogger::printf(const char *fmt, ...) const
 {
-    if(this->dbgstream)
+    if(this->dbgstream || Debug.isActive(Debug.DEBUG))
     {
         va_list args;
         va_start (args, fmt );
         
-        Stream_printf_args(*this->dbgstream, fmt, args);        
-        Debug.printf(fmt, args);    //TODO: test
+        if(this->dbgstream)
+            Stream_printf_args(*this->dbgstream, fmt, args);        
+
+        if(Debug.isActive(Debug.ANY))
+            // Debug.printf(fmt, args);    //TODO: test        
+            Debug.printf( (String("(C%d) ") + String(fmt)).c_str(), xPortGetCoreID(), args);
 
         va_end (args);
     }
 }
 void _ApplicationLogger::printf(const __FlashStringHelper *fmt, ...) const
 {
-    if(this->dbgstream)
+    if(this->dbgstream || Debug.isActive(Debug.DEBUG))
     {
         va_list args;
         va_start (args, fmt );
-
-        Stream_printf_args(*this->dbgstream, fmt, args);
-        Debug.printf(reinterpret_cast<const char *> (fmt), args); //TODO: test
+        
+        if(this->dbgstream)
+            Stream_printf_args(*this->dbgstream, fmt, args);
+        
+        if(Debug.isActive(Debug.ANY))
+            // Debug.printf(reinterpret_cast<const char *> (fmt), args); //TODO: test
+            Debug.printf( (String("(C%d) ") + String(reinterpret_cast<const char *> (fmt))).c_str(), xPortGetCoreID(), args);
 
         va_end (args);
     }
 }
 
-
+// print implementation
 size_t _ApplicationLogger::write(uint8_t data)
 {
     if(this->dbgstream)
