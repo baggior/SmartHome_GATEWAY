@@ -48,12 +48,13 @@ private:
         uint8_t   _ui;  // Unit Identifier
     };
 
-    struct
+    struct clientOnLine_t
     {
         WiFiClient client;
         bool onLine;
-    } clientOnLine[CLIENT_NUM];
+    };
 
+    clientOnLine_t clientOnLine[CLIENT_NUM];
     struct smbFrame mbFrame[FRAME_COUNT];
 
     WiFiServer mbServer;
@@ -71,7 +72,7 @@ private:
 public:
     ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port, bool _isDebug);
     ~ModbusTcpSlave();
-    void task(void);
+    // void task(void);
     smbFrame * getFreeBuffer (void);
     smbFrame * getReadyToSendRtuBuffer (void);
     smbFrame * getWaitFromRtuBuffer (void);

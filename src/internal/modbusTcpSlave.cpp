@@ -29,12 +29,12 @@ void ModbusTcpSlave::waitNewClient(void)
    // see if the old customers are alive if not alive then release them
    for (uint8_t i = 0 ; i < CLIENT_NUM; i++)
    {
+      //find free/disconnected spot
       if (clientOnLine[i].onLine && !clientOnLine[i].client.connected())
       {
         clientOnLine[i].client.stop(); // TEST
         clientOnLine[i].onLine = false;
         this->mLogger.printf (F("\tClient stopped: [%d]\n"), i);
-
       }
       // else clientOnLine[i].client.flush();
    }
@@ -49,7 +49,7 @@ void ModbusTcpSlave::waitNewClient(void)
           clientOnLine[i].client = mbServer.available();
           clientOnLine[i].onLine = true;
           if(this->isDebug) {
-            this->mLogger.printf (F("\tNew Client: [%d] -> %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
+            this->mLogger.printf (F("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
           }
 
           clientReg = true;
@@ -166,16 +166,16 @@ void ModbusTcpSlave::writeFrameClient(void)
   }
 }
 
-void ModbusTcpSlave::task()
-{
-  waitNewClient();
-  yield();
-  readDataClient();
-  yield();  
-  writeFrameClient();
-  yield();
-  timeoutBufferCleanup();
-}
+// void ModbusTcpSlave::task()
+// {
+//   waitNewClient();
+//   yield();
+//   readDataClient();
+//   yield();  
+//   writeFrameClient();
+//   yield();
+//   timeoutBufferCleanup();
+// }
 
 void ModbusTcpSlave::timeoutBufferCleanup() {
   // Cleaning the buffers

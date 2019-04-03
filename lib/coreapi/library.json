@@ -25,6 +25,12 @@
       },
       {
         "name": "TaskScheduler"
+      },
+      {
+        "name": "RemoteDebug"
+      },
+      {
+        "name": "WifiManager"
       }
     ]
   }
