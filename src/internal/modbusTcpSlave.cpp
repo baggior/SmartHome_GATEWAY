@@ -4,7 +4,7 @@
 
 // WiFiServer mbServer(MODBUSIP_PORT);
 
-#define TCP_TIMEOUT_MS RTU_TIMEOUT
+#define TCP_TIMEOUT_MS RTU_TIMEOUT * 2
 
 ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT, bool _isDebug = false)
 : mbServer(port), mLogger(logger), isDebug(_isDebug)
@@ -32,7 +32,7 @@ void ModbusTcpSlave::waitNewClient(void)
       //find free/disconnected spot
       if (clientOnLine[i].onLine && !clientOnLine[i].client.connected())
       {
-        clientOnLine[i].client.stop(); // TEST
+        clientOnLine[i].client.stop(); // 
         clientOnLine[i].onLine = false;
         this->mLogger.printf (F("\tClient stopped: [%d]\n"), i);
       }
@@ -41,27 +41,30 @@ void ModbusTcpSlave::waitNewClient(void)
 
    if (mbServer.hasClient())
    {
-     bool clientReg = false;
+     bool clientAdded = false;
      for(uint8_t i = 0 ; i < CLIENT_NUM; i++)
      {
        if( !clientOnLine[i].onLine)
        {
           clientOnLine[i].client = mbServer.available();
+          clientOnLine[i].client.setNoDelay(true); //disable delay feature algorithm
           clientOnLine[i].onLine = true;
+          clientAdded = true;
+
           if(this->isDebug) {
             this->mLogger.printf (F("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
           }
-
-          clientReg = true;
           break;
        }
      }
 
-     if (!clientReg) // If there was no place for a new client
+     if (!clientAdded) // If there was no place for a new client
      {
-        this->mLogger.printf (F("\tToo many Clients reuse first \n") );
-        clientOnLine[0].client.stop();
-        clientOnLine[0].client = mbServer.available();
+        //no free/disconnected spot so reject        
+        this->mLogger.printf (F("\tToo many Clients reject the new connection \n") );
+        mbServer.available().stop();
+        // clientOnLine[0].client.stop();
+        // clientOnLine[0].client = mbServer.available();
      }
    }
 }
@@ -74,7 +77,7 @@ void ModbusTcpSlave::readDataClient(void)
     {
       if(clientOnLine[i].client.available())
       {
-        readFrameClient(clientOnLine[i].client, i);
+        this->readFrameClient(clientOnLine[i].client, i);
       }
     }
   }
@@ -139,7 +142,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
 
 void ModbusTcpSlave::writeFrameClient(void)
 {  
-  smbFrame * pmbFrame = getReadyToSendTcpBuffer();
+  smbFrame * pmbFrame = this->getReadyToSendTcpBuffer();
   if(pmbFrame)
   {
     uint8_t cli = pmbFrame->nClient;
@@ -147,6 +150,7 @@ void ModbusTcpSlave::writeFrameClient(void)
 
     if(! clientOnLine[cli].client.connected() ) {
       this->mLogger.printf (F("\tERROR writeFrameClient: writing to a disconnected client: %d"), cli);
+      return;
     }
 
     size_t written = clientOnLine[cli].client.write(&pmbFrame->buffer[0], len);
@@ -189,8 +193,8 @@ void ModbusTcpSlave::timeoutBufferCleanup() {
       }
     }
   }
-
 }
+
 ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
 {
   static uint8_t  scanBuff = 0;

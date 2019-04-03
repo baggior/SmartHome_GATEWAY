@@ -7,7 +7,7 @@
 
 #define MODBUSIP_MAXFRAME   200
 #define TCP_BUFFER_SIZE     300
-#define FRAME_COUNT          10
+#define FRAME_COUNT          35
 #define CLIENT_NUM            4
 #define MODBUSIP_PORT       502
 #define RTU_TIMEOUT        2000
