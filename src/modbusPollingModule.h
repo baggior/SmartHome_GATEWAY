@@ -1,8 +1,8 @@
 #ifndef modbuspollingmodule_h
 #define modbuspollingmodule_h
 
-#include <coreapi.h>
-#include <coreapi_mqttmodule.h>
+#include "coreapi.h"
+#include "coreapi_mqttmodule.h"
 
 #include "modbusServiceModule.h"
 
