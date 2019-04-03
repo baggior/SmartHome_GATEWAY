@@ -5,6 +5,7 @@
 .vscode/settings.json
 .vscode/*.db
 .vscode/.browse.c_cpp*
+.vscode/ipch
 
 my.spiffs.bin
 
