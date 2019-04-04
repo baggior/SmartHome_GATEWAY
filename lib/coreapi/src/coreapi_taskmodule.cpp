@@ -39,7 +39,7 @@ void _TaskModule::setEnabled(bool _enabled)
 void _TaskModule::taskloop()
 {    
     // if(this->theApp->isToLog()) {
-    //     this->theApp->getLogger().printf(F("TASK [%s]loop(%d)BEGIN, "), 
+    //     this->theApp->getLogger().printf(("TASK [%s]loop(%d)BEGIN, "), 
     //         this->getTitle().c_str(), this->loopcnt );
     // }
 
@@ -47,7 +47,7 @@ void _TaskModule::taskloop()
     this->loopcnt++; 
 
     // if(this->theApp->isToLog()) {
-    //     this->theApp->getLogger().printf(F("TASK [%s]loop END.\n"), 
+    //     this->theApp->getLogger().printf(("TASK [%s]loop END.\n"), 
     //         this->getTitle().c_str() );         
     // }
 }

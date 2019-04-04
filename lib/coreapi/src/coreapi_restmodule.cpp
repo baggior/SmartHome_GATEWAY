@@ -35,7 +35,7 @@ _Error _RestApiModule::setup()
     _server_auth_password = root["server_auth"]["password"];
   }
 
-  this->theApp->getLogger().printf( F("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+  this->theApp->getLogger().printf (("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
     this->getTitle().c_str(), on, 
     this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
 
@@ -56,7 +56,7 @@ _Error _RestApiModule::setup()
 
     // Start the server
     this->webServer->begin();   
-    this->theApp->getLogger().printf(F("\t%s: WebServer started on port:%d\n"),
+    this->theApp->getLogger().printf(("\t%s: WebServer started on port:%d\n"),
       this->getTitle().c_str(), this->_server_port);
 
     return _NoError;
@@ -378,9 +378,9 @@ _Error _RestApiModule::restApiMethodSetup()
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it
   // ends in the callbacks below.  
-  this->webServer->onNotFound( std::bind(_onNotFoundHandler, this->theApp->getLogger().asPrint(), std::placeholders::_1) );
-  this->webServer->onFileUpload( std::bind(_onUpload, this->theApp->getLogger().asPrint(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
-  this->webServer->onRequestBody( std::bind(_onBody, this->theApp->getLogger().asPrint(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+  this->webServer->onNotFound( std::bind(_onNotFoundHandler, (Print*) &this->theApp->getLogger(), std::placeholders::_1) );
+  this->webServer->onFileUpload( std::bind(_onUpload, (Print*) &this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
+  this->webServer->onRequestBody( std::bind(_onBody, (Print*) &this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
   return this->additionalRestApiMethodSetup();
   //return _NoError;

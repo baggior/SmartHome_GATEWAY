@@ -72,7 +72,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     const char * _protocolo = root["protocol"];
     const int _slave_id= root["slave_id"]; //16
     
-    this->theApp->getLogger().printf(F("\t%s Modbus config: protocol: '%s', slave: %d,\n"), 
+    this->theApp->getLogger().printf(("\t%s Modbus config: protocol: '%s', slave: %d,\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_protocolo), _slave_id );
     
@@ -85,7 +85,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
     node.postTransmission( ::postTransmit );
 
-    this->theApp->getLogger().printf(F("\t%s Modbus setup done\n"), 
+    this->theApp->getLogger().printf(("\t%s Modbus setup done\n"), 
         this->getTitle().c_str());
     
     return _NoError;

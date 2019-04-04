@@ -192,12 +192,12 @@ public:
     virtual ~_ApplicationLogger();
 
     void printf(const char *fmt, ...) const;
-    void printf(const __FlashStringHelper *fmt, ...) const;
+    // void printf(const __FlashStringHelper *fmt, ...) const;
     void printf(const _Error& error) const;
 
     inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
-    inline Print* asPrint() const { return (Print*) this; }
+    // inline Print& getPrint() const { return (Print&) this->_internalPrint; }
 
 private:
     friend _Application;
@@ -208,6 +208,7 @@ private:
     // for print implementation
     virtual size_t write(uint8_t) override;
 
+    // Print _internalPrint;
     Stream * dbgstream = NULL;
 };
 

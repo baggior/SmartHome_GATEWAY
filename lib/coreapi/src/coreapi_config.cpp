@@ -11,7 +11,7 @@
 #define CONFIG_FILE_PATH "/config.json"
 // #define CONFIG_FILE_PATH "/config.sist.json"
 
-#define JSON_BUFFER_SIZE 1024
+#define JSON_BUFFER_SIZE 1024 * 10  //10Kb to contain all the 'config.json' file
 
 
 static DynamicJsonDocument jsonBuffer(JSON_BUFFER_SIZE);
@@ -26,7 +26,7 @@ _ApplicationConfig::~_ApplicationConfig()
 
 _Error _ApplicationConfig::load(_ApplicationLogger& logger)
 {
-    logger.printf(F("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
+    logger.printf(("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
     const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
 
     jsonBuffer.clear();
@@ -38,7 +38,7 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
     if(!error)
     {
         this->jsonObject = jsonBuffer.as<JsonObject>();
-        this->printConfigTo(logger.asPrint());
+        this->printConfigTo(&logger);
 
         return _NoError; 
     }
@@ -132,7 +132,7 @@ _Error _ApplicationConfig::persist()
         // SPIFFS.end();   
     }   
 
-    this->theApp.getLogger().printf(F("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);
+    this->theApp.getLogger().printf(("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);
 
     return _NoError;
 }

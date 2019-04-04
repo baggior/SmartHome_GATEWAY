@@ -81,7 +81,7 @@ _Error MqttModule::setup(const JsonObject &root)
     const char* _server_auth_username= root["server_auth"]["username"];
     const char* _server_auth_password= root["server_auth"]["password"];    
 
-    this->theApp->getLogger().printf(F("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, topic_prefix: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
+    this->theApp->getLogger().printf(("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, topic_prefix: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_server_host), _server_port,
         this->clientId.c_str(), this->topicPrefix.c_str(),
