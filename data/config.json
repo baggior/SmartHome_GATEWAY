@@ -1,4 +1,22 @@
 {
+  "log": {
+    "enable": true,
+    
+    "remote_log": {
+      "enable": true
+    },
+
+    "serial_log" : {
+      "enable": true,
+      "uart": 1,
+      "baud": 115200,
+      "databits": 8,
+      "stopbits": 1,
+      "parity": "N"
+    }
+
+  },
+
   "wifi": {
     // "SSID": "cent15c",
     // "password": "elettronica",
@@ -48,7 +66,7 @@
   },
 
   "telnet": {
-    "enable": true,
+    "enable": false,
     "port": 23,
     "inactivetime": 300,
     "task_listen_interval": 100
