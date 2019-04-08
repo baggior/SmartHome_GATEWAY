@@ -59,7 +59,7 @@ bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::li
         // Add service attributes
         for(MdnsAttribute attr: attributes)
         {            
-            this->theApp.getLogger().printf(("\tMDNS attribute: %s -> %s\n"), attr.name, attr.value.c_str());
+            this->theApp.getLogger().printf(("\tMDNS attribute: %s -> %s\n"), attr.name.c_str(), attr.value.c_str());
             MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, attr.name, attr.value);
         }
   
