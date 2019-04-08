@@ -247,52 +247,50 @@ static void _printToResponseHandler(AsyncWebServerRequest *request)
 }
 
 
-static void _onNotFoundHandler(Print* dbgstream, AsyncWebServerRequest *request)
+static void _onNotFoundHandler(_ApplicationLogger& logger, AsyncWebServerRequest *request)
 {
-  if (dbgstream) 
-  {
-    dbgstream->printf("NOT_FOUND: ");
-    if(request->method() == HTTP_GET)
-      dbgstream->printf("GET");
-    else if(request->method() == HTTP_POST)
-      dbgstream->printf("POST");
-    else if(request->method() == HTTP_DELETE)
-      dbgstream->printf("DELETE");
-    else if(request->method() == HTTP_PUT)
-      dbgstream->printf("PUT");
-    else if(request->method() == HTTP_PATCH)
-      dbgstream->printf("PATCH");
-    else if(request->method() == HTTP_HEAD)
-      dbgstream->printf("HEAD");
-    else if(request->method() == HTTP_OPTIONS)
-      dbgstream->printf("OPTIONS");
-    else
-      dbgstream->printf("UNKNOWN");
-    dbgstream->printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+  logger.warn("NOT_FOUND: ");
+  if(request->method() == HTTP_GET)
+    logger.debug("GET");
+  else if(request->method() == HTTP_POST)
+    logger.debug("POST");
+  else if(request->method() == HTTP_DELETE)
+    logger.debug("DELETE");
+  else if(request->method() == HTTP_PUT)
+    logger.debug("PUT");
+  else if(request->method() == HTTP_PATCH)
+    logger.debug("PATCH");
+  else if(request->method() == HTTP_HEAD)
+    logger.debug("HEAD");
+  else if(request->method() == HTTP_OPTIONS)
+    logger.debug("OPTIONS");
+  else
+    logger.debug("UNKNOWN");
+  logger.debug(" http://%s%s\n", request->host().c_str(), request->url().c_str());
 
-    if(request->contentLength()){
-      dbgstream->printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
-      dbgstream->printf("_CONTENT_LENGTH: %u\n", request->contentLength());
-    }
+  if(request->contentLength()){
+    logger.debug("_CONTENT_TYPE: %s\n", request->contentType().c_str());
+    logger.debug("_CONTENT_LENGTH: %u\n", request->contentLength());
+  }
 
-    int headers = request->headers();
-    int i;
-    for(i=0;i<headers;i++){
-      AsyncWebHeader* h = request->getHeader(i);
-      dbgstream->printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
-    }
+  int headers = request->headers();
+  int i;
+  for(i=0;i<headers;i++){
+    AsyncWebHeader* h = request->getHeader(i);
+    logger.debug("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+  }
 
-    int params = request->params();
-    for(i=0;i<params;i++){
-      AsyncWebParameter* p = request->getParam(i);
-      if(p->isFile()){
-        dbgstream->printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
-      } else if(p->isPost()){
-        dbgstream->printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      } else {
-        dbgstream->printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      }
+  int params = request->params();
+  for(i=0;i<params;i++){
+    AsyncWebParameter* p = request->getParam(i);
+    if(p->isFile()){
+      logger.debug("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+    } else if(p->isPost()){
+      logger.debug("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+    } else {
+      logger.debug("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
     }
+    
   }
   
   // You will still need to respond to the OPTIONS method 
@@ -305,34 +303,29 @@ static void _onNotFoundHandler(Print* dbgstream, AsyncWebServerRequest *request)
 };
 
 
-static void _onBody(Print* dbgstream, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
+static void _onBody(_ApplicationLogger& logger, AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total)
 {
-  if(dbgstream) {
-    //Handle body
-    if(!index)
-      dbgstream->printf("BodyStart: %u\n", total);
-    
-    dbgstream->printf("%s", (const char*)data);
+  //Handle body
+  if(!index)
+    logger.debug("BodyStart: %u\n", total);
+  
+  logger.debug("%s", (const char*)data);
 
-    if(index + len == total)
-      dbgstream->printf("BodyEnd: %u\n", total);
-  }
+  if(index + len == total)
+    logger.debug("BodyEnd: %u\n", total);
+  
 }
 
-static void _onUpload(Print* dbgstream, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
+static void _onUpload(_ApplicationLogger& logger, AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final)
 {
-  if(dbgstream) {
+  //Handle upload
+  if(!index)
+    logger.debug("UploadStart: %s\n", filename.c_str());
+    
+  logger.debug("%s", (const char*)data);
 
-    //Handle upload
-    if(!index)
-      dbgstream->printf("UploadStart: %s\n", filename.c_str());
-      
-    dbgstream->printf("%s", (const char*)data);
-
-    if(final)
-      dbgstream->printf("UploadEnd: %s (%u)\n", filename.c_str(), index+len);
-
-  }
+  if(final)
+    logger.debug("UploadEnd: %s (%u)\n", filename.c_str(), index+len);  
 }
 
 _Error _RestApiModule::additionalRestApiMethodSetup() 
@@ -378,9 +371,9 @@ _Error _RestApiModule::restApiMethodSetup()
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it
   // ends in the callbacks below.  
-  this->webServer->onNotFound( std::bind(_onNotFoundHandler, (Print*) &this->theApp->getLogger(), std::placeholders::_1) );
-  this->webServer->onFileUpload( std::bind(_onUpload, (Print*) &this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
-  this->webServer->onRequestBody( std::bind(_onBody, (Print*) &this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
+  this->webServer->onNotFound( std::bind(_onNotFoundHandler, this->theApp->getLogger(), std::placeholders::_1) );
+  this->webServer->onFileUpload( std::bind(_onUpload, this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6) );
+  this->webServer->onRequestBody( std::bind(_onBody, this->theApp->getLogger(), std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5) );
 
   return this->additionalRestApiMethodSetup();
   //return _NoError;
