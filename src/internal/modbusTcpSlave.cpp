@@ -188,8 +188,9 @@ void ModbusTcpSlave::timeoutBufferCleanup() {
     if(mbFrame[i].status != frameStatus::empty ) {
       if (millis() - mbFrame[i].millis > RTU_TIMEOUT)
       {
-        mbFrame[i].status = frameStatus::empty;
-        this->mLogger.printf (("\tRTU_TIMEOUT -> Del pack.\n"));        
+        mbFrame[i].status = frameStatus::empty;        
+        // this->mLogger.printf (("\tRTU_TIMEOUT -> Del pack.\n"));        
+        this->mLogger.error (("\tRTU_TIMEOUT -> Del pack.\n"));        
       }
     }
   }

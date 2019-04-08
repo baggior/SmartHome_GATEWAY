@@ -185,10 +185,17 @@ private:
 class _ApplicationLogger : public Print {
     
 public:
+    enum Loglevel_t {
+        DebugLevel=1,
+        InfoLevel=2,
+        WarningLevel=3,
+        ErrorLevel=4,
+    };
+
     // void setup(HardwareSerial& hwserial);
     // void setup(Stream* dbgstream);
-    void setup(Stream* _dbgstream);
-    void setupRemoteLog(const String hostname);
+    void setupSerialLog(Stream* _dbgstream, Loglevel_t level= DebugLevel);
+    void setupRemoteLog(const String hostname, Loglevel_t level= DebugLevel);
     virtual ~_ApplicationLogger();
 
     // void printf(const char *fmt, ...) const;
@@ -199,6 +206,15 @@ public:
 
     // inline Print& getPrint() const { return (Print&) this->_internalPrint; }
 
+    void setLogLevel(const Loglevel_t level) { this->logLevel = level; }
+    Loglevel_t getLogLevel() const { return this->logLevel; }
+
+    void log(const Loglevel_t level, const char * fmt, ...)   __attribute__ ((format (printf, 3, 4)));
+    void debug(const char * fmt, ...)   __attribute__ ((format (printf, 2, 3)));
+    void info(const char * fmt, ...)    __attribute__ ((format (printf, 2, 3)));
+    void warn(const char * fmt, ...)    __attribute__ ((format (printf, 2, 3)));
+    void error(const char * fmt, ...)   __attribute__ ((format (printf, 2, 3)));
+
 private:
     friend _Application;
 
@@ -207,9 +223,13 @@ private:
     // inline Stream* getStream()const {return this->dbgstream; }
     // for print implementation
     virtual size_t write(uint8_t) override;
+    
+    void log(const Loglevel_t level, const char * fmt, va_list& args);
 
     // Print _internalPrint;
     Stream * dbgstream = NULL;
+
+    Loglevel_t logLevel = DebugLevel;
 };
 
 ///////////////////////////////////////////////////////

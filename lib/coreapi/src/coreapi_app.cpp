@@ -59,7 +59,7 @@ _Error _Application::setup()
     {
         DEBUG_OUTPUT.setDebugOutput(true);    
         //setup logger
-        this->logger.setup(&DEBUG_OUTPUT);    
+        this->logger.setupSerialLog(&DEBUG_OUTPUT);    
     }
 
 #endif 

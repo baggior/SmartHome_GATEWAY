@@ -18,20 +18,48 @@ static void initRemoteDebug(String hostname)
     Debug.showDebugLevel(true); // Show debug level
 }
 
+static uint8_t convertToRemoteDebugLevels(_ApplicationLogger::Loglevel_t level)
+{
+    switch (level)
+    {
+        case _ApplicationLogger::Loglevel_t::DebugLevel:
+            return RemoteDebug::DEBUG;
+            break;
+        case _ApplicationLogger::Loglevel_t::InfoLevel:
+            return RemoteDebug::INFO;
+            break;
+        case _ApplicationLogger::Loglevel_t::WarningLevel:
+            return RemoteDebug::WARNING;
+            break;
+        case _ApplicationLogger::Loglevel_t::ErrorLevel:
+            return RemoteDebug::ERROR;
+            break;
+    
+        default:
+            return RemoteDebug::DEBUG;        
+            break;
+    }
+
+}
+
 // void _ApplicationLogger::setup(HardwareSerial& hwserial)
 // {    
 //     this->dbgstream = &hwserial;        
 // }
-void _ApplicationLogger::setup(Stream* _dbgstream)
+void _ApplicationLogger::setupSerialLog(Stream* _dbgstream, Loglevel_t level)
 {
-    if(_dbgstream)
+    if(_dbgstream) {
         this->dbgstream = _dbgstream;
+        this->setLogLevel(level);
+    }
 }
 
-void _ApplicationLogger::setupRemoteLog(const String hostname)
+void _ApplicationLogger::setupRemoteLog(const String hostname, Loglevel_t level)
 {
-    if(hostname.length()>0)
+    if(hostname.length()>0) {
         initRemoteDebug(hostname);
+        this->setLogLevel(level);
+    }
 }
 
 _ApplicationLogger::~_ApplicationLogger()
@@ -42,9 +70,76 @@ _ApplicationLogger::~_ApplicationLogger()
 void _ApplicationLogger::loop()
 {
     // RemoteDebug handle
-    Debug.handle();
+    ::Debug.handle();
 }
 
+void _ApplicationLogger::info(const char * fmt, ...)
+{
+    va_list arg;
+    va_start(arg, fmt);
+    this->log(Loglevel_t::InfoLevel, fmt, arg);
+    va_end(arg);
+}
+void _ApplicationLogger::warn(const char * fmt, ...)
+{
+    va_list arg;
+    va_start(arg, fmt);
+    this->log(Loglevel_t::WarningLevel, fmt, arg);
+    va_end(arg);
+}
+void _ApplicationLogger::error(const char * fmt, ...)
+{
+    va_list arg;
+    va_start(arg, fmt);
+    this->log(Loglevel_t::ErrorLevel, fmt, arg);
+    va_end(arg);
+}
+void _ApplicationLogger::debug(const char * fmt, ...)
+{
+    va_list arg;
+    va_start(arg, fmt);
+    this->log(Loglevel_t::DebugLevel, fmt, arg);
+    va_end(arg);
+}
+void _ApplicationLogger::log(const Loglevel_t level, const char * fmt, ...)
+{
+    va_list arg;
+    va_start(arg, fmt);
+    this->log(level, fmt, arg);
+    va_end(arg);
+}
+
+
+void _ApplicationLogger::log(const Loglevel_t level, const char * format, va_list& args)
+{
+    char loc_buf[64];
+    char * temp = loc_buf;
+    
+    va_list copy;
+    
+    va_copy(copy, args);
+    size_t len = vsnprintf(NULL, 0, format, args);
+    va_end(copy);
+    if(len >= sizeof(loc_buf)){
+        temp = new char[len+1];
+        if(temp == NULL) {
+            return ;
+        }
+    }
+    len = vsnprintf(temp, len+1, format, args);
+    
+    // actual log write
+    Loglevel_t previousLevel =  this->getLogLevel();
+    this->setLogLevel(level);
+    size_t written = this->Print::write((uint8_t*)temp, len);
+    this->setLogLevel(previousLevel);
+    //
+
+    if(len >= sizeof(loc_buf)){
+        delete[] temp;
+    }
+    return;
+}
 // cloned from Print.h
 // void _ApplicationLogger::printf(const char *format, ...) const
 // {    
@@ -118,9 +213,12 @@ size_t _ApplicationLogger::write(uint8_t data)
         ret = this->dbgstream->write(data);
     }
     
-    size_t ret1 = Debug.write(data);
+    uint8_t levelConverted = ::convertToRemoteDebugLevels(this->logLevel);
+    if(Debug.isActive(levelConverted)) {
+        ret = ::Debug.write(data);
+    }
         
-    return ret ? ret : ret1;
+    return ret;
 }
 
 
