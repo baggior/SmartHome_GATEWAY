@@ -1,7 +1,9 @@
 #ifndef _coreapierrors_h
 #define _coreapierrors_h
 
-class _Error {
+#include <printable.h>
+
+class _Error : public Printable {
 public:
     inline _Error() {}
     inline _Error(int _errorCode, String _message): errorCode(_errorCode), message(_message) {}
@@ -10,6 +12,8 @@ public:
 
     inline bool operator==(const _Error& that)const {return that.errorCode==this->errorCode;}
     inline bool operator!=(const _Error& that)const {return !(that==*this);}
+
+    virtual size_t printTo(Print& p) const;
 };
 
 extern _Error _NoError;

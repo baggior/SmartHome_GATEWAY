@@ -256,11 +256,11 @@ void _Application::loop()
 }
 
 
-void _Application::restart(const _Error& error) const
+void _Application::restart(const _Error& error)
 {
     if(error!=_NoError)
     {
-        this->getLogger().printf(error);
+        this->getLogger().println(error);
     }
     this->getLogger().printf(("RESTART\n"));
 

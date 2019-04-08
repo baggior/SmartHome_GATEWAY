@@ -58,7 +58,7 @@ private:
     struct smbFrame mbFrame[FRAME_COUNT];
 
     WiFiServer mbServer;
-    const _ApplicationLogger& mLogger;
+    _ApplicationLogger& mLogger;
     const bool isDebug = false;
 
     void waitNewClient (void);  //
@@ -70,7 +70,7 @@ private:
     void mbapUnpack (smbap* pmbap, uint8_t * buff );
 
 public:
-    ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port, bool _isDebug);
+    ModbusTcpSlave(_ApplicationLogger& logger, uint16_t port, bool _isDebug);
     ~ModbusTcpSlave();
     // void task(void);
     smbFrame * getFreeBuffer (void);

@@ -154,7 +154,7 @@ static void endSerial() {
 
 
 
-static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
+static String calculateLRC(String CMD, _ApplicationLogger* p_logger)
 {
   unsigned char TOT = 0x00;
 
@@ -351,7 +351,7 @@ String Rs485ServiceModule::sendMasterCommand(String &CMD, int maxReponseWaitTime
     this->postTransmit();
 
     
-    RS485_DEBUG_FN( ("RS485 SENT: [%s]"),packet);
+    RS485_DEBUG_FN( ("RS485 SENT: [%s]"),packet.c_str());
 
     // dbgstream->print("RS485 SENT: [");    dbgstream->print(packet);    dbgstream->println("]");
   }
@@ -410,7 +410,7 @@ Rs485ServiceModule::BINARY_BUFFER_T Rs485ServiceModule::sendMasterCommand(Rs485S
   if(maxReponseWaitTime>0)
   {
     //wait for a RESPONSE    
-    long delayTime = _min(maxReponseWaitTime,10);
+    size_t delayTime = _min(maxReponseWaitTime,10);
     RS485_DEBUG_FN( ("serial wait %d\n"), delayTime) ;
     // Stream_printf(*dbgstream, F("serial wait %d\n"), delayTime);
     delay(delayTime);

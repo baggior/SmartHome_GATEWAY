@@ -191,9 +191,9 @@ public:
     void setupRemoteLog(const String hostname);
     virtual ~_ApplicationLogger();
 
-    void printf(const char *fmt, ...) const;
+    // void printf(const char *fmt, ...) const;
     // void printf(const __FlashStringHelper *fmt, ...) const;
-    void printf(const _Error& error) const;
+    // void printf(const _Error& error) const;
 
     inline void flush() const { if(dbgstream) dbgstream->flush(); }
 
@@ -282,7 +282,7 @@ public:
     _Application();
     ~_Application();
     
-    void restart(const _Error& error=_NoError) const;
+    void restart(const _Error& error=_NoError);
 
     _Error setup();
     void addModule(_BaseModule* module);
@@ -301,12 +301,12 @@ public:
     inline bool isDebug() { return this->debug; }
     // inline bool isToLog() { return this->debug && this->toLog; }
 
-    inline unsigned long millisSinceStartup() const {return millis() - this->startupTimeMillis;} 
-    inline const _ApplicationLogger& getLogger() const {return this->logger;}
-    inline const _ApplicationConfig& getConfig() const {return this->config;}
+    inline unsigned long millisSinceStartup() const     { return millis() - this->startupTimeMillis; } 
+    inline _ApplicationLogger& getLogger()              { return this->logger; }
+    inline const _ApplicationConfig& getConfig() const  { return this->config; }
 
-    inline Scheduler& getScheduler() {return this->runner;}
-    inline _NetServices& getNetServices() {return this->netSvc;}
+    inline Scheduler& getScheduler()                    { return this->runner; }
+    inline _NetServices& getNetServices()               { return this->netSvc; }
 
     inline void setIdleLoopCallback(IdleLoopCallback _idleLoopCallback_fn) {this->idleLoopCallback_fn=_idleLoopCallback_fn;}
 

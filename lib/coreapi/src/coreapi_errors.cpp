@@ -10,4 +10,12 @@ _Error _ConfigLoadError(1, "Cannot read json config file");
 
 ////////////////////////////
 
-
+size_t _Error::printTo(Print& p) const
+{
+    size_t ret;
+    if(*this == _NoError)
+        ret = p.printf(("[NoError]"));
+    else
+        ret = p.printf(("[Error (%d): %s]"), this->errorCode, this->message.c_str());
+    return ret;
+}

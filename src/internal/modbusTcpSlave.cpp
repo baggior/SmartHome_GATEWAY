@@ -6,7 +6,7 @@
 
 #define TCP_TIMEOUT_MS RTU_TIMEOUT * 2
 
-ModbusTcpSlave::ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT, bool _isDebug = false)
+ModbusTcpSlave::ModbusTcpSlave(_ApplicationLogger& logger, uint16_t port = MODBUSIP_PORT, bool _isDebug = false)
 : mbServer(port), mLogger(logger), isDebug(_isDebug)
 {
   mbServer.begin();

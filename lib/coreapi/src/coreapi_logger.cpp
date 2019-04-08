@@ -45,31 +45,32 @@ void _ApplicationLogger::loop()
     Debug.handle();
 }
 
-void _ApplicationLogger::printf(const char *format, ...) const
-{    
-    char loc_buf[64];
-    char * temp = loc_buf;
-    va_list arg;
-    va_list copy;
-    va_start(arg, format);
-    va_copy(copy, arg);
-    size_t len = vsnprintf(NULL, 0, format, arg);
-    va_end(copy);
-    if(len >= sizeof(loc_buf)){
-        temp = new char[len+1];
-        if(temp == NULL) {
-            return ;
-        }
-    }
-    len = vsnprintf(temp, len+1, format, arg);
-    ((_ApplicationLogger*) this)->Print::write((uint8_t*)temp, len);
-    va_end(arg);
-    if(len >= sizeof(loc_buf)){
-        delete[] temp;
-    }
-    return;
+// cloned from Print.h
+// void _ApplicationLogger::printf(const char *format, ...) const
+// {    
+//     char loc_buf[64];
+//     char * temp = loc_buf;
+//     va_list arg;
+//     va_list copy;
+//     va_start(arg, format);
+//     va_copy(copy, arg);
+//     size_t len = vsnprintf(NULL, 0, format, arg);
+//     va_end(copy);
+//     if(len >= sizeof(loc_buf)){
+//         temp = new char[len+1];
+//         if(temp == NULL) {
+//             return ;
+//         }
+//     }
+//     len = vsnprintf(temp, len+1, format, arg);
+//     ((_ApplicationLogger*) this)->Print::write((uint8_t*)temp, len);
+//     va_end(arg);
+//     if(len >= sizeof(loc_buf)){
+//         delete[] temp;
+//     }
+//     return;
 
-}
+// }
 
 // void _ApplicationLogger::printf(const char *fmt, ...) const
 // {
@@ -124,13 +125,13 @@ size_t _ApplicationLogger::write(uint8_t data)
 
 
 
-void _ApplicationLogger::printf(const _Error& error) const
-{
-    if(error==_NoError)
-        this->printf(("[NoError]"));
-    else
-        this->printf(("[Error (%d): %s]"), error.errorCode, error.message.c_str());
-}
+// void _ApplicationLogger::printf(const _Error& error) const
+// {
+//     if(error==_NoError)
+//         this->printf(("[NoError]"));
+//     else
+//         this->printf(("[Error (%d): %s]"), error.errorCode, error.message.c_str());
+// }
 
 
 
