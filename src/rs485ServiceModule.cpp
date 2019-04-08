@@ -28,7 +28,7 @@
 
 // -----------------------------------------------
 
-#define RS485_DEBUG_FN(...)  { if(p_logger) {p_logger->printf(__VA_ARGS__);} }
+#define RS485_DEBUG_FN(...)  { if(p_logger) {p_logger->debug(__VA_ARGS__);} }
 
 // -----------------------------------------------
 
@@ -177,7 +177,7 @@ static String calculateLRC(String CMD, _ApplicationLogger* p_logger)
   unsigned char TOT_c = ((~TOT + 1) & 0xFF);
   if ((TOT + TOT_c) & 0xFF)
   {
-    if(p_logger) p_logger->printf (("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
+    if(p_logger) p_logger->error (("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
   }
 
   String LRC_String(TOT_c, 16);
@@ -206,7 +206,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   this->p_logger = &this->theApp->getLogger();
 
   if (root.isNull())  {
-    this->p_logger->printf((">Rs485 Error initializing configuration. Json file error\n"));
+    this->p_logger->error((">Rs485 Error initializing configuration. Json file error\n"));
     return _ConfigLoadError;
   }
   
@@ -219,7 +219,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   const char * _parity = root["parity"];
   this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  this->p_logger->printf(("\t%s Rs485 config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+  this->p_logger->info(("\t%s Rs485 config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
           this->getTitle().c_str(),
           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
@@ -242,7 +242,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
 
   if(!p_ser) {
-    this->p_logger->printf((">Rs485 Error initializing Serial. Config out of range\n"));
+    this->p_logger->error((">Rs485 Error initializing Serial. Config out of range\n"));
     return _Error(2, "Rs485 Error: impossibile inizializzare la seriale");
   }
   
@@ -254,7 +254,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
 
-  this->p_logger->printf (("\tRs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
+  this->p_logger->info (("\tRs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
 
   return _NoError;
 }

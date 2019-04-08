@@ -39,7 +39,7 @@ void test_setup_config(void) {
     app.addModule(&wifiFtpServerModule);
     app.addModule(&restServerModule);
 
-    app.setIdleLoopCallback( []() -> void  {app.getLogger().printf(".");});
+    app.setIdleLoopCallback( []() -> void  { app.getLogger().debug("."); });
     _Error ret = app.setup();
     TEST_ASSERT_MESSAGE(ret==_NoError, (String("setup error. code: ") + ret.errorCode+ String("("+ret.message+")") ).c_str());
 }

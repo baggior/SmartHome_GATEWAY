@@ -29,7 +29,7 @@ _Error ModbusPollingModule::setup()
     if(!task_listen_interval) task_listen_interval=DEFAULT_MODBUS_TASK_LOOP_TIME_MS;
     this->taskLoopTimeMs = task_listen_interval;
 
-    this->theApp->getLogger().printf (("\t%s config: enable: %u,.. , taskLoopTimeMs: %d \n"),
+    this->theApp->getLogger().info (("\t%s config: enable: %u,.. , taskLoopTimeMs: %d \n"),
         this->getTitle().c_str(), on
         , this->taskLoopTimeMs);
     
@@ -39,7 +39,7 @@ _Error ModbusPollingModule::setup()
         this->p_modbus = this->theApp->getModule<ModbusServiceModule>("ModbusServiceModule");
         if(!this->p_modbus)
         {
-            this->theApp->getLogger().printf((">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
+            this->theApp->getLogger().error((">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
             return _Error(2, "ModbusPollingModule Error: servizio ModbusServiceModule non esistente");            
         }
 
@@ -51,12 +51,12 @@ _Error ModbusPollingModule::setup()
             size_t coils = this->modbusDataMemory.getCoils().size();
             size_t regs = this->modbusDataMemory.getRegisters().size();
 
-            this->theApp->getLogger().printf((">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
+            this->theApp->getLogger().debug((">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
                 , coils, regs );
         }
         else
         {
-            this->theApp->getLogger().printf((">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
+            this->theApp->getLogger().warn((">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
             return _Disable;
         }
 
@@ -64,7 +64,7 @@ _Error ModbusPollingModule::setup()
         this->p_mqtt = this->theApp->getModule<MqttModule>(ENUM_TO_STR(_CoreMqttModule));
         if(!this->p_mqtt)
         {
-            this->theApp->getLogger().printf((">MqttModule Error servizio MqttModule non esistente\n"));
+            this->theApp->getLogger().error((">MqttModule Error servizio MqttModule non esistente\n"));
             return _Error(2, "MqttModule Error: servizio MqttModule non esistente");            
         }
         //TODO

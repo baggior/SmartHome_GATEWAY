@@ -39,7 +39,7 @@ _Error WifiFtpServerModule::setup()
 
     this->taskLoopTimeMs = task_listen_interval;
 
-    this->theApp->getLogger().printf (("\t%s config: enable: %d, server_auth_username: %s, server_auth_password: %s, taskLoopTimeMs: %d \n"), 
+    this->theApp->getLogger().info (("\t%s config: enable: %d, server_auth_username: %s, server_auth_password: %s, taskLoopTimeMs: %d \n"), 
         this->getTitle().c_str(), on
         , REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password), this->taskLoopTimeMs);
 
@@ -52,7 +52,7 @@ _Error WifiFtpServerModule::setup()
 #endif
         if(!b)
         {
-            DPRINTF("Error opening SPIFFS filesystem\n");   
+            this->theApp->getLogger().error("Error opening SPIFFS filesystem\n");   
         }
         
         ftpServer.begin(_server_auth_username, _server_auth_password);

@@ -214,6 +214,8 @@ public:
     void info(const char * fmt, ...)    __attribute__ ((format (printf, 2, 3)));
     void warn(const char * fmt, ...)    __attribute__ ((format (printf, 2, 3)));
     void error(const char * fmt, ...)   __attribute__ ((format (printf, 2, 3)));
+    
+    void log(const _Error& error); 
 
 private:
     friend _Application;

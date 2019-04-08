@@ -67,78 +67,78 @@ _Error _Application::setup()
     this->loopcnt = 0;
     this->startupTimeMillis = millis();
 
-    this->logger.printf(("_Application setup start\n"));
+    this->logger.info(("_Application setup start\n"));
    
     //FS MOUNT
-    this->logger.printf(("_Application FS mount..\n"));
+    this->logger.info(("_Application FS mount..\n"));
     _Error ret = this->mountFS();
     if(ret!=_NoError) return ret; 
 
     //setup main configuration
-    this->logger.printf(("_Application config load start\n"));
+    this->logger.info(("_Application config load start\n"));
     _Error err = this->config.load(this->logger);
     if(err!=_NoError) 
     {
-        this->logger.printf(("ERROR in _Application config: %s (%d)\n"), 
+        this->logger.error(("ERROR in _Application config: %s (%d)\n"), 
             err.message.c_str(), err.errorCode);
         return err;
     }
-    this->logger.printf(("_Application config load done.\n"));
+    this->logger.info(("_Application config load done.\n"));
 
     //setup all modules in order
-    this->logger.printf(("_Application modules setup start\n"));
+    this->logger.info(("_Application modules setup start\n"));
 
     if(this->isDebug()) {
-        this->logger.printf(("\t (%d) Moduli: ["), this->modules.size());
+        this->logger.debug(("\t (%d) Moduli: ["), this->modules.size());
         for(_BaseModule* module : this->modules) {
-           this->logger.printf(("%s, "), module->info().c_str());
+           this->logger.debug(("%s, "), module->info().c_str());
         }
-        this->logger.printf(("]\n"));
+        this->logger.debug(("]\n"));
     }
 
     for(_BaseModule* module : this->modules) 
     {
-        this->logger.printf((">[%s] module: setup start\n"), module->getTitle().c_str());      
+        this->logger.info((">[%s] module: setup start\n"), module->getTitle().c_str());      
 
         err = module->setup();
         if(err==_NoError) 
         {
             module->setEnabled(true);
-            this->logger.printf((">[%s] module: setup done (ENABLED)\n"), module->getTitle().c_str());
+            this->logger.info((">[%s] module: setup done (ENABLED)\n"), module->getTitle().c_str());
         }
         else if (err==_Disable) 
         {
             module->setEnabled(false);
-            this->logger.printf((">[%s] module: setup done (DISABLED)\n"), module->getTitle().c_str());
+            this->logger.info((">[%s] module: setup done (DISABLED)\n"), module->getTitle().c_str());
         }
         else
         {        
             module->setEnabled(false);
-            this->logger.printf((">ERROR in [%s] module setup: %s (%d)\n"), 
+            this->logger.error((">ERROR in [%s] module setup: %s (%d)\n"), 
                 module->getTitle().c_str(), err.message.c_str(), err.errorCode);                
             return err;
         }
         
     }
     
-    this->logger.printf(("_Application modules setup done.\n"));
+    this->logger.info(("_Application modules setup done.\n"));
     return _NoError;
 }
 
 void _Application::shutdown()
 {
-    this->logger.printf(("_Application modules shutdown (%d).. \n"), this->modules.size());
+    this->logger.debug(("_Application modules shutdown (%d).. \n"), this->modules.size());
     for(_BaseModule* module : this->modules) {
         module->setEnabled(false);
         module->shutdown();        
     }    
-    this->logger.printf(("_Application modules shutdown done. \n"));
+    this->logger.info(("_Application modules shutdown done. \n"));
 
     //FS Un-MOUNT
     this->dismountFS();
-    this->logger.printf(("_Application FS dismounted.\n"));
+    this->logger.debug(("_Application FS dismounted.\n"));
 
-    this->logger.printf(("_Application shutdown completed.\n"));
+    this->logger.info(("_Application shutdown completed.\n"));
 }
 
 bool _Application::modules_comparator(const _BaseModule* modulea, const _BaseModule* moduleb) const
@@ -157,7 +157,7 @@ void _Application::addModule(_BaseModule* module)
             auto * found = this->getBaseModule(module->getTitle());
             if(found) 
             {
-                this->logger.printf(("_Application module is unique and already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
+                this->logger.error(("_Application module is unique and already exists: Cannot add another [%s].\n"), module->getTitle().c_str());
             }    
         }
 
@@ -169,7 +169,7 @@ void _Application::addModule(_BaseModule* module)
         auto comparator = std::bind(&_Application::modules_comparator, this, std::placeholders::_1, std::placeholders::_2);
         this->modules.sort(comparator);        
 
-        this->logger.printf(("_Application module added : [%s].\n"), module->getTitle().c_str() );
+        this->logger.info(("_Application module added : [%s].\n"), module->getTitle().c_str() );
     }
 }
 
@@ -180,7 +180,7 @@ void _Application::removeModule(_BaseModule* module)
         module->shutdown();  
         module->theApp = NULL;
         this->modules.remove(module);
-        this->logger.printf(("_Application module removed : [%s].\n"), module->getTitle().c_str() );
+        this->logger.info(("_Application module removed : [%s].\n"), module->getTitle().c_str() );
 
         module->afterModuleRemoved();
     }
@@ -260,9 +260,9 @@ void _Application::restart(const _Error& error)
 {
     if(error!=_NoError)
     {
-        this->getLogger().println(error);
+        this->getLogger().log(error);
     }
-    this->getLogger().printf(("RESTART\n"));
+    this->getLogger().info(("RESTART\n"));
 
     delay(3000);      
     this->getLogger().flush();
@@ -282,15 +282,15 @@ _Error _Application::mountFS()
 
     if(!b)
     {
-        logger.printf((">Error opening SPIFFS filesystem\r\n"));   
+        logger.error((">Error opening SPIFFS filesystem\r\n"));   
         return _FSError;
     }
     else 
     {
 #ifdef ESP32
-        logger.printf(("\tSPIFFS filesystem mounted (%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
+        logger.info(("\tSPIFFS filesystem mounted (%d used Bytes)\n\n"), SPIFFS.usedBytes() );  
 #elif defined ESP8266   
-        logger.printf(("SPIFFS filesystem mounted\r\n"));
+        logger.info(("SPIFFS filesystem mounted\r\n"));
 #endif          
     }
     return _NoError;

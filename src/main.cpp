@@ -117,7 +117,7 @@ void setup() {
 
     //////////////////
 
-    DPRINTLN("\n-----MAIN setup start-----\n");
+    app.getLogger().info("\n-----MAIN setup start-----\n");
     app.addModule(&wifiFtpServer);
     app.addModule(&restServer);
     app.addModule(&modbusPollingModule);
@@ -126,13 +126,13 @@ void setup() {
     // app.addModule(&mqtt);
     _Error ret = app.setup();
     if(ret!=_NoError) {
-        DPRINTF("\n-----MAIN setup done ERROR-----\n%d: %s\n---------------\n\n", ret.errorCode, ret.message.c_str());
+        app.getLogger().error("\n-----MAIN setup done ERROR-----\n%d: %s\n---------------\n\n", ret.errorCode, ret.message.c_str());
         delay(3000);
         // DPRINTLN("\n-----RESTARTING...-----\n...\n..\n.\n");
         // app.restart();
     }
     else {
-        DPRINTLN("\n-----MAIN setup done OK-----\n");
+        app.getLogger().info("\n-----MAIN setup done OK-----\n");
     }
 }
 

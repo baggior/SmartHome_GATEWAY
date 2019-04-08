@@ -81,7 +81,7 @@ _Error MqttModule::setup(const JsonObject &root)
     const char* _server_auth_username= root["server_auth"]["username"];
     const char* _server_auth_password= root["server_auth"]["password"];    
 
-    this->theApp->getLogger().printf(("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, topic_prefix: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
+    this->theApp->getLogger().info(("\t%s Mqtt config: server_host: %s, port: %d, client_id: %s, topic_prefix: %s, server_auth_username: %s, server_auth_password: %s.\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_server_host), _server_port,
         this->clientId.c_str(), this->topicPrefix.c_str(),
@@ -134,7 +134,7 @@ void MqttModule::loop()
                 this->lastReconnectAttempt = 0;
                 // DPRINTF(F(">\t%s CONNECTED: reconnect() return-> OK\n"), this->getTitle().c_str());
             } else {
-                DPRINTF(F(">\t%s ERROR: reconnect(): %s (%d)\n"),
+                this->theApp->getLogger().error((">\t%s ERROR: reconnect(): %s (%d)\n"),
                     this->getTitle().c_str(), ret.message.c_str(), ret.errorCode );
             }
         }
@@ -156,7 +156,7 @@ void MqttModule::publish(String topicEnd, String value, bool retained) const
 
         bool ok = mqttClient.publish(topic.c_str(), value.c_str(), retained);
         if(!ok) {
-            DPRINTF(F("\t> Error MqttModule::publish(%s)\n%s\n "), topic.c_str(), value.c_str());
+            this->theApp->getLogger().error(("\t> Error MqttModule::publish(%s)\n%s\n "), topic.c_str(), value.c_str());
         }
         
     }
@@ -179,13 +179,13 @@ _Error MqttModule::reconnect() const {
     // 
     if (!mqttClient.connected()) 
     {
-        DPRINT(F("Attempting MQTT connection... "));
+        this->theApp->getLogger().debug(("Attempting MQTT connection... "));
         
         // Attempt to connect
         if (mqttClient.connect(this->clientId.c_str())) {
-            DPRINTF(F("MQTT: connected -> client_id: %s\n"), this->clientId.c_str());            
+            this->theApp->getLogger().debug(("MQTT: connected -> client_id: %s\n"), this->clientId.c_str());            
         } else {
-            DPRINTF(F("MQTT: connection failed, state: %d \n"), 
+            this->theApp->getLogger().error(("MQTT: connection failed, state: %d \n"), 
                 mqttClient.state());            
 
             return _Error(2, "impossibile connettersi al MQTT BROKER");

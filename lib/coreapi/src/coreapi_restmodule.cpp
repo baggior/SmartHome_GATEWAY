@@ -35,7 +35,7 @@ _Error _RestApiModule::setup()
     _server_auth_password = root["server_auth"]["password"];
   }
 
-  this->theApp->getLogger().printf (("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+  this->theApp->getLogger().info (("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
     this->getTitle().c_str(), on, 
     this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
 
@@ -56,7 +56,7 @@ _Error _RestApiModule::setup()
 
     // Start the server
     this->webServer->begin();   
-    this->theApp->getLogger().printf(("\t%s: WebServer started on port:%d\n"),
+    this->theApp->getLogger().info(("\t%s: WebServer started on port:%d\n"),
       this->getTitle().c_str(), this->_server_port);
 
     return _NoError;

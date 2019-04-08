@@ -109,6 +109,14 @@ void _ApplicationLogger::log(const Loglevel_t level, const char * fmt, ...)
     va_end(arg);
 }
 
+void _ApplicationLogger::log(const _Error& error) 
+{
+    Loglevel_t previousLevel =  this->getLogLevel();
+    this->setLogLevel(Loglevel_t::ErrorLevel);
+    size_t written = this->print(error);
+    written += this->println();
+    this->setLogLevel(previousLevel);
+}
 
 void _ApplicationLogger::log(const Loglevel_t level, const char * format, va_list& args)
 {
@@ -132,7 +140,7 @@ void _ApplicationLogger::log(const Loglevel_t level, const char * format, va_lis
     Loglevel_t previousLevel =  this->getLogLevel();
     this->setLogLevel(level);
     size_t written = this->Print::write((uint8_t*)temp, len);
-    this->setLogLevel(previousLevel);
+    // this->setLogLevel(previousLevel);
     //
 
     if(len >= sizeof(loc_buf)){

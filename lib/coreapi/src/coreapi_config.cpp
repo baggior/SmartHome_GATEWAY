@@ -26,7 +26,7 @@ _ApplicationConfig::~_ApplicationConfig()
 
 _Error _ApplicationConfig::load(_ApplicationLogger& logger)
 {
-    logger.printf(("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
+    logger.info(("Using config file: %s \r\n"), CONFIG_FILE_PATH);   
     const String configJsonString = baseutils::readTextFile(CONFIG_FILE_PATH); 
 
     jsonBuffer.clear();
@@ -53,7 +53,7 @@ void _ApplicationConfig::printConfigTo(Print* print) const
 {
     if(print)
     {
-        print->println(F("Configuration: "));
+        print->println( ("Configuration: "));
         if(! this->jsonObject.isNull())
         {
             size_t size = serializeJsonPretty(this->jsonObject, *print);
@@ -62,7 +62,7 @@ void _ApplicationConfig::printConfigTo(Print* print) const
         }
         else 
         {
-            print->println(F("<NULL>"));
+            print->println( ("<NULL>"));
         }
     }    
 }
@@ -110,13 +110,13 @@ _Error _ApplicationConfig::persist()
     File configFile = SPIFFS.open(CONFIG_FILE_PATH, "w");
     if (!configFile) 
     {
-        DPRINTF(F("ERROR Preparing to write config file: %s \r\n"),CONFIG_FILE_PATH);      
+        this->theApp.getLogger().debug(("ERROR Preparing to write config file: %s \r\n"),CONFIG_FILE_PATH);      
         // SPIFFS.end();
         return _ConfigPersistError;     
     }
     else
     {
-        DPRINTF(F("Prepared to write config file: %s \r\n"),CONFIG_FILE_PATH);   
+        this->theApp.getLogger().debug(("Prepared to write config file: %s \r\n"),CONFIG_FILE_PATH);   
         
         if(! this->jsonObject.isNull())
         {
@@ -132,7 +132,7 @@ _Error _ApplicationConfig::persist()
         // SPIFFS.end();   
     }   
 
-    this->theApp.getLogger().printf(("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);
+    this->theApp.getLogger().info(("Configurazione salvata -> '%s'"),CONFIG_FILE_PATH);
 
     return _NoError;
 }

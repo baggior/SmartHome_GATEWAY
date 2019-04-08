@@ -98,7 +98,7 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     // config  
     const unsigned int _tcp_port = root["tcp_port"];
     
-    this->theApp->getLogger().printf(("\t%s Modbus TCP gateway config: tcp_port: %d, convert to_modbus_ascii: %d \n"), 
+    this->theApp->getLogger().info(("\t%s Modbus TCP gateway config: tcp_port: %d, convert to_modbus_ascii: %d \n"), 
         this->getTitle().c_str(), _tcp_port, this->modbus_ascii );
     
     if(_tcp_port) 
@@ -200,14 +200,14 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                 size_t written = this->p_rs485->write( ascii_string );
 
                                 if(this->theApp->isDebug()) {                                    
-                                    this->theApp->getLogger().printf(("%s: Send pack to ASCII serial. Len ASCII pak: [%d]: \n\t%s\n"), 
+                                    this->theApp->getLogger().debug(("%s: Send pack to ASCII serial. Len ASCII pak: [%d]: \n\t%s\n"), 
                                         this->getTitle().c_str(),
                                         written,
                                         ascii_string.c_str());
                                 }
 
                                 if(written != ascii_string.length()) {
-                                    this->theApp->getLogger().printf(("ERROR sending packet to ASCII serial . written=%d, ASCII pak len=%d:\n"), 
+                                    this->theApp->getLogger().error(("ERROR sending packet to ASCII serial . written=%d, ASCII pak len=%d:\n"), 
                                         written, ascii_string.length());
                                 }
                             }
@@ -231,14 +231,14 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                                             
                                 if(this->theApp->isDebug()) {
                                     String hex = baseutils::byteToHexString(buffer, len);
-                                    this->theApp->getLogger().printf(("%s: Send pack to RTU. CRC [%X], Len RTU pak: [%d]: \n\t%s\n"), 
+                                    this->theApp->getLogger().debug(("%s: Send pack to RTU. CRC [%X], Len RTU pak: [%d]: \n\t%s\n"), 
                                         this->getTitle().c_str(),
                                         crcFrame, written,
                                         hex.c_str());
                                 }
                                 
                                 if(written != len) {
-                                    this->theApp->getLogger().printf(("ERROR sending packet to RTU . written=%d, RTU pak len=%d:\n"), 
+                                    this->theApp->getLogger().error(("ERROR sending packet to RTU . written=%d, RTU pak len=%d:\n"), 
                                         written, len);
                                 }
                             }
@@ -271,7 +271,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                         if (pSerial->available())
                         {
                             if(this->theApp->isDebug()) {
-                                this->theApp->getLogger().printf(("\trespose is ready from Serial to TCP client: %d\n"), pmbFrame->nClient);
+                                this->theApp->getLogger().debug(("\trespose is ready from Serial to TCP client: %d\n"), pmbFrame->nClient);
                             }
 
                             pmbFrame->millis = millis();
@@ -298,7 +298,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
 
                             String hex = baseutils::byteToHexString(buffer, 5);
 
-                            this->theApp->getLogger().printf(("\n\tTEST: simulate data received from RTU... sending to client TCP cli: %d len=%d \n\t%s\n"), 
+                            this->theApp->getLogger().debug(("\n\tTEST: simulate data received from RTU... sending to client TCP cli: %d len=%d \n\t%s\n"), 
                                 pmbFrame->nClient, pmbFrame->len,
                                 hex.c_str());
                         }              
@@ -323,7 +323,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                         if (pSerial->available())
                         {
                             if(this->theApp->isDebug()) {
-                                this->theApp->getLogger().printf(("\treading respose from Serial for TCP client: %d (so far: %d bytes)\n"), 
+                                this->theApp->getLogger().debug(("\treading respose from Serial for TCP client: %d (so far: %d bytes)\n"), 
                                     pmbFrame->nClient, pmbFrame->len - TCP_MBAP_SIZE);
                             }
                             
@@ -349,7 +349,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                             pmbFrame->len ++;
                                         }
                                         else {
-                                            this->theApp->getLogger().printf(("\tERROR: response RTU buffer is FULL for TCP client: %d\n"), pmbFrame->nClient);
+                                            this->theApp->getLogger().error(("\tERROR: response RTU buffer is FULL for TCP client: %d\n"), pmbFrame->nClient);
                                         }
                                 }
 
@@ -358,7 +358,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                     pmbFrame->guessedReponseLen = guessRtuResponseFrameDataSize(pmbFrame->buffer, pmbFrame->len);
 
                                     if( pmbFrame->guessedReponseLen>0 && this->theApp->isDebug()) {
-                                        this->theApp->getLogger().printf(("\tguessed respose RTU length for TCP client: %d is: %d bytes\n"), 
+                                        this->theApp->getLogger().debug(("\tguessed respose RTU length for TCP client: %d is: %d bytes\n"), 
                                             pmbFrame->nClient, pmbFrame->guessedReponseLen);
                                     }
                                 }
@@ -379,7 +379,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                 pmbFrame->ascii_response_buffer.remove(pmbFrame->ascii_response_buffer.length() - 2, 2);
 
                                 if(this->theApp->isDebug()) {
-                                    this->theApp->getLogger().printf(("%s: has read from ASCII %d chars: \n\t%s\n"), 
+                                    this->theApp->getLogger().debug(("%s: has read from ASCII %d chars: \n\t%s\n"), 
                                         this->getTitle().c_str(),
                                         pmbFrame->ascii_response_buffer.length(),
                                         pmbFrame->ascii_response_buffer.c_str());
@@ -404,7 +404,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                 else
                                 {
                                     // response LRC check error
-                                    this->theApp->getLogger().printf(("\tLRC check ERROR in packet received from ASCII serial -> Del pack.\n"));
+                                    this->theApp->getLogger().error(("\tLRC check ERROR in packet received from ASCII serial -> Del pack.\n"));
                                     pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
                                     while(pSerial->available()) 
                                         pSerial->read();
@@ -414,7 +414,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                             else if ( millis() - pmbFrame->millis > RTU_RESPONSE_END_TIMEOUT_MILLIS )
                             {
                                 //ASCII RESPONSE TIMEOUT
-                                this->theApp->getLogger().printf(("\tASCII serial response timeout waiting for <Cr><LF> -> Del pack.\n"));
+                                this->theApp->getLogger().error(("\tASCII serial response timeout waiting for <Cr><LF> -> Del pack.\n"));
                                 pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
                                 while(pSerial->available()) 
                                     pSerial->read();
@@ -436,7 +436,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                     uint8_t* buffer = (uint8_t*) (pmbFrame->buffer + TCP_MBAP_SIZE );
                                     size_t cnt = pmbFrame->len - TCP_MBAP_SIZE;
                                     String hex = baseutils::byteToHexString( buffer, cnt );
-                                    this->theApp->getLogger().printf(("%s: has read from RTU %d bytes, (guessed are %d): \n\t%s\n"), 
+                                    this->theApp->getLogger().debug(("%s: has read from RTU %d bytes, (guessed are %d): \n\t%s\n"), 
                                         this->getTitle().c_str(),
                                         cnt, pmbFrame->guessedReponseLen,
                                         hex.c_str());
@@ -453,7 +453,7 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                                 else
                                 {
                                     // response CRC check error
-                                    this->theApp->getLogger().printf(("\tCRC check ERROR in packet received from RTU -> Del pack.\n"));
+                                    this->theApp->getLogger().error(("\tCRC check ERROR in packet received from RTU -> Del pack.\n"));
 
                                     pmbFrame->status = ModbusTcpSlave::frameStatus::empty;
                                     while(pSerial->available()) 

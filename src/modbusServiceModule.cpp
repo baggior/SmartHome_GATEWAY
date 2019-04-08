@@ -72,7 +72,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     const char * _protocolo = root["protocol"];
     const int _slave_id= root["slave_id"]; //16
     
-    this->theApp->getLogger().printf(("\t%s Modbus config: protocol: '%s', slave: %d,\n"), 
+    this->theApp->getLogger().info(("\t%s Modbus config: protocol: '%s', slave: %d,\n"), 
         this->getTitle().c_str(),
         REPLACE_NULL_STR(_protocolo), _slave_id );
     
@@ -85,7 +85,7 @@ _Error ModbusServiceModule::setup(const JsonObject &root) {
     ::pfn_post = std::bind(&Rs485ServiceModule::postTransmit, this);
     node.postTransmission( ::postTransmit );
 
-    this->theApp->getLogger().printf(("\t%s Modbus setup done\n"), 
+    this->theApp->getLogger().debug(("\t%s Modbus setup done\n"), 
         this->getTitle().c_str());
     
     return _NoError;
@@ -126,14 +126,14 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
     {
         const uint16_t min_coil_address = modbusDataMemory.min_coil_address;
         uint16_t coil_count = modbusDataMemory.coils_buffer.size();
-        DPRINTF("updateCoilsDataMemoryValues: min_address: %d, count: %d \n", min_coil_address, coil_count);
+        this->theApp->getLogger().debug("updateCoilsDataMemoryValues: min_address: %d, count: %d \n", min_coil_address, coil_count);
         if(coil_count>0 && min_coil_address>=0) 
         {
             //max coil_count=min(ModbusDataMemory_MAX_MEMORY_ITEM_COUNT, 2000)
             if(coil_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
             {
                 coil_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
-                DPRINTF(F(">Warning: Coils count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
+                this->theApp->getLogger().warn((">Warning: Coils count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
             }
 
             uint8_t ret = node.readCoils(min_coil_address, coil_count);
@@ -154,7 +154,7 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
             else 
             {
                 // TODO FAIL
-                DPRINTF("ERROR> updateCoilsDataMemoryValues: ModbusMaster::Error %d \n", ret);
+                this->theApp->getLogger().error("ERROR> updateCoilsDataMemoryValues: ModbusMaster::Error %d \n", ret);
             }
         }
     }
@@ -163,14 +163,14 @@ void ModbusServiceModule::updateDataMemoryValues(ModbusDataMemory& modbusDataMem
     {
         const uint16_t min_reg_address = modbusDataMemory.min_reg_address;
         uint16_t regs_count = modbusDataMemory.registers_buffer.size();
-        DPRINTF("updateRegistersDataMemoryValues: min_address: %d, count: %d \n", min_reg_address, regs_count);
+        this->theApp->getLogger().debug("updateRegistersDataMemoryValues: min_address: %d, count: %d \n", min_reg_address, regs_count);
         if(regs_count>0 && min_reg_address>=0) 
         {
             //max regs_count=min(ModbusDataMemory_MAX_MEMORY_ITEM_COUNT, 125)
             if(regs_count > ModbusDataMemory_MAX_MEMORY_ITEM_COUNT)
             {
                 regs_count = ModbusDataMemory_MAX_MEMORY_ITEM_COUNT;
-                DPRINTF(F(">Warning: Register count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
+                this->theApp->getLogger().warn( (">Warning: Register count limited to %d elements\n"), ModbusDataMemory_MAX_MEMORY_ITEM_COUNT);
             }
 
             uint16_t _current_min_reg_address = min_reg_address;
@@ -282,7 +282,7 @@ void ModbusServiceModule::buildDataMemory(const JsonArray & modbusMemoryConfig, 
             else
             {
                 // log 
-                DPRINTF(F("ModbusMemory config Error: unknown type: %s \n"), type.c_str());
+                this->theApp->getLogger().error( ("ModbusMemory config Error: unknown type: %s \n"), type.c_str());
                 continue;
             }
 

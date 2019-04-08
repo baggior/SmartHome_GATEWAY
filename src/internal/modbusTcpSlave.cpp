@@ -34,7 +34,7 @@ void ModbusTcpSlave::waitNewClient(void)
       {
         clientOnLine[i].client.stop(); // 
         clientOnLine[i].onLine = false;
-        this->mLogger.printf (("\tClient stopped: [%d]\n"), i);
+        this->mLogger.warn (("\tClient stopped: [%d]\n"), i);
       }
       // else clientOnLine[i].client.flush();
    }
@@ -52,7 +52,7 @@ void ModbusTcpSlave::waitNewClient(void)
           clientAdded = true;
 
           if(this->isDebug) {
-            this->mLogger.printf (("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
+            this->mLogger.info (("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
           }
           break;
        }
@@ -61,7 +61,7 @@ void ModbusTcpSlave::waitNewClient(void)
      if (!clientAdded) // If there was no place for a new client
      {
         //no free/disconnected spot so reject        
-        this->mLogger.printf (("\tToo many Clients reject the new connection \n") );
+        this->mLogger.error (("\tToo many Clients reject the new connection \n") );
         mbServer.available().stop();
         // clientOnLine[0].client.stop();
         // clientOnLine[0].client = mbServer.available();
@@ -99,7 +99,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
     smbap  mbap;
     mbapUnpack(&mbap, &buf[0]);
     if(this->isDebug) {
-      this->mLogger.printf (("\tPaket in : len TCP data [%d] Len mbap pak [%d], UnitId [%d], TI [%d] \n"),
+      this->mLogger.debug (("\tPaket in : len TCP data [%d] Len mbap pak [%d], UnitId [%d], TI [%d] \n"),
         len, mbap._len, mbap._ui, mbap._ti);
     }
 
@@ -131,7 +131,7 @@ void ModbusTcpSlave::readFrameClient(WiFiClient client, uint8_t nClient)
   }
   else
   {
-    this->mLogger.printf (("\tTCP client [%d] data count invalid : %d\n"), nClient, available);
+    this->mLogger.error (("\tTCP client [%d] data count invalid : %d\n"), nClient, available);
 
     // uint16_t tmp = client.available();
     while(client.available()) 
@@ -149,7 +149,7 @@ void ModbusTcpSlave::writeFrameClient(void)
     size_t len = pmbFrame->len;
 
     if(! clientOnLine[cli].client.connected() ) {
-      this->mLogger.printf (("\tERROR writeFrameClient: writing to a disconnected client: %d"), cli);
+      this->mLogger.warn (("\tERROR writeFrameClient: writing to a disconnected client: %d"), cli);
       return;
     }
 
@@ -157,11 +157,11 @@ void ModbusTcpSlave::writeFrameClient(void)
 
     // write to TCP client
     if(this->isDebug) {
-      this->mLogger.printf (("\twritten data buffer to TCP client: %d, len=%d\n"), cli, len );
+      this->mLogger.debug (("\twritten data buffer to TCP client: %d, len=%d\n"), cli, len );
     }
 
     if(written!= len) {
-      this->mLogger.printf (("\tERROR writeFrameClient: writing buffer [%d] to RTU client len_to_write=%d, written=%d\n"), cli, len, written);
+      this->mLogger.error (("\tERROR writeFrameClient: writing buffer [%d] to RTU client len_to_write=%d, written=%d\n"), cli, len, written);
     }
     // delay(1);
     // yield();
@@ -204,7 +204,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getFreeBuffer ()
     scanBuff++;
     if(scanBuff >=  FRAME_COUNT) 
     {
-      this->mLogger.printf (("\tNo Free buffer\n"));
+      this->mLogger.error (("\tNo Free buffer\n"));
       scanBuff = 0;
       return 0;
     }    

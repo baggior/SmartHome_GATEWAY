@@ -16,7 +16,7 @@
 
 _Error _WifiConnectionModule::setup()
 {
-    DPRINTLN(F("_WifiConnectionModule::setup()"));
+    this->theApp->getLogger().debug(("_WifiConnectionModule::setup()\n"));
 
     _Error err = this->wifiManagerOpenConnection();
     if(err==_NoError)
@@ -93,7 +93,7 @@ static WiFiPhyMode parsePhyModeParamString(const char * _phy_mode_param)
 
 _Error _WifiConnectionModule::wifiManagerOpenConnection()
 {
-    DPRINTLN(F("\twifiManagerOpenConnection()"));
+    this->theApp->getLogger().debug(("\twifiManagerOpenConnection()\n"));
 
      // configuration    
     const JsonObject& root = this->theApp->getConfig().getJsonObject("wifi");
@@ -117,7 +117,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     float outputPower = root["outputPower"];
     char buff[20];
 
-    this->theApp->getLogger().printf ((">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, static_dns1: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
+    this->theApp->getLogger().info ((">WiFI Connection SETUP: SSID: %s, password: %s, hostname: %s, static_ip: %s, static_gw: %s, static_sn: %s, static_dns1: %s, phy_mode: %s, connectionTimeout: %d, statcaptivePortalTimeout: %d, minimumSignalQuality: %d, outputPower: %s \r\n"), 
         REPLACE_NULL_STR(SSID), REPLACE_NULL_STR(password),
         REPLACE_NULL_STR(hostname), 
         REPLACE_NULL_STR(static_ip), REPLACE_NULL_STR(static_gw), REPLACE_NULL_STR(static_sn), REPLACE_NULL_STR(static_dns1),
@@ -133,7 +133,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     // Connect to WiFi    
     
     uint8_t status = WiFi.begin();
-    DPRINTF("\t>WiFi.begin(): status %d\n", status); //    WL_CONNECTED        = 3,    WL_CONNECT_FAILED   = 4,
+    this->theApp->getLogger().debug("\t>WiFi.begin(): status %d\n", status); //    WL_CONNECTED        = 3,    WL_CONNECT_FAILED   = 4,
     if(status!= WL_CONNECTED)
     {               
         if (!SSID)  
@@ -143,7 +143,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
             // AsyncWiFiManager wifiManager(&server,&dns);             
             WiFiManager wifiManager(DEBUG_OUTPUT);      
 
-            this->theApp->getLogger().printf (("Start WiFiManager connection.. \r\n") );            
+            this->theApp->getLogger().info (("Start WiFiManager connection.. \r\n") );            
             
             wifiManager.setDebugOutput(this->theApp->isDebug());            
 
@@ -152,7 +152,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
             if(minimumSignalQuality) wifiManager.setMinimumSignalQuality(minimumSignalQuality);
             if(static_ip && static_gw && static_sn && static_dns1) 
             {
-                this->theApp->getLogger().printf (("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
+                this->theApp->getLogger().info (("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
                 IPAddress ip1,ip2,ip3, dns1;                 
                 if(ip1.fromString(static_ip))
                 {
@@ -183,10 +183,10 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
         }
         else //SSID defined
         {
-            this->theApp->getLogger().printf (("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
+            this->theApp->getLogger().debug (("Start WiFi connection custom SSID: %s ..\r\n"), SSID);
             if(static_ip && static_gw && static_sn && static_dns1) 
             {
-                this->theApp->getLogger().printf (("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
+                this->theApp->getLogger().info (("Use Custom STA IP/GW/Subnet (%s, %s, %s, %s)\r\n"), static_ip, static_gw, static_sn, static_dns1);
                 IPAddress ip1,ip2,ip3, dns1;
                 if(ip1.fromString(static_ip) && ip2.fromString(static_gw) && ip3.fromString(static_sn) && dns1.fromString(static_dns1))
                 {                    
@@ -194,7 +194,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
                 }
                 else
                 {
-                   this->theApp->getLogger().printf (("STA Failed to configure: ERROR on reading static ip config params\r\n")); 
+                   this->theApp->getLogger().warn (("STA Failed to configure: ERROR on reading static ip config params\r\n")); 
                 }
             }
 
@@ -236,15 +236,15 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     }
 
     String connectedSSID = WiFi.SSID();
-    this->theApp->getLogger().printf (("WiFi connected to SSID: %s "), connectedSSID.c_str());
-    this->theApp->getLogger().printf ((" HOSTNAME: %s"),  _NetServices::getHostname().c_str());
+    this->theApp->getLogger().info (("WiFi connected to SSID: %s "), connectedSSID.c_str());
+    this->theApp->getLogger().info ((" HOSTNAME: %s"),  _NetServices::getHostname().c_str());
 
     IPAddress connectedIPAddress = WiFi.localIP();  
-    this->theApp->getLogger().printf ((" IP address: %s"), connectedIPAddress.toString().c_str());
-    this->theApp->getLogger().printf ((" ESP Mac Address: %s"), WiFi.macAddress().c_str());
-    this->theApp->getLogger().printf ((" Subnet Mask: %s"), WiFi.subnetMask().toString().c_str());
-    this->theApp->getLogger().printf ((" Gateway IP: %s"), WiFi.gatewayIP().toString().c_str());
-    this->theApp->getLogger().printf ((" DNS: %s .\n"), WiFi.dnsIP().toString().c_str());
+    this->theApp->getLogger().info ((" IP address: %s"), connectedIPAddress.toString().c_str());
+    this->theApp->getLogger().debug ((" ESP Mac Address: %s"), WiFi.macAddress().c_str());
+    this->theApp->getLogger().debug ((" Subnet Mask: %s"), WiFi.subnetMask().toString().c_str());
+    this->theApp->getLogger().debug ((" Gateway IP: %s"), WiFi.gatewayIP().toString().c_str());
+    this->theApp->getLogger().debug ((" DNS: %s .\n"), WiFi.dnsIP().toString().c_str());
     
     return _NoError; 
 }

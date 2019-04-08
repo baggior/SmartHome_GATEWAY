@@ -41,10 +41,10 @@ bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::li
         IPAddress ip = WiFi.localIP();
 
         if (!MDNS.begin(hostname.c_str())) {
-            this->theApp.getLogger().printf(("Error setting up MDNS responder! \n"));
+            this->theApp.getLogger().error(("Error setting up MDNS responder! \n"));
             return false;
         }
-        this->theApp.getLogger().printf(("\tMDNS responder started. hostname: %s (ip: %s) \n"),
+        this->theApp.getLogger().info(("\tMDNS responder started. hostname: %s (ip: %s) \n"),
             hostname.c_str(), ip.toString().c_str());
     
         // Announce esp tcp service on port 80:
@@ -59,17 +59,17 @@ bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::li
         // Add service attributes
         for(MdnsAttribute attr: attributes)
         {            
-            this->theApp.getLogger().printf(("\tMDNS attribute: %s -> %s\n"), attr.name.c_str(), attr.value.c_str());
+            this->theApp.getLogger().debug(("\tMDNS attribute: %s -> %s\n"), attr.name.c_str(), attr.value.c_str());
             MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, attr.name, attr.value);
         }
   
-        this->theApp.getLogger().printf((">MDNS announced service: %s, proto: %s, port: %d \n"), 
+        this->theApp.getLogger().info((">MDNS announced service: %s, proto: %s, port: %d \n"), 
             THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
 
         return true;
     }
     else {
-        DPRINTF(F("MDNS announce: server_port undefined: %d\n"), server_port);
+        this->theApp.getLogger().error(("MDNS announce: server_port undefined: %d\n"), server_port);
     }
 
     return false;
@@ -80,13 +80,13 @@ _NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String pro
     _NetServices::MdnsQueryResult ret;
     ret.port=0;
     
-    this->theApp.getLogger().printf( ("MDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
+    this->theApp.getLogger().debug( ("MDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
 
     int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
     if (n == 0) {
-        this->theApp.getLogger().printf( ("\tno services found"));
+        this->theApp.getLogger().debug( ("\tno services found"));
     } else {
-        this->theApp.getLogger().printf( (" \t%d services found\n"), n);
+        this->theApp.getLogger().debug( (" \t%d services found\n"), n);
         
         ret.host = MDNS.hostname(0);
         ret.port = MDNS.port(0);
@@ -95,7 +95,7 @@ _NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String pro
         if(this->theApp.isDebug()) {
             for (int i = 0; i < n; ++i) {
                 // Print details for each service found
-                this->theApp.getLogger().printf( ("\t%d: %s (%s:%d)\n"),
+                this->theApp.getLogger().debug( ("\t%d: %s (%s:%d)\n"),
                     (i+1), MDNS.hostname(i).c_str(), MDNS.IP(i).toString().c_str(), MDNS.port(i));
             }
         }
@@ -109,8 +109,8 @@ void _NetServices::printDiagWifi()
 {    
     if( this->theApp.isDebug() )
     {
-        this->theApp.getLogger().printf(("---- WiFI Diag ----\n"));        
+        this->theApp.getLogger().info(("---- WiFI Diag ----\n"));        
         WiFi.printDiag( (Print&) this->theApp.getLogger() );        
-        this->theApp.getLogger().printf(("-------------------\n"));
+        this->theApp.getLogger().info(("-------------------\n"));
     }
 }
