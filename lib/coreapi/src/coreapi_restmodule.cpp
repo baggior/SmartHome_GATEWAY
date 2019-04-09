@@ -15,12 +15,19 @@
 
 #define RESTSERVER_PORT_DEFAULT   80
 
+////////////////////
+static SPIFFSEditor* _theSPIFFSEditor = NULL;
+////////////////////
 
 _Error _RestApiModule::setup() 
 {
   bool on = false;
   const char* _server_auth_username= NULL;
   const char* _server_auth_password= NULL;
+
+  bool _spiffs_editor_on = false;
+  const char* _spiffs_editor_auth_username = NULL;
+  const char* _spiffs_editor_auth_password = NULL;
 
   // configuration
   const JsonObject& root = this->theApp->getConfig().getJsonObject("rest");  
@@ -33,11 +40,17 @@ _Error _RestApiModule::setup()
     //TODO request authentication not implemented
     _server_auth_username = root["server_auth"]["username"];
     _server_auth_password = root["server_auth"]["password"];
+
+    _spiffs_editor_on = root["spiffs_editor"]["enable"] | false; 
+    _spiffs_editor_auth_username = root["spiffs_editor"]["username"]; 
+    _spiffs_editor_auth_password = root["spiffs_editor"]["username"]; 
   }
 
-  this->theApp->getLogger().info (("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s\n"),
+  this->theApp->getLogger().info (("\t%s config: enable: %u, server_port: %u, server_auth_username: %s, server_auth_password: %s,"
+    "SPIFFS_editor_enable: %u, SPIFFS_editor_auth_username: %s, SPIFFS_editor_auth_password: %s.\n"),
     this->getTitle().c_str(), on, 
-    this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password) );
+    this->_server_port, REPLACE_NULL_STR(_server_auth_username), REPLACE_NULL_STR(_server_auth_password),
+    _spiffs_editor_on, REPLACE_NULL_STR(_spiffs_editor_auth_username), REPLACE_NULL_STR(_spiffs_editor_auth_password) ) ;
 
   if(on)
   {
@@ -53,6 +66,16 @@ _Error _RestApiModule::setup()
       return err;
     }
 
+    if( _spiffs_editor_on) {
+      // Web SPIFFS Editor http://espressif.local/edit
+      if(_spiffs_editor_auth_username && _spiffs_editor_auth_password)
+        _theSPIFFSEditor = new SPIFFSEditor(SPIFFS, _spiffs_editor_auth_username, _spiffs_editor_auth_password);
+      else 
+        _theSPIFFSEditor = new SPIFFSEditor(SPIFFS);
+      this->webServer->addHandler(_theSPIFFSEditor );
+
+      this->theApp->getLogger().info(("\tSPIFFSEditor started on url:%s\n"), "/edit");
+    }
 
     // Start the server
     this->webServer->begin();   
@@ -71,6 +94,11 @@ void _RestApiModule::shutdown()
 {
   this->theApp->getLogger().info(("%s: RestApiModule shutdown..\n"), this->getTitle().c_str());
 
+  if (_theSPIFFSEditor)
+  {
+    delete _theSPIFFSEditor;
+    _theSPIFFSEditor = NULL;
+  } 
   if(this->webServer) 
   {       
     // delete this->webServer; // TODO: CRASH bug in ESPsyncWebServer 
@@ -83,44 +111,51 @@ void _RestApiModule::shutdown()
 
 
 
-void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod )
+void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod, size_t maxJsonBufferSize )
 {
   if(isGetMethod)
   {
     // GET 
 
     webServer->on(uri, HTTP_GET, 
-      [this, callback](AsyncWebServerRequest *request)
+      [this, callback, uri, maxJsonBufferSize](AsyncWebServerRequest *request)
       {
-        AsyncJsonResponse * response = new AsyncJsonResponse();
-        response->setContentType(JSON_MIMETYPE);
+        this->theApp->getLogger().debug("called rest api GET url: '%s'\n", uri);
+
+        AsyncJsonResponse * response = new AsyncJsonResponse(maxJsonBufferSize);        
+        response->setContentType(JSON_MIMETYPE);        
         const JsonObject& responseObjectRoot = response->getRoot();
         
         callback( this->theApp, NULL, &responseObjectRoot );
 
-        response->setLength();
+        response->setLength();       
         request->send(response);          
+        
+        // String ret;
+        // serializeJsonPretty(responseObjectRoot, ret);
+        // request->send(200, JSON_MIMETYPE, ret);         
       });
   }
   else
   {
     // POST
     
-    AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri, 
-      [this, callback] (AsyncWebServerRequest *request, JsonVariant &json) 
-      {
-        AsyncJsonResponse * response = new AsyncJsonResponse();
-        response->setContentType(JSON_MIMETYPE);
+    AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri,
+      [this, callback, uri, maxJsonBufferSize] (AsyncWebServerRequest *request, JsonVariant &jsonInput) 
+      {        
+        this->theApp->getLogger().debug("called rest api POST url: '%s'\n", uri);
 
-        JsonObject requestObjectRoot = json.as<JsonObject>();
+        AsyncJsonResponse * response = new AsyncJsonResponse(maxJsonBufferSize);
+        response->setContentType(JSON_MIMETYPE);
+        
+        JsonObject requestObjectRoot = jsonInput.as<JsonObject>();
         JsonObject responseObjectRoot = response->getRoot();
 
         callback( this->theApp, &requestObjectRoot, &responseObjectRoot );
 
         response->setLength();
         request->send(response);   
-      });
-
+      });    
     webServer->addHandler(jsonHandler);
 
 //     webServer->on( uri, HTTP_POST, [callback](AsyncWebServerRequest *request)
@@ -152,7 +187,7 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
 
 ////////////////////////////////////////////////////////////////////////
 // handlers
-static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
+//(SPIFFS, "esp", "esp" );
 
 static void _showInfoPlain(AsyncWebServerRequest *request)
 {
@@ -362,34 +397,41 @@ _Error _RestApiModule::restApiMethodSetup()
 
   // HEAP REST
   this->addRestApiMethod("/api/heap", [](_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody) {
+    
     const JsonObject& root = (*responseBody);
     root["heap"] = ESP.getFreeHeap();
-    root["ssid"] = WiFi.SSID();
+    root["ssid"] = WiFi.SSID();    
+    root["hostname"] = WiFi.getHostname();
+    root["ip"] = WiFi.localIP().toString();
+
   });
 
   // CONFIG REST
+  const size_t CONST_maxJsonBufferSize = 1024*10;
   this->addRestApiMethod("/api/config", [](_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody) {
     const JsonObject& root = (*responseBody);
-    root["config"] = theApp->getConfig().getJsonObject( );
-  });
+    String out;
+    serializeJsonPretty(theApp->getConfig().getJsonObject( ), out );
+    bool success = root["config"].set( serialized(out));    
+    if(!success) theApp->getLogger().warn("Not enough reserved ram to print config json. Reserved to maxJsonBufferSize: %u\n %s", CONST_maxJsonBufferSize);
+
+  }, true, CONST_maxJsonBufferSize );
   
   // ScanWifi REST
   this->webServer->on("/api/scanWifi", HTTP_GET, _onScanWiFi);  
   
-  // attach filesystem root at URL /
-  this->webServer->serveStatic("/", SPIFFS, "/");
+  // attach filesystem root at URL http://espressif.local/edit
+  this->webServer->serveStatic("/spiffs/", SPIFFS, "/");
 
-  // Web SPIFFS Editor
-  this->webServer->addHandler(& _theSPIFFSEditor );
   
   //FIRMWARE UPDATE
   this->webServer->on("/api/firmwareUpdate", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", "<form method='POST' action='/firmwareUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
   });
 
+  // TODO
   // ArRequestHandlerFunction _onFwUpdate=
   // webServer->on("/update", HTTP_POST,_onFwUpdate1, _onFwUpdate2);
-
 
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it

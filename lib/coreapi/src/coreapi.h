@@ -144,7 +144,7 @@ class _RestApiModule : public _BaseModule
 {
 public:
     
-    typedef std::function<void(_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody)> RestHandlerCallback;
+    typedef std::function<void(_Application* theApp, const JsonObject* const requestPostBody, const JsonObject* const responseBody)> RestHandlerCallback;
     
     inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, Order_AfterNormal) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
@@ -158,7 +158,7 @@ protected:
     virtual void beforeModuleAdded() override ;
 
     virtual _Error additionalRestApiMethodSetup();
-    void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true );
+    void addRestApiMethod(const char* uri, RestHandlerCallback callback, bool isGetMethod=true, size_t maxJsonBufferSize=1024 );
 
 private:
     _Error restApiMethodSetup();

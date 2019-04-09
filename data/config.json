@@ -87,6 +87,11 @@
     "server_auth": {
       "username": null,
       "password": null
+    },
+    "spiffs_editor": {
+      "enable": true,
+      "username": "esp",
+      "password": "esp"
     }
   },
   "ftp": {
