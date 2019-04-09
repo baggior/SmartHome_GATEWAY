@@ -14,10 +14,12 @@ void _TaskModule::setEnabled(bool _enabled)
 {   
     if(_enabled &&  !isEnabled())
     {        
+        this->theApp->getLogger().info(("%s: TaskModule enable..\n"), this->getTitle().c_str());
+
         Scheduler & runner = this->theApp->getScheduler();
         
         TaskCallback funct = std::bind(&_TaskModule::taskloop, this);
-        loopTask.set(this->taskLoopTimeMs
+        this->loopTask.set(this->taskLoopTimeMs
             , TASK_FOREVER
             , funct);
         runner.addTask(loopTask);
@@ -27,9 +29,11 @@ void _TaskModule::setEnabled(bool _enabled)
     }
     else if (!_enabled && isEnabled())
     {
+        this->theApp->getLogger().info(("%s: TaskModule disable..\n"), this->getTitle().c_str());
+
         Scheduler & runner = this->theApp->getScheduler();
         
-        loopTask.disable();
+        this->loopTask.disable();
         runner.deleteTask(loopTask);
 
         _BaseModule::setEnabled(false);
@@ -54,5 +58,6 @@ void _TaskModule::taskloop()
 
 void _TaskModule::shutdown()  
 {
+    this->theApp->getLogger().info(("%s: TaskModule shutdown..\n"), this->getTitle().c_str());
     this->setEnabled(false); 
 }

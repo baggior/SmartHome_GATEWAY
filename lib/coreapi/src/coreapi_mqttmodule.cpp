@@ -170,6 +170,7 @@ void MqttModule::publish(String topicEnd, int value, bool retained) const
 
 void MqttModule::shutdown()
 {   
+    this->theApp->getLogger().info(("%s: Module shutdown..\n"), this->getTitle().c_str());
     if(mqttClient.connected())
         mqttClient.disconnect();
 }

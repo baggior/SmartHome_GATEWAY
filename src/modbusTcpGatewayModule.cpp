@@ -135,6 +135,8 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
 
 void ModbusTCPGatewayModule::shutdown()
 {
+    this->theApp->getLogger().info(("%s: Module shutdown..\n"), this->getTitle().c_str());
+    
     if(p_tcpSlave) {
         delete p_tcpSlave;
         p_tcpSlave = NULL;

@@ -37,8 +37,9 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
 
     if(!error)
     {
-        this->jsonObject = jsonBuffer.as<JsonObject>();
-        this->printConfigTo(&logger);
+        this->jsonObject = jsonBuffer.as<JsonObject>();        
+        
+        this->printConfigTo(logger);
 
         return _NoError; 
     }
@@ -47,6 +48,14 @@ _Error _ApplicationConfig::load(_ApplicationLogger& logger)
         //  DPRINTF(F("Error parsing node %s of json:\r\n %s \r\n"), (node?node:"<ROOT>"), configJsonString.c_str() );
         return _Error(-1, String(F("Error parsing json config file: ")) + String(error.c_str()) );
     }    
+}
+
+void _ApplicationConfig::printConfigTo(_ApplicationLogger& logger) const 
+{
+    _ApplicationLogger::Loglevel_t previousLevel = logger.getLogLevel();
+    logger.setLogLevel(_ApplicationLogger::Loglevel_t::InfoLevel);
+    this->printConfigTo(&logger);
+    logger.setLogLevel(previousLevel);
 }
 
 void _ApplicationConfig::printConfigTo(Print* print) const
@@ -146,7 +155,7 @@ _Error _ApplicationConfig::persist()
 String _ApplicationConfig::getDeviceInfoString(const char* crlf)
 {
     String ret;
-    ret.concat("- software version: "); ret.concat(_ApplicationConfig::getSoftwareVersion()); ret.concat(crlf);
+    ret.concat("* Firmware version: "); ret.concat(_ApplicationConfig::getFirmwareVersion()); ret.concat(crlf);
 // #ifdef ESP8266
 //     ret.concat("ESP8266 Chip ID: " + baseutils::getChipId() +crlf);
 // #elif defined(ESP32)    

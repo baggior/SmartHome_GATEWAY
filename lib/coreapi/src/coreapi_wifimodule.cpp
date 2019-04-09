@@ -42,6 +42,7 @@ _Error _WifiConnectionModule::setup()
 
 void _WifiConnectionModule::shutdown()
 {
+    this->theApp->getLogger().info(("%s: ConnectionModule shutdown..\n"), this->getTitle().c_str());
     MDNS.end();
     WiFi.disconnect();
 }

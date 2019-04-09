@@ -98,6 +98,8 @@ ModbusServiceModule::~ModbusServiceModule()
 
 void ModbusServiceModule::shutdown()
 {
+    this->theApp->getLogger().info(("%s: Module shutdown..\n"), this->getTitle().c_str());
+    
     node.clearTransmitBuffer();    
     node.clearResponseBuffer();
 }

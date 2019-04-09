@@ -69,10 +69,13 @@ _Error _RestApiModule::setup()
 
 void _RestApiModule::shutdown() 
 {
+  this->theApp->getLogger().info(("%s: RestApiModule shutdown..\n"), this->getTitle().c_str());
+
   if(this->webServer) 
-  {   
-      delete this->webServer;
-      this->webServer = NULL;
+  {       
+    // delete this->webServer; // TODO: CRASH bug in ESPsyncWebServer 
+    free (this->webServer); // TODO: replace
+    this->webServer = NULL;
   }
 
   this->setEnabled(false);
@@ -86,34 +89,38 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
   {
     // GET 
 
-    webServer->on(uri, HTTP_GET, [callback](AsyncWebServerRequest *request)
-    {
-      AsyncJsonResponse * response = new AsyncJsonResponse();
-      response->setContentType(JSON_MIMETYPE);
-      const JsonObject& responseObjectRoot = response->getRoot();
+    webServer->on(uri, HTTP_GET, 
+      [this, callback](AsyncWebServerRequest *request)
+      {
+        AsyncJsonResponse * response = new AsyncJsonResponse();
+        response->setContentType(JSON_MIMETYPE);
+        const JsonObject& responseObjectRoot = response->getRoot();
+        
+        callback( this->theApp, NULL, &responseObjectRoot );
 
-      callback( NULL, &responseObjectRoot );
-
-      response->setLength();
-      request->send(response);          
-    });
+        response->setLength();
+        request->send(response);          
+      });
   }
   else
   {
     // POST
     
-    AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri, [callback] (AsyncWebServerRequest *request, JsonVariant &json) 
-    {
-      AsyncJsonResponse * response = new AsyncJsonResponse();
-      response->setContentType(JSON_MIMETYPE);
-      JsonObject responseObjectRoot = response->getRoot();
+    AsyncCallbackJsonWebHandler* jsonHandler = new AsyncCallbackJsonWebHandler(uri, 
+      [this, callback] (AsyncWebServerRequest *request, JsonVariant &json) 
+      {
+        AsyncJsonResponse * response = new AsyncJsonResponse();
+        response->setContentType(JSON_MIMETYPE);
 
-      JsonObject requestObjectRoot = json.as<JsonObject>();
-      callback( &requestObjectRoot, &responseObjectRoot );
+        JsonObject requestObjectRoot = json.as<JsonObject>();
+        JsonObject responseObjectRoot = response->getRoot();
 
-      response->setLength();
-      request->send(response);   
-    });
+        callback( this->theApp, &requestObjectRoot, &responseObjectRoot );
+
+        response->setLength();
+        request->send(response);   
+      });
+
     webServer->addHandler(jsonHandler);
 
 //     webServer->on( uri, HTTP_POST, [callback](AsyncWebServerRequest *request)
@@ -147,21 +154,20 @@ void _RestApiModule::addRestApiMethod(const char* uri, RestHandlerCallback callb
 // handlers
 static SPIFFSEditor _theSPIFFSEditor(SPIFFS);
 
-static void _showHelp(AsyncWebServerRequest *request)
+static void _showInfoPlain(AsyncWebServerRequest *request)
 {
     String help ="";
     help.concat("******************************************************\r\n");  
     #ifdef ESP32
-    help.concat("* ESP32 GATEWAY Web (REST) Server ");     
+    help.concat("* ESP32 GATEWAY Web (REST) Server \r\n");     
     #else
-    help.concat("* ESP8266 GATEWAY Telnet Server ");     
+    help.concat("* ESP8266 GATEWAY Telnet Server \r\n");     
     #endif
     String info = _ApplicationConfig::getDeviceInfoString("\r\n");
     help.concat(info);
     help.concat("******************************************************\r\n");  
-    
-    request->send(200, "text/plain", help );
 
+    request->send(200, "text/plain", help );
 }
 
 static void _onScanWiFi(AsyncWebServerRequest *request) 
@@ -192,7 +198,7 @@ static void _onScanWiFi(AsyncWebServerRequest *request)
   }
   json += "]";
   request->send(200, JSON_MIMETYPE, json);
-  json = String();
+  // json = String();
 }
 
 
@@ -336,24 +342,39 @@ _Error _RestApiModule::additionalRestApiMethodSetup()
 _Error _RestApiModule::restApiMethodSetup() 
 {
   // Basic handlers  
-  this->webServer->on("/api/restart", HTTP_GET, [this](AsyncWebServerRequest *request){
+
+  // RESTART ESP Plain
+  this->webServer->on("/api/plain/restart", HTTP_GET, [this](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String("Restarting ESP.."));
-    //ESP.restart();
     this->theApp->restart();
   });
 
+  // HEAP Plain
   this->webServer->on("/api/plain/heap", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(200, "text/plain", String(ESP.getFreeHeap()));
   });
-  this->addRestApiMethod("/api/heap", [](const JsonObject* requestPostBody, const JsonObject* responseBody) {
+
+  // HEAP INFO Plain  
+  this->webServer->on("/api/plain/info", HTTP_GET, _showInfoPlain);
+
+  // HEAP echo
+  this->webServer->on("/api/echo", HTTP_ANY, _printToResponseHandler);
+
+  // HEAP REST
+  this->addRestApiMethod("/api/heap", [](_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody) {
     const JsonObject& root = (*responseBody);
     root["heap"] = ESP.getFreeHeap();
     root["ssid"] = WiFi.SSID();
   });
+
+  // CONFIG REST
+  this->addRestApiMethod("/api/config", [](_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody) {
+    const JsonObject& root = (*responseBody);
+    root["config"] = theApp->getConfig().getJsonObject( );
+  });
   
-  this->webServer->on("/api/help", HTTP_GET, _showHelp);
+  // ScanWifi REST
   this->webServer->on("/api/scanWifi", HTTP_GET, _onScanWiFi);  
-  this->webServer->on("/api/echo", HTTP_ANY, _printToResponseHandler);
   
   // attach filesystem root at URL /
   this->webServer->serveStatic("/", SPIFFS, "/");
@@ -365,8 +386,10 @@ _Error _RestApiModule::restApiMethodSetup()
   this->webServer->on("/api/firmwareUpdate", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/html", "<form method='POST' action='/firmwareUpdate' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Update'></form>");
   });
+
   // ArRequestHandlerFunction _onFwUpdate=
   // webServer->on("/update", HTTP_POST,_onFwUpdate1, _onFwUpdate2);
+
 
   // Catch-All Handlers
   // Any request that can not find a Handler that canHandle it

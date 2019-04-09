@@ -128,9 +128,14 @@ _Error _Application::setup()
 void _Application::shutdown()
 {
     this->logger.debug(("_Application modules shutdown (%d).. \n"), this->modules.size());
-    for(_BaseModule* module : this->modules) {
-        module->setEnabled(false);
-        module->shutdown();        
+    
+    ModuleList_t::reverse_iterator rit = this->modules.rbegin();
+    for(; rit!= this->modules.rend(); ++rit) {
+        _BaseModule* module = *rit;
+        if(module) {
+            module->setEnabled(false);
+            module->shutdown();        
+        }
     }    
     this->logger.info(("_Application modules shutdown done. \n"));
 
@@ -262,13 +267,15 @@ void _Application::restart(const _Error& error)
     {
         this->getLogger().log(error);
     }
-    this->getLogger().info(("RESTART\n"));
-
-    delay(3000);      
+    this->getLogger().info(("RESTART..\n"));
     this->getLogger().flush();
 
-    baseutils::ESP_restart();      //soft resetart
-    delay(5000);
+    this->shutdown();
+
+    delay(3000);      
+
+    //Hw 
+    baseutils::ESP_restart();          
 }
 
 _Error _Application::mountFS()

@@ -144,7 +144,7 @@ class _RestApiModule : public _BaseModule
 {
 public:
     
-    typedef std::function<void(const JsonObject* requestPostBody,  const JsonObject* responseBody)> RestHandlerCallback;
+    typedef std::function<void(_Application* theApp, const JsonObject* requestPostBody, const JsonObject* responseBody)> RestHandlerCallback;
     
     inline _RestApiModule(): _BaseModule( ENUM_TO_STR(_CoreRestApiModule), ("Core Rest Api module"), false, Order_AfterNormal) {}
     inline virtual ~_RestApiModule() { this->shutdown(); }
@@ -243,8 +243,9 @@ public:
 
     const JsonObject getJsonObject(const char* node=NULL)const;
     void printConfigTo(Print* stream)const ;
+    void printConfigTo(_ApplicationLogger& logger)const ;
 
-    static inline String getSoftwareVersion() { return SW_VERSION; }
+    static inline String getFirmwareVersion() { return FW_VERSION; }
     static String getDeviceInfoString(const char* crlf="\n");
 
 private:

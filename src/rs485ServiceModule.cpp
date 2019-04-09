@@ -273,6 +273,8 @@ _Error Rs485ServiceModule::setup()
 
 void Rs485ServiceModule::shutdown()
 {
+  this->theApp->getLogger().info(("%s: Module shutdown..\n"), this->getTitle().c_str());
+  
   if(p_ser!=NULL) {
 
     p_ser->flush();
