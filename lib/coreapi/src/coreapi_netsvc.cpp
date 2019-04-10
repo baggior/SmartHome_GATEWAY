@@ -11,9 +11,9 @@
 #endif
 
 
-//TODO add to config
-#define THING_GATEEWAY_DISCOVERY_SERVICE    "sht_gtw"
-#define THING_GATEEWAY_DISCOVERY_PROTO      "tcp"
+// #define THING_GATEEWAY_DISCOVERY_SERVICE    "sht_gtw"
+#define THING_DISCOVERY_PROTO               "tcp"
+#define THING_DEFAULT_HOSTNAME              "Thing_*"
 
 
 String _NetServices::getHostname() {
@@ -24,29 +24,64 @@ String _NetServices::getHostname() {
     #endif
 }
 
+bool _NetServices::setHostname(const char * cs_hostname) {     
+    if (cs_hostname==NULL) {
+        cs_hostname = THING_DEFAULT_HOSTNAME;
+    }
 
-bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port)
-{    
-    MdnsAttributeList attributes;    
-    return this->mdnsAnnounceTheDevice(server_port, attributes);
-} 
+    String hostname (cs_hostname);
+    String chipId = baseutils::getChipId();
+    hostname.replace("*", chipId);
+    hostname.toLowerCase();
+    
+    #ifdef ESP8266
+    bool ret = WiFi.hostname(hostname.c_str());
+    #elif defined ESP32
+    bool ret = WiFi.setHostname(hostname.c_str());
+    #endif  
+    
+    if(!ret) DPRINTF("Error setting Wifi hostname: %s \n", hostname.c_str());    
+    return ret;
+}
 
-bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
+void _NetServices::mdnsStopTheDevice() 
+{
+    String hostname = _NetServices::getHostname();   
+    MDNS.end();
+    this->theApp.getLogger().info( "\tMDNS responder stopped. hostname: %s \n", hostname.c_str());
+}
+
+
+bool _NetServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWorkstation)
+{
+    String hostname = _NetServices::getHostname();   
+
+    IPAddress ip = WiFi.localIP();
+
+    if (!MDNS.begin(hostname.c_str())) {
+        this->theApp.getLogger().error( "Error setting up MDNS responder! hostname: %s \n", hostname.c_str() );
+        return false;
+    }
+
+    String instancename = "Thing mac: [" + WiFi.macAddress() + "]";
+    MDNS.setInstanceName(instancename);
+
+    this->theApp.getLogger().info(("\tMDNS responder started. hostname: %s (ip: %s) \n"),
+        hostname.c_str(), ip.toString().c_str());
+    
+    if (enableArduino)
+        MDNS.enableArduino();
+
+    if (enableWorkstation)
+        MDNS.enableWorkstation();
+    
+    return true;
+}
+
+bool _NetServices::mdnsAnnounceService(unsigned int server_port, const String serviceName, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
 {
     if(server_port)
     { 
-        String hostname = _NetServices::getHostname();   
-        hostname.toLowerCase();
-
-        IPAddress ip = WiFi.localIP();
-
-        if (!MDNS.begin(hostname.c_str())) {
-            this->theApp.getLogger().error(("Error setting up MDNS responder! \n"));
-            return false;
-        }
-        this->theApp.getLogger().info(("\tMDNS responder started. hostname: %s (ip: %s) \n"),
-            hostname.c_str(), ip.toString().c_str());
-    
         // Announce esp tcp service on port 80:
 
         // String proto("_"), service("_");    
@@ -54,22 +89,22 @@ bool _NetServices::mdnsAnnounceTheDevice(unsigned int server_port, const etl::li
         // service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
         // MDNS.addService(service, proto, server_port);      
 
-        MDNS.addService(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);  
+        MDNS.addService(serviceName, THING_DISCOVERY_PROTO, server_port);  
+        this->theApp.getLogger().info(("\tMDNS announced service: %s, proto: %s, port: %d \n"), 
+            serviceName.c_str(), THING_DISCOVERY_PROTO, server_port);
 
         // Add service attributes
         for(MdnsAttribute attr: attributes)
         {            
-            this->theApp.getLogger().debug(("\tMDNS attribute: %s -> %s\n"), attr.name.c_str(), attr.value.c_str());
-            MDNS.addServiceTxt(THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, attr.name, attr.value);
+            this->theApp.getLogger().debug(("\tMDNS service %s, added TXT attribute: %s -> %s\n"), 
+                serviceName.c_str(), attr.name.c_str(), attr.value.c_str());            
+            MDNS.addServiceTxt(serviceName, THING_DISCOVERY_PROTO, attr.name, attr.value);
         }
-  
-        this->theApp.getLogger().info((">MDNS announced service: %s, proto: %s, port: %d \n"), 
-            THING_GATEEWAY_DISCOVERY_SERVICE, THING_GATEEWAY_DISCOVERY_PROTO, server_port);
 
         return true;
     }
     else {
-        this->theApp.getLogger().error(("MDNS announce: server_port undefined: %d\n"), server_port);
+        this->theApp.getLogger().error(("\t>Error MDNS announce service [%s]: port is not specified\n"), serviceName.c_str());
     }
 
     return false;
@@ -109,8 +144,12 @@ void _NetServices::printDiagWifi()
 {    
     if( this->theApp.isDebug() )
     {
+        _ApplicationLogger::Loglevel_t previous = this->theApp.getLogger().setLogLevel(_ApplicationLogger::Loglevel_t::DebugLevel);
+
         this->theApp.getLogger().info(("---- WiFI Diag ----\n"));        
         WiFi.printDiag( (Print&) this->theApp.getLogger() );        
         this->theApp.getLogger().info(("-------------------\n"));
+
+        this->theApp.getLogger().setLogLevel(previous);
     }
 }

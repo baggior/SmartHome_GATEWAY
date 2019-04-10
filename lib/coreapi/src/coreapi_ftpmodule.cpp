@@ -57,6 +57,9 @@ _Error WifiFtpServerModule::setup()
         
         ftpServer.begin(_server_auth_username, _server_auth_password);
 
+        //mdns announce ftp service
+        this->theApp->getNetServices().mdnsAnnounceService(FTP_CTRL_PORT, this->getTitle());
+
         return _NoError;            
     }
     else

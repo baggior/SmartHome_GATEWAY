@@ -3,11 +3,8 @@
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
-//#include <ESP8266LLMNR.h>
 #elif defined (ESP32)
 #include <WiFi.h>
-#include <ESPmDNS.h>
 #endif
 
 #include <WiFiManager.h>
@@ -24,13 +21,12 @@ _Error _WifiConnectionModule::setup()
         if(this->theApp->isDebug()) 
         {            
             // setup remote log
-            _ApplicationLogger& logger = (_ApplicationLogger&) this->theApp->getLogger();
-            logger.setupRemoteLog( _NetServices::getHostname() );
+            this->theApp->getLogger().setupRemoteLog( _NetServices::getHostname() );
             
             this->theApp->getNetServices().printDiagWifi( );        
         }
 
-        bool ret = this->theApp->getNetServices().mdnsAnnounceTheDevice();        
+        bool ret = this->theApp->getNetServices().mdnsAnnounceTheDevice(true);        
         if(!ret) {
             err = _Error(-12,"MDNS announce error") ;
         }
@@ -43,7 +39,9 @@ _Error _WifiConnectionModule::setup()
 void _WifiConnectionModule::shutdown()
 {
     this->theApp->getLogger().info(("%s: ConnectionModule shutdown..\n"), this->getTitle().c_str());
-    MDNS.end();
+    
+    this->theApp->getNetServices().mdnsStopTheDevice();
+    
     WiFi.disconnect();
 }
 
@@ -222,19 +220,7 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     // DPRINTLN("CONNECTED OK");
 
     //set device host name
-    if(hostname) 
-    {
-        String str_hostname(hostname);
-        String chipId = baseutils::getChipId();
-        str_hostname.replace("*", chipId);
-        str_hostname.toLowerCase();
-
-        #ifdef ESP8266
-        WiFi.hostname(str_hostname.c_str());
-        #elif defined ESP32
-        WiFi.setHostname(str_hostname.c_str());
-        #endif  
-    }
+    _NetServices::setHostname(hostname);
 
     String connectedSSID = WiFi.SSID();
     this->theApp->getLogger().info (("WiFi connected to SSID: %s "), connectedSSID.c_str());

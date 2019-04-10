@@ -82,6 +82,9 @@ _Error _RestApiModule::setup()
     this->theApp->getLogger().info(("\t%s: WebServer started on port:%d\n"),
       this->getTitle().c_str(), this->_server_port);
 
+    //mdns announce rest service
+    this->theApp->getNetServices().mdnsAnnounceService(this->_server_port, this->getTitle());
+
     return _NoError;
   }
   else
@@ -413,7 +416,7 @@ _Error _RestApiModule::restApiMethodSetup()
     String out;
     serializeJsonPretty(theApp->getConfig().getJsonObject( ), out );
     bool success = root["config"].set( serialized(out));    
-    if(!success) theApp->getLogger().warn("Not enough reserved ram to print config json. Reserved to maxJsonBufferSize: %u\n %s", CONST_maxJsonBufferSize);
+    if(!success) theApp->getLogger().error("Not enough reserved ram to print json configuration! Reserved maxJsonBufferSize: %u\n", CONST_maxJsonBufferSize);
 
   }, true, CONST_maxJsonBufferSize );
   

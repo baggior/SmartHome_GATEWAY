@@ -107,8 +107,8 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     if (on)
     {
         // -----------------------
-        //TCP SLAVE SETUP:
-        p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port, this->theApp->isDebug() );
+        // MODBUS TCP SLAVE SETUP:
+        p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port, this->theApp->isDebug() );       
 
         // -----------------------
         //MODBUS MASTER SETUP:
@@ -123,6 +123,8 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
         // node.begin(_slave_id);
 
         // -----------------------        
+        // mdns announce MODBUS TCP service
+        this->theApp->getNetServices().mdnsAnnounceService(this->tcp_port, this->getTitle());
     }
     else 
     {

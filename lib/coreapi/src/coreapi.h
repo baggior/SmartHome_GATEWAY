@@ -206,7 +206,7 @@ public:
 
     // inline Print& getPrint() const { return (Print&) this->_internalPrint; }
 
-    void setLogLevel(const Loglevel_t level) { this->logLevel = level; }
+    Loglevel_t setLogLevel(const Loglevel_t level) { Loglevel_t previous = this->logLevel; this->logLevel = level; return previous; }
     Loglevel_t getLogLevel() const { return this->logLevel; }
 
     void log(const Loglevel_t level, const char * fmt, ...)   __attribute__ ((format (printf, 3, 4)));
@@ -260,11 +260,16 @@ private:
 };
 
 ///////////////////////////////////////////////////////
+/**
+ * 
+ * 
+ * */
 class _NetServices {
 
 public:
 
     static String getHostname();
+    static bool setHostname(const char * hostname);
 
     void printDiagWifi();
 
@@ -281,8 +286,9 @@ public:
     typedef etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES> MdnsAttributeList;
     
     MdnsQueryResult mdnsQuery(String service, String proto);
-    bool mdnsAnnounceTheDevice(unsigned int server_port=80);
-    bool mdnsAnnounceTheDevice(unsigned int server_port, const MdnsAttributeList & attributes);
+    bool mdnsAnnounceTheDevice(bool enableArduino=false, bool enableWorkstation=false);
+    bool mdnsAnnounceService(unsigned int server_port, const String serviceName, const MdnsAttributeList & attributes = MdnsAttributeList() );
+    void mdnsStopTheDevice();
 
 private:
     friend _Application;
@@ -292,7 +298,11 @@ private:
     _Application& theApp;
 };
 ///////////////////////////////////////////////////////
-
+/**
+ * 
+ * 
+ *
+ * */
 class _Application final {
 
 public:
