@@ -264,7 +264,7 @@ private:
  * 
  * 
  * */
-class _NetServices {
+class _DiscoveryServices {
 
 public:
 
@@ -293,7 +293,7 @@ public:
 private:
     friend _Application;
 
-    inline _NetServices(_Application& _theApp) : theApp(_theApp) {}
+    inline _DiscoveryServices(_Application& _theApp) : theApp(_theApp) {}
 
     _Application& theApp;
 };
@@ -339,7 +339,7 @@ public:
     inline const _ApplicationConfig& getConfig() const  { return this->config; }
 
     inline Scheduler& getScheduler()                    { return this->runner; }
-    inline _NetServices& getNetServices()               { return this->netSvc; }
+    inline _DiscoveryServices& getNetServices()               { return this->netSvc; }
 
     inline void setIdleLoopCallback(IdleLoopCallback _idleLoopCallback_fn) {this->idleLoopCallback_fn=_idleLoopCallback_fn;}
 
@@ -358,7 +358,7 @@ private:
 
     unsigned long startupTimeMillis=0;
 
-    _NetServices netSvc;    
+    _DiscoveryServices netSvc;    
     _ApplicationConfig config;
     _ApplicationLogger logger;
     

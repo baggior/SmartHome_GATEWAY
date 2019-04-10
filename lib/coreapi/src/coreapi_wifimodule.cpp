@@ -21,7 +21,7 @@ _Error _WifiConnectionModule::setup()
         if(this->theApp->isDebug()) 
         {            
             // setup remote log
-            this->theApp->getLogger().setupRemoteLog( _NetServices::getHostname() );
+            this->theApp->getLogger().setupRemoteLog( _DiscoveryServices::getHostname() );
             
             this->theApp->getNetServices().printDiagWifi( );        
         }
@@ -220,11 +220,11 @@ _Error _WifiConnectionModule::wifiManagerOpenConnection()
     // DPRINTLN("CONNECTED OK");
 
     //set device host name
-    _NetServices::setHostname(hostname);
+    _DiscoveryServices::setHostname(hostname);
 
     String connectedSSID = WiFi.SSID();
     this->theApp->getLogger().info (("WiFi connected to SSID: %s "), connectedSSID.c_str());
-    this->theApp->getLogger().info ((" HOSTNAME: %s"),  _NetServices::getHostname().c_str());
+    this->theApp->getLogger().info ((" HOSTNAME: %s"),  _DiscoveryServices::getHostname().c_str());
 
     IPAddress connectedIPAddress = WiFi.localIP();  
     this->theApp->getLogger().info ((" IP address: %s"), connectedIPAddress.toString().c_str());

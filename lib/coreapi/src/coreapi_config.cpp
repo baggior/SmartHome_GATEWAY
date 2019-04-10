@@ -186,7 +186,7 @@ String _ApplicationConfig::getDeviceInfoString(const char* crlf)
         ret.concat(WiFi.getMode()); ret.concat(crlf);
 #endif
 
-        ret.concat("* Host: ");ret.concat(_NetServices::getHostname()); 
+        ret.concat("* Host: ");ret.concat(_DiscoveryServices::getHostname()); 
 
         ret.concat(" IP: ");  ret.concat(WiFi.localIP().toString()); ret.concat(crlf);
         ret.concat("* subnet mask: ");  ret.concat(WiFi.subnetMask().toString()); ret.concat(" Gateway IP: ");  ret.concat(WiFi.gatewayIP().toString()); ret.concat(" DNS IP: ");  ret.concat(WiFi.dnsIP().toString()); ret.concat(crlf);        

@@ -16,7 +16,7 @@
 #define THING_DEFAULT_HOSTNAME              "Thing_*"
 
 
-String _NetServices::getHostname() {
+String _DiscoveryServices::getHostname() {
     #ifdef ESP8266
     return WiFi.hostname();
     #elif defined ESP32
@@ -24,7 +24,7 @@ String _NetServices::getHostname() {
     #endif
 }
 
-bool _NetServices::setHostname(const char * cs_hostname) {     
+bool _DiscoveryServices::setHostname(const char * cs_hostname) {     
     if (cs_hostname==NULL) {
         cs_hostname = THING_DEFAULT_HOSTNAME;
     }
@@ -44,17 +44,17 @@ bool _NetServices::setHostname(const char * cs_hostname) {
     return ret;
 }
 
-void _NetServices::mdnsStopTheDevice() 
+void _DiscoveryServices::mdnsStopTheDevice() 
 {
-    String hostname = _NetServices::getHostname();   
+    String hostname = _DiscoveryServices::getHostname();   
     MDNS.end();
     this->theApp.getLogger().info( "\tMDNS responder stopped. hostname: %s \n", hostname.c_str());
 }
 
 
-bool _NetServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWorkstation)
+bool _DiscoveryServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWorkstation)
 {
-    String hostname = _NetServices::getHostname();   
+    String hostname = _DiscoveryServices::getHostname();   
 
     IPAddress ip = WiFi.localIP();
 
@@ -78,7 +78,7 @@ bool _NetServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWorkstat
     return true;
 }
 
-bool _NetServices::mdnsAnnounceService(unsigned int server_port, const String serviceName, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
+bool _DiscoveryServices::mdnsAnnounceService(unsigned int server_port, const String serviceName, const etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES>& attributes)
 {
     if(server_port)
     { 
@@ -110,9 +110,9 @@ bool _NetServices::mdnsAnnounceService(unsigned int server_port, const String se
     return false;
 }
 
-_NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String proto)
+_DiscoveryServices::MdnsQueryResult _DiscoveryServices::mdnsQuery(String service, String proto)
 {
-    _NetServices::MdnsQueryResult ret;
+    _DiscoveryServices::MdnsQueryResult ret;
     ret.port=0;
     
     this->theApp.getLogger().debug( ("MDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
@@ -140,7 +140,7 @@ _NetServices::MdnsQueryResult _NetServices::mdnsQuery(String service, String pro
     return ret;
 }
 
-void _NetServices::printDiagWifi()
+void _DiscoveryServices::printDiagWifi()
 {    
     if( this->theApp.isDebug() )
     {
