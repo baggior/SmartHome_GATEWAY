@@ -84,7 +84,8 @@ _Error _RestApiModule::setup()
 
     //mdns announce rest service
     this->theApp->getNetServices().mdnsAnnounceService(this->_server_port, this->getTitle());
-
+    // _DiscoveryServices::MdnsQueryResult res = this->theApp->getNetServices().mdnsQuery(this->getTitle());
+    
     return _NoError;
   }
   else

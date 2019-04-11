@@ -285,7 +285,7 @@ public:
     };
     typedef etl::list<MdnsAttribute, MAX_MDNS_ATTRIBUTES> MdnsAttributeList;
     
-    MdnsQueryResult mdnsQuery(String service, String proto);
+    MdnsQueryResult mdnsQuery(String service, String proto="tcp");
     bool mdnsAnnounceTheDevice(bool enableArduino=false, bool enableWorkstation=false);
     bool mdnsAnnounceService(unsigned int server_port, const String serviceName, const MdnsAttributeList & attributes = MdnsAttributeList() );
     void mdnsStopTheDevice();

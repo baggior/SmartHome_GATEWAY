@@ -11,7 +11,7 @@
 #endif
 
 
-// #define THING_GATEEWAY_DISCOVERY_SERVICE    "sht_gtw"
+#define THING_SERVICE_PREFIX               "Thing_"
 #define THING_DISCOVERY_PROTO               "tcp"
 #define THING_DEFAULT_HOSTNAME              "Thing_*"
 
@@ -46,8 +46,8 @@ bool _DiscoveryServices::setHostname(const char * cs_hostname) {
 
 void _DiscoveryServices::mdnsStopTheDevice() 
 {
-    String hostname = _DiscoveryServices::getHostname();   
     MDNS.end();
+    String hostname = _DiscoveryServices::getHostname();   
     this->theApp.getLogger().info( "\tMDNS responder stopped. hostname: %s \n", hostname.c_str());
 }
 
@@ -56,9 +56,7 @@ bool _DiscoveryServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWo
 {
     String hostname = _DiscoveryServices::getHostname();   
 
-    IPAddress ip = WiFi.localIP();
-
-    if (!MDNS.begin(hostname.c_str())) {
+    if ( !MDNS.begin( hostname.c_str() ) ) {
         this->theApp.getLogger().error( "Error setting up MDNS responder! hostname: %s \n", hostname.c_str() );
         return false;
     }
@@ -66,15 +64,17 @@ bool _DiscoveryServices::mdnsAnnounceTheDevice(bool enableArduino, bool enableWo
     String instancename = "Thing mac: [" + WiFi.macAddress() + "]";
     MDNS.setInstanceName(instancename);
 
-    this->theApp.getLogger().info(("\tMDNS responder started. hostname: %s (ip: %s) \n"),
-        hostname.c_str(), ip.toString().c_str());
-    
+    IPAddress ip = WiFi.localIP();
+    this->theApp.getLogger().info(("\t>MDNS responder started. hostname: %s (ip: %s), instancename: %s \n"),
+        hostname.c_str(), ip.toString().c_str(), instancename.c_str());
+   
     if (enableArduino)
         MDNS.enableArduino();
 
     if (enableWorkstation)
         MDNS.enableWorkstation();
     
+
     return true;
 }
 
@@ -82,14 +82,8 @@ bool _DiscoveryServices::mdnsAnnounceService(unsigned int server_port, const Str
 {
     if(server_port)
     { 
-        // Announce esp tcp service on port 80:
-
-        // String proto("_"), service("_");    
-        // proto.concat(THING_GATEEWAY_DISCOVERY_PROTO);
-        // service.concat(THING_GATEEWAY_DISCOVERY_SERVICE);
-        // MDNS.addService(service, proto, server_port);      
-
-        MDNS.addService(serviceName, THING_DISCOVERY_PROTO, server_port);  
+        // Announce esp tcp service:
+        MDNS.addService(THING_SERVICE_PREFIX + serviceName, THING_DISCOVERY_PROTO, server_port);  
         this->theApp.getLogger().info(("\tMDNS announced service: %s, proto: %s, port: %d \n"), 
             serviceName.c_str(), THING_DISCOVERY_PROTO, server_port);
 
@@ -98,7 +92,7 @@ bool _DiscoveryServices::mdnsAnnounceService(unsigned int server_port, const Str
         {            
             this->theApp.getLogger().debug(("\tMDNS service %s, added TXT attribute: %s -> %s\n"), 
                 serviceName.c_str(), attr.name.c_str(), attr.value.c_str());            
-            MDNS.addServiceTxt(serviceName, THING_DISCOVERY_PROTO, attr.name, attr.value);
+            MDNS.addServiceTxt(THING_SERVICE_PREFIX + serviceName, THING_DISCOVERY_PROTO, attr.name, attr.value);
         }
 
         return true;
@@ -110,16 +104,17 @@ bool _DiscoveryServices::mdnsAnnounceService(unsigned int server_port, const Str
     return false;
 }
 
+// return only the first result
 _DiscoveryServices::MdnsQueryResult _DiscoveryServices::mdnsQuery(String service, String proto)
 {
     _DiscoveryServices::MdnsQueryResult ret;
-    ret.port=0;
-    
-    this->theApp.getLogger().debug( ("MDNS query for service _%s._%s.local. ...\n"), service.c_str(), proto.c_str());
+    ret.port=0;   
+   
+    this->theApp.getLogger().debug( ("\tMDNS query for service _%s._%s ...\n"), service.c_str(), proto.c_str());
 
     int n = MDNS.queryService(service, proto); // Send out query for esp tcp services
     if (n == 0) {
-        this->theApp.getLogger().debug( ("\tno services found"));
+        this->theApp.getLogger().debug( ("\tno services found\n"));
     } else {
         this->theApp.getLogger().debug( (" \t%d services found\n"), n);
         
