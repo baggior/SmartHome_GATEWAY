@@ -34,7 +34,7 @@ void ModbusTcpSlave::waitNewClient(void)
       {
         clientOnLine[i].client.stop(); // 
         clientOnLine[i].onLine = false;
-        this->mLogger.warn (("\tClient stopped: [%d]\n"), i);
+        this->mLogger.debug (("\tClient stopped: [%d]\n"), i);
       }
       // else clientOnLine[i].client.flush();
    }
@@ -52,7 +52,7 @@ void ModbusTcpSlave::waitNewClient(void)
           clientAdded = true;
 
           if(this->isDebug) {
-            this->mLogger.info (("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
+            this->mLogger.debug (("\tNew Client: [%d] remote Ip: %s\n"), i, clientOnLine[i].client.remoteIP().toString().c_str());
           }
           break;
        }
