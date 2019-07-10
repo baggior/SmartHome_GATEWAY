@@ -28,7 +28,7 @@
 
 // -----------------------------------------------
 
-#define RS485_DEBUG_FN(...)  { if(p_logger) {p_logger->printf(__VA_ARGS__);} }
+#define RS485_DEBUG_FN(...)  { if(p_logger) {p_logger->debug(__VA_ARGS__);} }
 
 // -----------------------------------------------
 
@@ -116,9 +116,14 @@ static Stream* initSerial(int _uart_nr, int _baud, int _databits, int _stopbits,
       case 1:
         p_hWser = &Serial1;
         break;
+
+#ifdef ESP32        
+
       case 2:
         p_hWser = &Serial2;
         break;
+        
+#endif        
       default:
         return NULL;
     }
@@ -149,7 +154,7 @@ static void endSerial() {
 
 
 
-static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
+static String calculateLRC(String CMD, _ApplicationLogger* p_logger)
 {
   unsigned char TOT = 0x00;
 
@@ -172,7 +177,7 @@ static String calculateLRC(String CMD, const _ApplicationLogger* p_logger)
   unsigned char TOT_c = ((~TOT + 1) & 0xFF);
   if ((TOT + TOT_c) & 0xFF)
   {
-    if(p_logger) p_logger->printf( F("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
+    if(p_logger) p_logger->error (("ERROR in LRC: [TOT + TOT_c <> 0] : %0X + %0X "), TOT, TOT_c); 
   }
 
   String LRC_String(TOT_c, 16);
@@ -200,8 +205,8 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
 {  
   this->p_logger = &this->theApp->getLogger();
 
-  if(! root.success()) {
-    this->p_logger->printf(F(">Rs485 Error initializing configuration. Json file error\n"));
+  if (root.isNull())  {
+    this->p_logger->error((">Rs485 Error initializing configuration. Json file error\n"));
     return _ConfigLoadError;
   }
   
@@ -214,7 +219,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   const char * _parity = root["parity"];
   this->defaultCommandTimeout = root["defaultCommandTimeout"];
   
-  this->p_logger->printf(F("\t%s Rs485 config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
+  this->p_logger->info(("\t%s Rs485 config: prefix: %s, appendLRC: %d, defaultCommandTimeout: %d, uart: %d, baud: %d, databits: %d, stopbits: %d, parity: %s \n"),
           this->getTitle().c_str(),
           REPLACE_NULL_STR(_prefix), this->appendLRC, defaultCommandTimeout, _uart_num, _baud, _databits, _stopbits, REPLACE_NULL_STR(_parity) );
 
@@ -237,7 +242,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   this->p_ser = initSerial(_uart_num, _baud,_databits,_stopbits, String(_parity).charAt(0));
 
   if(!p_ser) {
-    this->p_logger->printf(F(">Rs485 Error initializing Serial. Config out of range\n"));
+    this->p_logger->error((">Rs485 Error initializing Serial. Config out of range\n"));
     return _Error(2, "Rs485 Error: impossibile inizializzare la seriale");
   }
   
@@ -249,7 +254,7 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
   //Wait for 5+  8 data bits, 1 parity and 1 stop bits, just in case
   this->m_bitTime_us = (5+_databits+1+_stopbits)*( (1000000 / _baud) + 2 );
 
-  this->p_logger->printf( F("\tRs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
+  this->p_logger->info (("\tRs485 setup done: bitTime=%d us\n"), this->m_bitTime_us);
 
   return _NoError;
 }
@@ -258,8 +263,8 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
 _Error Rs485ServiceModule::setup() 
 {  
   const JsonObject& root = this->theApp->getConfig().getJsonObject("rs485");  
-  if(root.success()) 
-  {
+  if(!root.isNull()) 
+  {    
     return this->setup(root);
   }
 
@@ -268,6 +273,8 @@ _Error Rs485ServiceModule::setup()
 
 void Rs485ServiceModule::shutdown()
 {
+  this->theApp->getLogger().info(("%s: Module shutdown..\n"), this->getTitle().c_str());
+  
   if(p_ser!=NULL) {
 
     p_ser->flush();
@@ -346,7 +353,7 @@ String Rs485ServiceModule::sendMasterCommand(String &CMD, int maxReponseWaitTime
     this->postTransmit();
 
     
-    RS485_DEBUG_FN(F("RS485 SENT: [%s]"),packet);
+    RS485_DEBUG_FN( ("RS485 SENT: [%s]"),packet.c_str());
 
     // dbgstream->print("RS485 SENT: [");    dbgstream->print(packet);    dbgstream->println("]");
   }
@@ -372,7 +379,7 @@ String Rs485ServiceModule::sendMasterCommand(String &CMD, int maxReponseWaitTime
   }
     
   RESPONSE.trim();
-  RS485_DEBUG_FN(F("RS485 READ: [%s]"),RESPONSE.c_str());
+  RS485_DEBUG_FN( ("RS485 READ: [%s]"),RESPONSE.c_str());
   // dbgstream->println("RS485 READ: [" + RESPONSE + "]");       
 
   return RESPONSE;
@@ -395,7 +402,7 @@ Rs485ServiceModule::BINARY_BUFFER_T Rs485ServiceModule::sendMasterCommand(Rs485S
   for (uint8_t data: CMD) 
   {
     size_t ret = p_ser->write(data);   
-    RS485_DEBUG_FN( F("serial write data: 0x%0X\n"), data) ;
+    RS485_DEBUG_FN( ("serial write data: 0x%0X\n"), data) ;
     // Stream_printf(*dbgstream, F("serial write %d\n"), data);
   }
 
@@ -405,23 +412,23 @@ Rs485ServiceModule::BINARY_BUFFER_T Rs485ServiceModule::sendMasterCommand(Rs485S
   if(maxReponseWaitTime>0)
   {
     //wait for a RESPONSE    
-    long delayTime = _min(maxReponseWaitTime,10);
-    RS485_DEBUG_FN( F("serial wait %d\n"), delayTime) ;
+    size_t delayTime = _min(maxReponseWaitTime,10);
+    RS485_DEBUG_FN( ("serial wait %d\n"), delayTime) ;
     // Stream_printf(*dbgstream, F("serial wait %d\n"), delayTime);
     delay(delayTime);
     while (p_ser->available()==0 && delayTime<maxReponseWaitTime)
     {
       delayTime = _min(maxReponseWaitTime,3*delayTime);
-      RS485_DEBUG_FN( F("serial wait %d\n"), delayTime) ;
+      RS485_DEBUG_FN( ("serial wait %d\n"), delayTime) ;
       delay(delayTime);
     }
     
     while (p_ser->available() > 0)
     {
       // legge il contenuto del bus 
-      RS485_DEBUG_FN( F("serial available to read %d bytes.."), p_ser->available()) ;      
+      RS485_DEBUG_FN( ("serial available to read %d bytes.."), p_ser->available()) ;      
       uint8_t data = p_ser->read();
-      RS485_DEBUG_FN( F(", read data: 0x%0X\n"), data);
+      RS485_DEBUG_FN( (", read data: 0x%0X\n"), data);
 
       RESPONSE.push_back(data);
       yield();      

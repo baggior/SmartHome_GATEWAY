@@ -1,7 +1,7 @@
 #ifndef rs485svmodule_h
 #define rs485svmodule_h
 
-#include <coreapi.h>
+#include "coreapi.h"
 
 #include <vector.h>
 
@@ -48,7 +48,7 @@ private:
 
     // Stream * p_dbgstream;
 
-    const _ApplicationLogger * p_logger=NULL;
+    _ApplicationLogger * p_logger=NULL;
 
     bool appendLRC=false;
     String prefix;

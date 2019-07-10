@@ -1,0 +1,36 @@
+{
+    "name":"Core Api",
+    "description":"Modularized application framework Library for ESP8266 and ESP32",
+    "keywords":"application,async,restapi,webserver,modbus",
+    "authors":
+    {
+      "name": "Marco Tombesi",
+      "maintainer": true
+    },
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/baggior/CoreApi.git"
+    },
+    "version": "1.0.0",
+    "license": "MIT",
+    "frameworks": "arduino",
+    "platforms": ["espressif8266", "espressif32"],
+    "dependencies": [
+      {
+        "name":"ESP Async WebServer"        
+      },
+      {
+        "name": "ArduinoJson"
+      },
+      {
+        "name": "TaskScheduler"
+      },
+      {
+        "name": "RemoteDebug"
+      },
+      {
+        "name": "WifiManager"
+      }
+    ]
+  }

@@ -18,8 +18,8 @@ _Error ModbusPollingModule::setup()
     bool on = false;
     int task_listen_interval = 0;
 
-    const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");  
-    if(root.success()) 
+    const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");      
+    if(!root.isNull()) 
     {
         on = root["enable"];   
         task_listen_interval = root["task_listen_interval"];   
@@ -29,7 +29,7 @@ _Error ModbusPollingModule::setup()
     if(!task_listen_interval) task_listen_interval=DEFAULT_MODBUS_TASK_LOOP_TIME_MS;
     this->taskLoopTimeMs = task_listen_interval;
 
-    this->theApp->getLogger().printf( F("\t%s config: enable: %u,.. , taskLoopTimeMs: %d \n"),
+    this->theApp->getLogger().info (("\t%s config: enable: %u,.. , taskLoopTimeMs: %d \n"),
         this->getTitle().c_str(), on
         , this->taskLoopTimeMs);
     
@@ -39,24 +39,24 @@ _Error ModbusPollingModule::setup()
         this->p_modbus = this->theApp->getModule<ModbusServiceModule>("ModbusServiceModule");
         if(!this->p_modbus)
         {
-            this->theApp->getLogger().printf(F(">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
+            this->theApp->getLogger().error((">ModbusPollingModule Error servizio ModbusServiceModule non esistente\n"));
             return _Error(2, "ModbusPollingModule Error: servizio ModbusServiceModule non esistente");            
         }
 
         const JsonArray& memoryConfigArray = root["dataMemoryConfig"];  
-        if(memoryConfigArray.success())  
+        if(!memoryConfigArray.isNull()) 
         {            
             this->p_modbus->buildDataMemory(memoryConfigArray, this->modbusDataMemory);
 
             size_t coils = this->modbusDataMemory.getCoils().size();
             size_t regs = this->modbusDataMemory.getRegisters().size();
 
-            this->theApp->getLogger().printf(F(">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
+            this->theApp->getLogger().debug((">ModbusPollingModule: ModbusDataMemory inizializzata: %d coils, %d registers \n")
                 , coils, regs );
         }
         else
         {
-            this->theApp->getLogger().printf(F(">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
+            this->theApp->getLogger().warn((">ModbusPollingModule: Configurazione della ModbusDataMemory non esistente\n"));
             return _Disable;
         }
 
@@ -64,7 +64,7 @@ _Error ModbusPollingModule::setup()
         this->p_mqtt = this->theApp->getModule<MqttModule>(ENUM_TO_STR(_CoreMqttModule));
         if(!this->p_mqtt)
         {
-            this->theApp->getLogger().printf(F(">MqttModule Error servizio MqttModule non esistente\n"));
+            this->theApp->getLogger().error((">MqttModule Error servizio MqttModule non esistente\n"));
             return _Error(2, "MqttModule Error: servizio MqttModule non esistente");            
         }
         //TODO

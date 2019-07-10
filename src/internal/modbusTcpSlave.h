@@ -7,7 +7,7 @@
 
 #define MODBUSIP_MAXFRAME   200
 #define TCP_BUFFER_SIZE     300
-#define FRAME_COUNT          10
+#define FRAME_COUNT          35
 #define CLIENT_NUM            4
 #define MODBUSIP_PORT       502
 #define RTU_TIMEOUT        2000
@@ -48,16 +48,17 @@ private:
         uint8_t   _ui;  // Unit Identifier
     };
 
-    struct
+    struct clientOnLine_t
     {
         WiFiClient client;
         bool onLine;
-    } clientOnLine[CLIENT_NUM];
+    };
 
+    clientOnLine_t clientOnLine[CLIENT_NUM];
     struct smbFrame mbFrame[FRAME_COUNT];
 
     WiFiServer mbServer;
-    const _ApplicationLogger& mLogger;
+    _ApplicationLogger& mLogger;
     const bool isDebug = false;
 
     void waitNewClient (void);  //
@@ -69,9 +70,9 @@ private:
     void mbapUnpack (smbap* pmbap, uint8_t * buff );
 
 public:
-    ModbusTcpSlave(const _ApplicationLogger& logger, uint16_t port, bool _isDebug);
+    ModbusTcpSlave(_ApplicationLogger& logger, uint16_t port, bool _isDebug);
     ~ModbusTcpSlave();
-    void task(void);
+    // void task(void);
     smbFrame * getFreeBuffer (void);
     smbFrame * getReadyToSendRtuBuffer (void);
     smbFrame * getWaitFromRtuBuffer (void);

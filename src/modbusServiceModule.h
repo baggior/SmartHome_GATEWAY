@@ -2,7 +2,7 @@
 #define modbusservicemodule_h
 
 
-#include <coreapi.h>
+#include "coreapi.h"
 #include <vector.h>
 
 #include "rs485ServiceModule.h"
