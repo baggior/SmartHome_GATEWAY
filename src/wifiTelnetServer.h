@@ -1,7 +1,7 @@
 #ifndef wifitelnetserver_h
 #define wifitelnetserver_h
 
-#include "coreapi.h"
+#include <coreapi.h>
 
 #include <WifiServer.h>
 #include <WifiClient.h>

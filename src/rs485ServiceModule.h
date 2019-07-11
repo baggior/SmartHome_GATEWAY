@@ -1,7 +1,7 @@
 #ifndef rs485svmodule_h
 #define rs485svmodule_h
 
-#include "coreapi.h"
+#include <coreapi.h>
 
 #include <vector.h>
 
