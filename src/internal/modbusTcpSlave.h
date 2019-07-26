@@ -73,10 +73,10 @@ public:
     ModbusTcpSlave(_ApplicationLogger& logger, uint16_t port, bool _isDebug);
     ~ModbusTcpSlave();
     // void task(void);
-    smbFrame * getFreeBuffer (void);
-    smbFrame * getReadyToSendRtuBuffer (void);
-    smbFrame * getWaitFromRtuBuffer (void);
-    smbFrame * getReadyToSendTcpBuffer (void);
+    smbFrame * getFreeBuffer ();
+    smbFrame * getReadyToSendRtuBuffer ();
+    smbFrame * getWaitFromRtuBuffer ();
+    smbFrame * getReadyToSendTcpBuffer ();
 
 };
 

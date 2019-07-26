@@ -241,7 +241,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getReadyToSendRtuBuffer ()
   if (pointer != 255)
     return &mbFrame[pointer]; //returns the LEAST RECENTLY modified frame buffer
   else
-    return 0;
+    return NULL;
 }
 
 ModbusTcpSlave::smbFrame * ModbusTcpSlave::getWaitFromRtuBuffer ()
@@ -251,7 +251,7 @@ ModbusTcpSlave::smbFrame * ModbusTcpSlave::getWaitFromRtuBuffer ()
     if(mbFrame[i].status == frameStatus::waitFromRtu )
       return &mbFrame[i];
   }
-  return 0;
+  return NULL;
 }
 ModbusTcpSlave::smbFrame *ModbusTcpSlave::getReadyToSendTcpBuffer ()
 {
@@ -260,7 +260,7 @@ ModbusTcpSlave::smbFrame *ModbusTcpSlave::getReadyToSendTcpBuffer ()
     if(mbFrame[i].status == frameStatus::readyToSendTcp )
       return &mbFrame[i];
   }
-  return 0;
+  return NULL;
 }
 void ModbusTcpSlave::mbapUnpack(smbap* pmbap, uint8_t * buff )
 {

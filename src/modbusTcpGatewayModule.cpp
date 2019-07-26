@@ -193,12 +193,13 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                             uint8_t* rtubuffer = (uint8_t*) (pmbFrame->buffer + rtu_base);  
 
                             // uint8_t asciibuffer[ASCII_BUFFER_SIZE];
-                            String ascii_string = convertRtuToAsci(rtubuffer, rtu_len);
-                            if(ascii_string.length()>0)
+                            String ascii_string_pdu = convertRtuToAsci(rtubuffer, rtu_len);
+                            if(ascii_string_pdu.length()>0)
                             {
                                 //add LRC
-                                unsigned char lrc = baseutils::calculateLRC( ascii_string.c_str(), ascii_string.length() );
-                                ascii_string += lrc;
+                                unsigned char lrc = baseutils::calculateLRC( ascii_string_pdu.c_str(), ascii_string_pdu.length() );
+                                
+                                String ascii_string = ":" + ascii_string_pdu + lrc + "\r\n"; // CR=13 LF=10
 
                                 // write to ASCII len bytes from asciibuffer
                                 size_t written = this->p_rs485->write( ascii_string );
@@ -526,7 +527,7 @@ size_t guessRtuResponseFrameDataSize(uint8_t* buffer, size_t len) {
 
 String convertRtuToAsci ( uint8_t* rtubuffer, size_t len)
 {
-    String ret;
+    String ret = ":"; // start ASCI MESSAGE delimiting character
     if (rtubuffer && len>0) 
     {
         for (size_t i=0; i<len; ++i)
