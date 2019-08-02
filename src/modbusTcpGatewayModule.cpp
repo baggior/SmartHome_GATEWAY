@@ -3,9 +3,9 @@
 // #include <ModbusMaster.h>
 #include <functional>
 
+
 #include "modbusTcpGatewayModule.h"
 #include "internal/modbusTcpSlave.h"
-
 #define RTU_BUFFER_SIZE                     264
 #define RTU_RESPONSE_END_TIMEOUT_MILLIS     200
 
@@ -92,20 +92,19 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
     }
 
     bool on = root["enable"] | false;
-
     this->modbus_ascii = root["to_modbus_ascii"] | false;
     
     // config  
     const unsigned int _tcp_port = root["tcp_port"];
     
-    this->theApp->getLogger().info(("\t%s Modbus TCP gateway config: tcp_port: %d, convert to_modbus_ascii: %d \n"), 
-        this->getTitle().c_str(), _tcp_port, this->modbus_ascii );
+    this->theApp->getLogger().info(("\t%s Modbus TCP gateway config: enabled: %d, tcp_port: %d, convert to_modbus_ascii: %d \n"), 
+        this->getTitle().c_str(), on, _tcp_port, this->modbus_ascii );
     
     if(_tcp_port) 
         this->tcp_port = _tcp_port;
 
     if (on)
-    {
+    {        
         // -----------------------
         // MODBUS TCP SLAVE SETUP:
         p_tcpSlave = new ModbusTcpSlave(this->theApp->getLogger(), this->tcp_port, this->theApp->isDebug() );       
@@ -131,8 +130,7 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
         return _Disable;
     }
     
-    return _NoError;
-   
+    return _NoError;   
 }
 
 void ModbusTCPGatewayModule::shutdown()
@@ -196,9 +194,10 @@ void ModbusTCPGatewayModule::serialTransactionTask()
                             String ascii_string_pdu = convertRtuToAsci(rtubuffer, rtu_len);
                             if(ascii_string_pdu.length()>0)
                             {
-                                //add LRC
+                                // LRC
                                 unsigned char lrc = baseutils::calculateLRC( ascii_string_pdu.c_str(), ascii_string_pdu.length() );
-                                
+
+                                // ASCII PACKET
                                 String ascii_string = ":" + ascii_string_pdu + lrc + "\r\n"; // CR=13 LF=10
 
                                 // write to ASCII len bytes from asciibuffer

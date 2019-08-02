@@ -6,7 +6,7 @@
 #include <coreapi.h>
 
 #define MODBUSIP_MAXFRAME   200
-#define TCP_BUFFER_SIZE     300
+#define TCP_BUFFER_SIZE    3000
 #define FRAME_COUNT          35
 #define CLIENT_NUM            4
 #define MODBUSIP_PORT       502

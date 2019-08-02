@@ -30,20 +30,22 @@
     "baud": 9600,
     "databits": 8,
     "stopbits": 1,
-    "parity": "N",
+    "parity": "N"    
+  },
 
-    "monitor": {
-      "_comment":  "TODO: parse config... Monitor serial protocol",    
-      "enabled": true,
-      "forward_rest_url": "http://192.168.22.17:8080/mbanalyzer/monitor"
-
-    }
+  "rs485_monitor": {
+    "_comment":  "TODO: parse config... Monitor protocol",    
+    "enabled": true,
+    "post_rest_url": "http://192.168.22.17:8080/mbanalyzer/monitor",
+    
+    "modbus_ascii" : true
   },
 
   "modbus_tcp_gtw": {
-    "enable": true,
-    
-    "tcp_port": 502
+    "_comment":  "Modbus TCP Gateway Server. NOTE: converts to MODBUS ASCII if to_modbus_ascii:true ",
+    "enable": true,    
+    "tcp_port": 502,
+    "to_modbus_ascii" : false    
   },
 
 

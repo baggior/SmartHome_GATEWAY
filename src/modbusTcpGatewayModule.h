@@ -26,6 +26,8 @@ protected:
 
 private:   
 
+    _Error setupMonitor(const JsonObject &root_monitor);
+
     void serialTransactionTask();
 
     uint16_t status = 0;

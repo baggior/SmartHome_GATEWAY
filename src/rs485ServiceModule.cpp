@@ -260,12 +260,14 @@ _Error Rs485ServiceModule::setup(const JsonObject &root)
 }
 
 
+
+
 _Error Rs485ServiceModule::setup() 
 {  
   const JsonObject& root = this->theApp->getConfig().getJsonObject("rs485");  
   if(!root.isNull()) 
   {    
-    return this->setup(root);
+    return this->setup(root);    
   }
 
   return _Disable;

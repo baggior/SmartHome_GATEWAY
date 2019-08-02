@@ -13,6 +13,7 @@
 
 // #include "wifiTelnetServer.h"
 #include "rs485ServiceModule.h"
+#include "rs485MonitorModule.h"
 // #include "webSocketRs485Gateway.h"
 // #include "ota.h"
 // #include "mqttclient.h"
@@ -45,6 +46,8 @@ ModbusPollingModule modbusPollingModule;
 
 // Rs485 rs485;
 Rs485ServiceModule rs485;
+Rs485MonitorModule rs485Monitor;
+
 // ModbusServiceModule modbus;
 ModbusTCPGatewayModule modbusTcpGateway;
 
@@ -123,6 +126,8 @@ void setup() {
     app.addModule(&modbusPollingModule);
     app.addModule(&modbusTcpGateway);
     app.addModule(&rs485);
+    app.addModule(&rs485Monitor);
+    
     // app.addModule(&mqtt);
     _Error ret = app.setup();
     if(ret!=_NoError) {
