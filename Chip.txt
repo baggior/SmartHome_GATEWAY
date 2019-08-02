@@ -1,3 +1,4 @@
+Chip ID: 240AC41D3E00
 Chip is ESP32D0WDQ5 (revision 1)
 Features: WiFi, BT, Dual Core, Coding Scheme None
 MAC: 24:0a:c4:1d:3e:00
@@ -9,3 +10,16 @@ Chip ID: 30AEA486A9BC
 Chip is ESP32D0WDQ6 (revision 1)
 Features: WiFi, BT, Dual Core, Coding Scheme None
 MAC: 30:ae:a4:86:a9:bc
+
+------------------------------------
+Chip ID: ?
+Chip is ?
+Features: ?
+MAC: ?
+
+------------------------------------
+Chip ID: ?
+Chip is ?
+Features: ?
+MAC: ?
+

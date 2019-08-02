@@ -1,0 +1,83 @@
+{
+  "log": {
+    "enable": true,
+    
+    "remote_log": {
+      "_comment":  "Can acceess log remotely via telnet port 23",
+      "enable": true
+    },
+
+    "serial_log" : {
+      "_comment":  "logs to serial COM port",
+      "enable": true,
+      "uart": 1,
+      "baud": 115200,
+      "databits": 8,
+      "stopbits": 1,
+      "parity": "N"
+    }
+
+  },
+
+  "wifi": {
+    "_comment":  "WiFi connection settings"
+    // "SSID": "cent15c",
+    // "password": "elettronica",
+    // "hostname": "shgw_*",
+    // "static_ip": "192.168.1.12",
+    // "static_gw": "192.168.1.1",
+    // "static_sn": "255.255.255.0",
+    // "static_dns1": "192.168.1.1"
+  },  
+
+  "rs485": {
+    "uart": 2,
+    "baud": 9600,
+    "databits": 8,
+    "stopbits": 1,
+    "parity": "N"
+  },
+
+  "modbus_tcp_gtw": {
+    "enable": true,
+    
+    "tcp_port": 502
+  },
+
+
+  "telnet": {
+    "_comment":  "Telnet Server. NOTE: disable it if log.remote_log is enabled",
+    "enable": false,
+    "port": 23,
+    "inactivetime": 300,
+    "task_listen_interval": 100
+  },
+
+  "rest": {
+    "_comment":  "REST Http Server.",
+    "enable": true,
+    "server_port": 80,
+    "server_auth": {
+      "username": null,
+      "password": null
+    },
+    "spiffs_editor": {
+      "_comment":  "SPIFFS data files access via Http Server.",
+      "enable": true,
+      "username": "esp",
+      "password": "esp"
+    }
+  },
+
+  "ftp": {
+    "_comment":  "FTP Server access to SPIFFS data files.",
+    "enable": false,
+    "server_auth": {
+      "username": "esp",
+      "password": "esp"
+    },
+    "task_listen_interval": 20
+  }
+  
+  
+}
