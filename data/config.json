@@ -3,10 +3,12 @@
     "enable": true,
     
     "remote_log": {
+      "_comment":  "Can acceess log remotely via TELNET port 23 or HTTP WEBSOCKET port 8232",
       "enable": true
     },
 
     "serial_log" : {
+      "_comment":  "TODO: parse config.. logs to serial COM port",
       "enable": true,
       "uart": 1,
       "baud": 115200,
@@ -18,21 +20,24 @@
   },
 
   "wifi": {
-    // "SSID": "cent15c",
-    // "password": "elettronica",
-    // "hostname": "shgw_*",
-    // "static_ip": "192.168.1.12",
-    // "static_gw": "192.168.1.1",
-    // "static_sn": "255.255.255.0",
-    // "static_dns1": "192.168.1.1"
+    "_comment":  "WiFi connection settings"
+ 
   },  
 
   "rs485": {
+    "_comment":  "Serial UART 2 line connection",    
     "uart": 2,
     "baud": 9600,
     "databits": 8,
     "stopbits": 1,
-    "parity": "N"
+    "parity": "N",
+
+    "monitor": {
+      "_comment":  "TODO: parse config... Monitor serial protocol",    
+      "enabled": true,
+      "forward_rest_url": "http://192.168.22.17:8080/mbanalyzer/monitor"
+
+    }
   },
 
   "modbus_tcp_gtw": {
@@ -41,47 +46,17 @@
     "tcp_port": 502
   },
 
-  "modbusPolling": {
-    "enable": false,
-    "task_listen_interval": 10000,
-    "dataMemoryConfig": [
-      {
-        "topic": "onoff",
-        "modbus_type": "coil",
-        "address": 1,
-        "count": 78
-      },
-      {
-        "modbus_type": "register",
-        "address": 1,
-        "count": 89
-      },
-      {
-        "topic": "register2",
-        "modbus_type": "register",
-        "address": 209,
-        "count": 35
-      }
-    ]
-  },
 
   "telnet": {
+    "_comment":  "Telnet Server. NOTE: disable it if log.remote_log is enabled",
     "enable": false,
     "port": 23,
     "inactivetime": 300,
     "task_listen_interval": 100
   },
-  "websocket": {
-    "enable": false,
-    "server_port": 81,
-    "protocol": null,
-    "server_auth": {
-      "username": null,
-      "password": null
-    },
-    "task_listen_interval": 10
-  },
+
   "rest": {
+    "_comment":  "REST Http Server.",
     "enable": true,
     "server_port": 80,
     "server_auth": {
@@ -89,38 +64,22 @@
       "password": null
     },
     "spiffs_editor": {
+      "_comment":  "SPIFFS data files access via Http Server.",
       "enable": true,
       "username": "esp",
       "password": "esp"
     }
   },
+
   "ftp": {
+    "_comment":  "FTP Server access to SPIFFS data files.",
     "enable": false,
     "server_auth": {
       "username": "esp",
       "password": "esp"
     },
     "task_listen_interval": 20
-  },
-  "mqtt": {
-    "enable": false,
-    "mqtt_server_host": "iot.eclipse.org",
-    "mqtt_server_port": 1883,
-    "client_id": "shgw_*",
-    "topic_prefix": "HPU_KITA",
-    "task_listen_interval": 50
-    // ,
-    // "cayenne" : {    
-
-    //   "enable": true,
-    //   "username_token": "36cc5bb0-266e-11e7-a4a6-237007b7399c",
-    //   "mqttpassword_token": "cd82e8f61ca283c10209db705d6c10582d619693",
-    //   "client_id": "e6fd0b70-b56f-11e7-bd7e-3193fab997a8",
-    //   "mqtt_server_host": "mqtt.mydevices.com",
-    //   "mqtt_server_port": 1883
-    // }
-
-  }   
-
+  }
+  
   
 }

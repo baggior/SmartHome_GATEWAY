@@ -12,10 +12,10 @@ Features: WiFi, BT, Dual Core, Coding Scheme None
 MAC: 30:ae:a4:86:a9:bc
 
 ------------------------------------
-Chip ID: ?
-Chip is ?
-Features: ?
-MAC: ?
+Chip ID: CC50E3B64928
+Chip is ESP32D0WDQ6 (revision 1)
+Features: WiFi, BT, Dual Core, 240MHz, VRef calibration in efuse, Coding Scheme None
+MAC: cc:50:e3:b6:49:28
 
 ------------------------------------
 Chip ID: ?
