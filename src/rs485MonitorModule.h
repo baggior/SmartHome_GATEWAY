@@ -36,6 +36,7 @@ private:
 
     String monitor_post_rest_url;    
     bool modbus_ascii = false;
+    uint32_t packet_separation_time_ms;
 
     uint8_t frameBuffer[BUFFER_MAX_SIZE];
     uint16_t frameBuffer_len=0;
