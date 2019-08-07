@@ -161,7 +161,7 @@ void Rs485MonitorModule::serialTransactionTask()
 
 static _Error postToHttpServer(String url, uint8_t *const frameBuffer, const uint16_t frameBuffer_len, bool ascii)
 {
-    // TODO: remove -> test
+    //
     _Error ret = _NoError;
 
     HTTPClient httpClient;
@@ -174,11 +174,11 @@ static _Error postToHttpServer(String url, uint8_t *const frameBuffer, const uin
     }
     else
     {
-
         String post_json_payload_string;
         // convert buffer -> post JSON payload
         {
-            const size_t capacity = JSON_OBJECT_SIZE(2);
+            // https://arduinojson.org/v6/assistant/ Serializing 
+            const size_t capacity = JSON_OBJECT_SIZE(3);
             DynamicJsonDocument doc(capacity);
             doc["ts"] = millis(); //    1351824120;
 
@@ -187,14 +187,14 @@ static _Error postToHttpServer(String url, uint8_t *const frameBuffer, const uin
                 frameBuffer[frameBuffer_len] = '\0';
                 String payload_encoded( (const char *)frameBuffer );
                 doc["packet"] = payload_encoded;     
-                doc["mode"] = 'ascii';     
+                doc["mode"] = "ascii";     
             }
             else
             {
                 size_t outputLength;
                 unsigned char *payload_encoded = base64_encode((const unsigned char *)frameBuffer, frameBuffer_len, &outputLength);
                 doc["packet"] = payload_encoded;                
-                doc["mode"] = 'binary_encoded';     
+                doc["mode"] = "binary_encoded";     
             }
 
             size_t size = serializeJson(doc, post_json_payload_string);
