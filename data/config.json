@@ -36,7 +36,7 @@
   "rs485_monitor": {
     "_comment":  "Monitor serial communication protocol",    
     "enabled": true,
-    "post_rest_url": "http://192.168.22.17:8080/mbanalyzer/monitor",
+    "post_rest_url": "http://192.168.22.17:3000/mbanalyzer/monitor",
     
     "packet_separation_time_ms": 100,
     "modbus_ascii" : true

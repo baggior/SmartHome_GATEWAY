@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "C:\\PRJ2\\GIT\\SH\\SmartHome_LIB\\coreapi"
+		},
+		{
+			"path": "C:\\PRJ2\\GIT\\SH\\Modbus_Analyzer\\modbus-analyzer"
+		}
+	],
+	"settings": {
+		"terminal.integrated.env.windows": {
+			"PATH": "C:\\Users\\utente\\.platformio\\penv\\Scripts;C:\\Users\\utente\\.platformio\\penv;C:\\ProgramData\\DockerDesktop\\version-bin;C:\\Program Files\\Docker\\Docker\\Resources\\bin;C:\\WINDOWS;C:\\WINDOWS\\system32;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;c:\\Program Files (x86)\\HP\\HP Performance Advisor;C:\\Program Files (x86)\\PuTTY\\;C:\\Program Files\\Git\\cmd;C:\\Java\\jdk-11.0.1\\bin;C:\\Program Files\\OpenVPN\\bin;C:\\Program Files (x86)\\Infocert\\DiKe 6\\RAO;C:\\Program Files\\TortoiseSVN\\bin;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Users\\utente\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\utente\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\utente\\AppData\\Local\\GitHubDesktop\\bin;C:\\Users\\utente\\.platformio\\penv\\Scripts;C:\\Users\\utente\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Java\\apache-maven-3.6.0\\bin;C:\\Users\\utente\\AppData\\Roaming\\npm;;C:\\ProgramData\\DockerDesktop\\version-bin;C:\\Program Files\\Docker\\Docker\\Resources\\bin;C:\\WINDOWS;C:\\WINDOWS\\system32;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;c:\\Program Files (x86)\\HP\\HP Performance Advisor;C:\\Program Files (x86)\\PuTTY\\;C:\\Program Files\\Git\\cmd;C:\\Java\\jdk-11.0.1\\bin;C:\\Program Files\\OpenVPN\\bin;C:\\Program Files (x86)\\Infocert\\DiKe 6\\RAO;C:\\Program Files\\TortoiseSVN\\bin;C:\\Program Files (x86)\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Program Files\\Intel\\Intel(R) Management Engine Components\\DAL;C:\\Users\\utente\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\utente\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\utente\\AppData\\Local\\GitHubDesktop\\bin;C:\\Users\\utente\\.platformio\\penv\\Scripts;C:\\Users\\utente\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Java\\apache-maven-3.6.0\\bin;C:\\Users\\utente\\AppData\\Roaming\\npm;",
+			"PLATFORMIO_CALLER": "vscode"
+		}
+	}
+}

@@ -180,19 +180,21 @@ static _Error postToHttpServer(String url, uint8_t *const frameBuffer, const uin
         {
             const size_t capacity = JSON_OBJECT_SIZE(2);
             DynamicJsonDocument doc(capacity);
-            doc["time"] = millis(); //    1351824120;
+            doc["ts"] = millis(); //    1351824120;
 
             if(ascii)
             {
                 frameBuffer[frameBuffer_len] = '\0';
                 String payload_encoded( (const char *)frameBuffer );
                 doc["packet"] = payload_encoded;     
+                doc["mode"] = 'ascii';     
             }
             else
             {
                 size_t outputLength;
                 unsigned char *payload_encoded = base64_encode((const unsigned char *)frameBuffer, frameBuffer_len, &outputLength);
                 doc["packet"] = payload_encoded;                
+                doc["mode"] = 'binary_encoded';     
             }
 
             size_t size = serializeJson(doc, post_json_payload_string);
