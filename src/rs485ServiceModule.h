@@ -3,7 +3,7 @@
 
 #include <coreapi.h>
 
-#include <vector.h>
+#include <etl/vector.h>
 
 class Rs485ServiceModule : public _BaseModule
 {

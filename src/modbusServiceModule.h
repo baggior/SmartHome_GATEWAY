@@ -3,7 +3,7 @@
 
 
 #include <coreapi.h>
-#include <vector.h>
+#include <etl/vector.h>
 
 #include "rs485ServiceModule.h"
 
