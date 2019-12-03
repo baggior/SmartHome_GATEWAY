@@ -6,6 +6,8 @@
 #include <ConfigurableSoftwareSerial.h>
 #include <HardwareSerial.h>
 
+#include <utils/dbgutils.h>
+
 #ifdef ESP8266
 #define RS485_RO_RX D1        //receive out
 #define RS485_DI_TX D2        //data in

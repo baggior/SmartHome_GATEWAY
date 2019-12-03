@@ -11,6 +11,8 @@
 
 #define TEST_REPLY_RTU                      false
 
+#include <utils/baseutils.h>
+
 /* ---------------------------------------
 * Modbus-TCP 
 *    \/

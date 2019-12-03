@@ -4,6 +4,7 @@
 
 #define DATAMEMORY_LOG_FILE "/LOG/modbuspollingdata.json"
 
+#include <utils/baseutils.h>
 
 ModbusPollingModule::ModbusPollingModule() 
 :   _TaskModule("ModbusPollingModule", "Scan configured registers values and forwards them to MQTT", DEFAULT_MODBUS_TASK_LOOP_TIME_MS),

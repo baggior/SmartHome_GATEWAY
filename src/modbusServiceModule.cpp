@@ -4,6 +4,9 @@
 
 #include "modbusServiceModule.h"
 
+#include <utils/dbgutils.h>
+
+
 
 #define min(a,b) ((a)<(b)?(a):(b))
 

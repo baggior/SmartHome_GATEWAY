@@ -3,6 +3,7 @@
 
 
 #include <coreapi.h>
+#include <coreapi_restmodule.h>
 
 class WifiRestServerModule : public _RestApiModule 
 {

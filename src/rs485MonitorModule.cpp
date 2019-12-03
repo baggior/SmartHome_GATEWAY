@@ -10,6 +10,8 @@ extern "C"
 
 #include "rs485MonitorModule.h"
 
+#include <utils/dbgutils.h>
+
 #define DEFAULT_TIME_PACKET_END_MS 100 // TODO: config time to separate monitored packets
 
 static _Error postToHttpServer(String url, uint8_t *const frameBuffer, const uint16_t frameBuffer_len, bool ascii=false);
