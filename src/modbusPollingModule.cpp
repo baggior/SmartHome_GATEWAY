@@ -22,6 +22,8 @@ _Error ModbusPollingModule::setup()
     const JsonObject& root = this->theApp->getConfig().getJsonObject("modbusPolling");      
     if(!root.isNull()) 
     {
+        this->setupBaseModule(root);
+        
         on = root["enable"];   
         task_listen_interval = root["task_listen_interval"];   
         //TODO..

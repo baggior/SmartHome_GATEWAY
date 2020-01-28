@@ -43,6 +43,8 @@ _Error Rs485MonitorModule::setup()
         return _Error(3, "Rs485MonitorModule Error: servizio _Rs485Service esistente ma disabilitato");
     }
 
+    this->setupBaseModule(root);
+
     bool on = root["enable"] | false;
     this->modbus_ascii = root["modbus_ascii"] | false;
     this->monitor_post_rest_url = (const char *)root["post_rest_url"];

@@ -44,6 +44,7 @@
 
   "modbus_tcp_gtw": {
     "_comment":  "Modbus TCP Gateway Server. NOTE: converts to MODBUS ASCII if to_modbus_ascii:true ",
+    "mdns_service_name": "mbap",
     "enable": true,    
     "tcp_port": 502,
     "to_modbus_ascii" : false    
@@ -52,6 +53,7 @@
 
   "telnet": {
     "_comment":  "Telnet Server. NOTE: disable it if log.remote_log is enabled",
+    "mdns_service_name": "telnet",
     "enable": false,
     "port": 23,
     "inactivetime": 300,
@@ -60,6 +62,7 @@
 
   "rest": {
     "_comment":  "REST Http Server.",
+    "mdns_service_name": "http",
     "enable": true,
     "server_port": 80,
     "server_auth": {
@@ -76,6 +79,7 @@
 
   "ftp": {
     "_comment":  "FTP Server access to SPIFFS data files.",
+    "mdns_service_name": "http",
     "enable": false,
     "server_auth": {
       "username": "esp",

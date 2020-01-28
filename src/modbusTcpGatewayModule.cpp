@@ -125,7 +125,7 @@ _Error ModbusTCPGatewayModule::setup(const JsonObject &root)
 
         // -----------------------        
         // mdns announce MODBUS TCP service
-        this->theApp->getNetServices().mdnsAnnounceService(this->tcp_port, this->getTitle());
+        this->theApp->getDiscoveryServices().mdnsAnnounceService(this->tcp_port, this);
     }
     else 
     {
