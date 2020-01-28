@@ -48,7 +48,7 @@ private:
 
     // Stream * p_dbgstream;
 
-    _ApplicationLogger * p_logger=NULL;
+    // _ApplicationLogger * p_logger=NULL;
 
     bool appendLRC=false;
     String prefix;
